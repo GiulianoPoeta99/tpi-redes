@@ -1,0 +1,64 @@
+# Rust
+/backend/target/
+/backend/Cargo.lock
+**/*.rs.bk
+
+# Node.js
+/frontend/node_modules/
+/frontend/.svelte-kit/
+/frontend/build/
+/frontend/package-lock.json
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+
+# Tauri
+/frontend/src-tauri/target/
+/frontend/src-tauri/Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+*.lcov
+
+# Application data
+/data/
+/config/
+/persistence/
+
+.cursor/
+.kiro/

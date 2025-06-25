@@ -1,0 +1,55 @@
+[package]
+name = "file-transfer-backend"
+version = "0.1.0"
+edition = "2021"
+
+# Configure as both library and binary
+[lib]
+name = "file_transfer_backend"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "file-transfer-cli"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Cryptography
+sha2 = "0.10"
+
+# CLI parsing
+clap = { version = "4.0", features = ["derive"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Networking
+socket2 = "0.5"
+
+# File operations
+tokio-util = { version = "0.7", features = ["io"] }
+
+# Configuration
+config = "0.14"
+dirs = "5.0"
+
+# UUID generation
+uuid = { version = "1.0", features = ["v4"] }
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.0"
