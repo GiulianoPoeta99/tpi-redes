@@ -191,31 +191,386 @@ impl TransferResult {
     }
 }
 
+// File operations and validation
+use std::path::{Path, PathBuf};
+use tokio::fs::{File, OpenOptions};
+use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt, SeekFrom};
+use crate::utils::errors::TransferError;
+
+/// File metadata information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileMetadata {
+    pub name: String,
+    pub size: u64,
+    pub file_type: String,
+    pub checksum: Option<String>,
+    pub created: Option<std::time::SystemTime>,
+    pub modified: Option<std::time::SystemTime>,
+}
+
+impl FileMetadata {
+    /// Extract metadata from a file path
+    pub async fn from_path(path: &Path) -> Result<Self, TransferError> {
+        let metadata = tokio::fs::metadata(path).await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to read metadata for {}: {}", path.display(), e),
+            file_path: Some(path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        let name = path.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+            
+        let file_type = path.extension()
+            .and_then(|ext| ext.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+            
+        let created = metadata.created().ok();
+        let modified = metadata.modified().ok();
+        
+        Ok(Self {
+            name,
+            size: metadata.len(),
+            file_type,
+            checksum: None,
+            created,
+            modified,
+        })
+    }
+    
+    /// Validate file size against limits
+    pub fn validate_size(&self, max_size: u64) -> Result<(), TransferError> {
+        if self.size > max_size {
+            return Err(TransferError::FileError {
+                message: format!(
+                    "File size {} bytes exceeds maximum allowed size {} bytes",
+                    self.size, max_size
+                ),
+                file_path: Some(self.name.clone()),
+                recoverable: false,
+            });
+        }
+        Ok(())
+    }
+    
+    /// Check if file type is allowed
+    pub fn validate_type(&self, allowed_types: &[&str]) -> Result<(), TransferError> {
+        if !allowed_types.is_empty() && !allowed_types.contains(&self.file_type.as_str()) {
+            return Err(TransferError::FileError {
+                message: format!(
+                    "File type '{}' is not allowed. Allowed types: {:?}",
+                    self.file_type, allowed_types
+                ),
+                file_path: Some(self.name.clone()),
+                recoverable: false,
+            });
+        }
+        Ok(())
+    }
+}
+
+/// File validation utilities
+pub struct FileValidator;
+
+impl FileValidator {
+    /// Default maximum file size (1GB)
+    pub const DEFAULT_MAX_SIZE: u64 = 1024 * 1024 * 1024;
+    
+    /// Validate a file for transfer
+    pub async fn validate_file(
+        path: &Path,
+        max_size: Option<u64>,
+        allowed_types: Option<&[&str]>,
+    ) -> Result<FileMetadata, TransferError> {
+        // Check if file exists
+        if !path.exists() {
+            return Err(TransferError::FileError {
+                message: format!("File does not exist: {}", path.display()),
+                file_path: Some(path.display().to_string()),
+                recoverable: false,
+            });
+        }
+        
+        // Check if it's a file (not a directory)
+        if !path.is_file() {
+            return Err(TransferError::FileError {
+                message: format!("Path is not a file: {}", path.display()),
+                file_path: Some(path.display().to_string()),
+                recoverable: false,
+            });
+        }
+        
+        // Extract metadata
+        let mut metadata = FileMetadata::from_path(path).await?;
+        
+        // Validate size
+        let max_size = max_size.unwrap_or(Self::DEFAULT_MAX_SIZE);
+        metadata.validate_size(max_size)?;
+        
+        // Validate type if restrictions are specified
+        if let Some(types) = allowed_types {
+            metadata.validate_type(types)?;
+        }
+        
+        Ok(metadata)
+    }
+    
+    /// Check if a file is readable
+    pub async fn check_readable(path: &Path) -> Result<(), TransferError> {
+        File::open(path).await.map_err(|e| TransferError::FileError {
+            message: format!("File is not readable {}: {}", path.display(), e),
+            file_path: Some(path.display().to_string()),
+            recoverable: false,
+        })?;
+        Ok(())
+    }
+    
+    /// Check if a directory is writable
+    pub async fn check_writable_dir(dir: &Path) -> Result<(), TransferError> {
+        if !dir.exists() {
+            return Err(TransferError::FileError {
+                message: format!("Directory does not exist: {}", dir.display()),
+                file_path: Some(dir.display().to_string()),
+                recoverable: false,
+            });
+        }
+        
+        if !dir.is_dir() {
+            return Err(TransferError::FileError {
+                message: format!("Path is not a directory: {}", dir.display()),
+                file_path: Some(dir.display().to_string()),
+                recoverable: false,
+            });
+        }
+        
+        // Try to create a temporary file to test write permissions
+        let test_file = dir.join(".write_test");
+        match OpenOptions::new().create(true).write(true).open(&test_file).await {
+            Ok(_) => {
+                // Clean up test file
+                let _ = tokio::fs::remove_file(&test_file).await;
+                Ok(())
+            }
+            Err(e) => Err(TransferError::FileError {
+                message: format!("Directory is not writable {}: {}", dir.display(), e),
+                file_path: Some(dir.display().to_string()),
+                recoverable: false,
+            }),
+        }
+    }
+}
+
 // File chunking functionality
 pub struct FileChunker {
+    file_path: PathBuf,
     chunk_size: usize,
     total_chunks: usize,
+    file_size: u64,
 }
 
 impl FileChunker {
-    pub fn new(file_size: u64, chunk_size: usize) -> Self {
+    /// Create a new file chunker for reading
+    pub async fn new_reader(file_path: PathBuf, chunk_size: usize) -> Result<Self, TransferError> {
+        let metadata = tokio::fs::metadata(&file_path).await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to read file metadata: {}", e),
+            file_path: Some(file_path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        let file_size = metadata.len();
         let total_chunks = ((file_size as f64) / (chunk_size as f64)).ceil() as usize;
-        Self {
+        
+        Ok(Self {
+            file_path,
             chunk_size,
             total_chunks,
+            file_size,
+        })
+    }
+    
+    /// Create a new file chunker for writing
+    pub async fn new_writer(file_path: PathBuf, file_size: u64, chunk_size: usize) -> Result<Self, TransferError> {
+        let total_chunks = ((file_size as f64) / (chunk_size as f64)).ceil() as usize;
+        
+        // Create the file if it doesn't exist
+        OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&file_path)
+            .await
+            .map_err(|e| TransferError::FileError {
+                message: format!("Failed to create output file: {}", e),
+                file_path: Some(file_path.display().to_string()),
+                recoverable: false,
+            })?;
+        
+        Ok(Self {
+            file_path,
+            chunk_size,
+            total_chunks,
+            file_size,
+        })
+    }
+    
+    /// Read a specific chunk from the file
+    pub async fn read_chunk(&self, chunk_id: u32) -> Result<Vec<u8>, TransferError> {
+        if chunk_id as usize >= self.total_chunks {
+            return Err(TransferError::FileError {
+                message: format!("Chunk ID {} exceeds total chunks {}", chunk_id, self.total_chunks),
+                file_path: Some(self.file_path.display().to_string()),
+                recoverable: false,
+            });
         }
+        
+        let mut file = File::open(&self.file_path).await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to open file for reading: {}", e),
+            file_path: Some(self.file_path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        let offset = (chunk_id as u64) * (self.chunk_size as u64);
+        file.seek(SeekFrom::Start(offset)).await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to seek to chunk position: {}", e),
+            file_path: Some(self.file_path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        // Calculate the actual chunk size (last chunk might be smaller)
+        let remaining_bytes = self.file_size - offset;
+        let actual_chunk_size = std::cmp::min(self.chunk_size as u64, remaining_bytes) as usize;
+        
+        let mut buffer = vec![0u8; actual_chunk_size];
+        file.read_exact(&mut buffer).await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to read chunk data: {}", e),
+            file_path: Some(self.file_path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        Ok(buffer)
     }
     
-    pub async fn read_chunk(&mut self, chunk_id: u32) -> Result<Vec<u8>, crate::utils::errors::TransferError> {
-        // Implementation will be added in task 4
-        todo!("Implementation in task 4")
+    /// Write a specific chunk to the file
+    pub async fn write_chunk(&self, chunk_id: u32, data: Vec<u8>) -> Result<(), TransferError> {
+        if chunk_id as usize >= self.total_chunks {
+            return Err(TransferError::FileError {
+                message: format!("Chunk ID {} exceeds total chunks {}", chunk_id, self.total_chunks),
+                file_path: Some(self.file_path.display().to_string()),
+                recoverable: false,
+            });
+        }
+        
+        let mut file = OpenOptions::new()
+            .write(true)
+            .open(&self.file_path)
+            .await
+            .map_err(|e| TransferError::FileError {
+                message: format!("Failed to open file for writing: {}", e),
+                file_path: Some(self.file_path.display().to_string()),
+                recoverable: false,
+            })?;
+        
+        let offset = (chunk_id as u64) * (self.chunk_size as u64);
+        file.seek(SeekFrom::Start(offset)).await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to seek to chunk position: {}", e),
+            file_path: Some(self.file_path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        file.write_all(&data).await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to write chunk data: {}", e),
+            file_path: Some(self.file_path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        file.flush().await.map_err(|e| TransferError::FileError {
+            message: format!("Failed to flush chunk data: {}", e),
+            file_path: Some(self.file_path.display().to_string()),
+            recoverable: false,
+        })?;
+        
+        Ok(())
     }
     
-    pub async fn write_chunk(&mut self, chunk_id: u32, data: Vec<u8>) -> Result<(), crate::utils::errors::TransferError> {
-        // Implementation will be added in task 4
-        todo!("Implementation in task 4")
+    /// Get the total number of chunks
+    pub fn total_chunks(&self) -> usize {
+        self.total_chunks
+    }
+    
+    /// Get the chunk size
+    pub fn chunk_size(&self) -> usize {
+        self.chunk_size
+    }
+    
+    /// Get the file size
+    pub fn file_size(&self) -> u64 {
+        self.file_size
+    }
+    
+    /// Calculate the size of a specific chunk
+    pub fn chunk_actual_size(&self, chunk_id: u32) -> usize {
+        if chunk_id as usize >= self.total_chunks {
+            return 0;
+        }
+        
+        let offset = (chunk_id as u64) * (self.chunk_size as u64);
+        let remaining_bytes = self.file_size - offset;
+        std::cmp::min(self.chunk_size as u64, remaining_bytes) as usize
     }
 }
+
+/// File integrity verification utilities
+pub struct FileIntegrityVerifier;
+
+impl FileIntegrityVerifier {
+    /// Verify file integrity by comparing source and destination checksums
+    pub async fn verify_transfer_integrity(
+        source_path: &Path,
+        destination_path: &Path,
+    ) -> Result<bool, TransferError> {
+        let source_checksum = crate::crypto::ChecksumCalculator::calculate_file_sha256_async(source_path).await?;
+        let dest_checksum = crate::crypto::ChecksumCalculator::calculate_file_sha256_async(destination_path).await?;
+        
+        Ok(crate::crypto::ChecksumCalculator::verify_integrity(&source_checksum, &dest_checksum))
+    }
+    
+    /// Verify file integrity against a known checksum
+    pub async fn verify_against_checksum(
+        file_path: &Path,
+        expected_checksum: &str,
+    ) -> Result<bool, TransferError> {
+        let actual_checksum = crate::crypto::ChecksumCalculator::calculate_file_sha256_async(file_path).await?;
+        Ok(crate::crypto::ChecksumCalculator::verify_integrity(expected_checksum, &actual_checksum))
+    }
+    
+    /// Calculate and compare checksums for multiple chunks
+    pub async fn verify_chunked_integrity(
+        chunks: &[(u32, Vec<u8>)],
+        expected_checksums: &[(u32, String)],
+    ) -> Result<bool, TransferError> {
+        if chunks.len() != expected_checksums.len() {
+            return Ok(false);
+        }
+        
+        for ((chunk_id, data), (expected_id, expected_checksum)) in chunks.iter().zip(expected_checksums.iter()) {
+            if chunk_id != expected_id {
+                return Ok(false);
+            }
+            
+            let actual_checksum = crate::crypto::ChecksumCalculator::calculate_data_sha256(data);
+            if !crate::crypto::ChecksumCalculator::verify_integrity(expected_checksum, &actual_checksum) {
+                return Ok(false);
+            }
+        }
+        
+        Ok(true)
+    }
+}
+
+#[cfg(test)]
+mod tests;
 
 // Protocol messages
 #[derive(Serialize, Deserialize)]
