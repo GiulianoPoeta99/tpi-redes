@@ -109,17 +109,9 @@ export interface TransferResult {
   error?: string;
 }
 
-export class TransferError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public transferId?: string,
-    public recoverable: boolean = false
-  ) {
-    super(message);
-    this.name = 'TransferError';
-  }
-}
+// TransferError is now defined in error-handling.ts
+// Re-export for backward compatibility
+export { TransferError } from './error-handling';
 
 // Utility functions for working with transfer data
 export class TransferUtils {
