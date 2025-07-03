@@ -67,8 +67,8 @@ impl TransferConfig {
     /// Validates the configuration and returns errors if invalid
     pub fn validate(&self) -> Result<(), String> {
         // Validate port range
-        if self.port == 0 || self.port > 65535 {
-            return Err(format!("Invalid port number: {}. Must be between 1 and 65535", self.port));
+        if self.port == 0 {
+            return Err(format!("Invalid port number: {}. Must be greater than 0", self.port));
         }
         
         // Validate chunk size
