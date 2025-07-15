@@ -484,8 +484,7 @@ impl TcpTransfer {
         Ok(())
     }
     
-    /// Set the socket (for testing purposes)
-    #[cfg(test)]
+    /// Set the socket (for testing purposes and internal use)
     pub fn set_socket(&mut self, socket: TcpStream) {
         self.socket = Some(socket);
     }

@@ -7,3 +7,4 @@ pub mod file_validator_tests;
 pub mod transfer_progress_tests;
 pub mod transfer_result_tests;
 pub mod transfer_status_tests;
+pub mod transfer_orchestrator_tests;

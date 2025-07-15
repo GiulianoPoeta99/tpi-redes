@@ -8,6 +8,7 @@ pub mod protocol_messages;
 pub mod transfer_progress;
 pub mod transfer_result;
 pub mod transfer_status;
+pub mod transfer_orchestrator;
 
 // Re-export main types
 pub use ack_status::AckStatus;
@@ -19,3 +20,4 @@ pub use protocol_messages::ProtocolMessage;
 pub use transfer_progress::TransferProgress;
 pub use transfer_result::TransferResult;
 pub use transfer_status::TransferStatus;
+pub use transfer_orchestrator::{TransferOrchestrator, TransferSession};

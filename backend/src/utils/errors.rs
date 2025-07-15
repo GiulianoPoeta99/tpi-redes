@@ -267,6 +267,7 @@ impl RetryConfig {
 }
 
 /// Exponential backoff retry utility
+#[derive(Clone)]
 pub struct RetryHandler {
     config: RetryConfig,
 }
