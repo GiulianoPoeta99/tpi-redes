@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Servicio receptor TCP - siempre escuchando
+  receiver:
+    build: .
+    container_name: ft-receiver
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./downloads:/app/downloads
+      - ./test_files:/app/files:ro
+    command: ft-cli --verbose receive --port 8080 --output /app/downloads
+    networks:
+      - ft-network
+    restart: unless-stopped
+
+  # Servicio emisor - para pruebas interactivas
+  sender:
+    build: .
+    container_name: ft-sender
+    volumes:
+      - ./test_files:/app/files:ro
+      - ./downloads:/app/downloads
+    depends_on:
+      - receiver
+    networks:
+      - ft-network
+    environment:
+      - FT_DEFAULT_TARGET=receiver
+      - FT_DEFAULT_PORT=8080
+    # Mantener container corriendo para comandos interactivos
+    command: tail -f /dev/null
+
+  # Servicio receptor UDP
+  receiver-udp:
+    build: .
+    container_name: ft-receiver-udp
+    ports:
+      - "8081:8081/udp"
+    volumes:
+      - ./downloads-udp:/app/downloads
+      - ./test_files:/app/files:ro
+    command: ft-cli --verbose receive --port 8081 --protocol udp --output /app/downloads
+    networks:
+      - ft-network
+    restart: unless-stopped
+
+networks:
+  ft-network:
+    driver: bridge
+
+volumes:
+  downloads:
+  downloads-udp:
+  test_files:

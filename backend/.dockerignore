@@ -1,0 +1,17 @@
+# Archivos y directorios a ignorar en el build de Docker
+target/
+downloads/
+downloads-udp/
+test_files/
+*.log
+.git/
+.gitignore
+README.md
+docs/
+examples/
+tests/
+Dockerfile
+docker-compose.yml
+.dockerignore
+test_cli_real.sh
+QUICK_START.md
