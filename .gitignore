@@ -60,3 +60,4 @@ coverage/
 
 .cursor/
 .kiro/
+backend/test_files

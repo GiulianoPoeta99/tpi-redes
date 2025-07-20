@@ -1,5 +1,5 @@
 # Multi-stage build para optimizar el tamaño final
-FROM rust:1.75-slim as builder
+FROM rust:1.80-slim as builder
 
 # Instalar dependencias del sistema necesarias para compilar
 RUN apt-get update && apt-get install -y \
@@ -11,19 +11,12 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copiar archivos de configuración de Cargo
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
-# Crear estructura de directorios
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-
-# Compilar dependencias (esto se cachea si no cambian)
-RUN cargo build --release --bin file-transfer-cli
-RUN rm src/main.rs
-
-# Copiar el código fuente real
+# Copiar el código fuente
 COPY src ./src
 
-# Compilar la aplicación final
+# Compilar la aplicación (regenerará Cargo.lock si es necesario)
 RUN cargo build --release --bin file-transfer-cli
 
 # Imagen final más pequeña
