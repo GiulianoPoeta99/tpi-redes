@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # Máquina A - Red 192.168.1.0/24
+  machine-a:
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    container_name: ft-machine-a
+    hostname: machine-a
+    volumes:
+      - ../tests/fixtures:/app/files:ro
+      - ./volumes/lab/machine-a:/app/downloads
+    networks:
+      network-a:
+        ipv4_address: 192.168.1.10
+    command: tail -f /dev/null
+    environment:
+      - MACHINE_NAME=Machine-A
+
+  # Máquina B - Red 192.168.2.0/24  
+  machine-b:
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    container_name: ft-machine-b
+    hostname: machine-b
+    volumes:
+      - ../tests/fixtures:/app/files:ro
+      - ./volumes/lab/machine-b:/app/downloads
+    networks:
+      network-b:
+        ipv4_address: 192.168.2.10
+    command: tail -f /dev/null
+    environment:
+      - MACHINE_NAME=Machine-B
+
+  # Router/Gateway que conecta ambas redes
+  router:
+    image: alpine:latest
+    container_name: ft-router
+    hostname: router
+    networks:
+      network-a:
+        ipv4_address: 192.168.1.1
+      network-b:
+        ipv4_address: 192.168.2.1
+    command: |
+      sh -c "
+        apk add --no-cache iptables &&
+        echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf &&
+        sysctl -p &&
+        # Configurar NAT para permitir comunicación entre redes
+        iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j MASQUERADE &&
+        iptables -t nat -A POSTROUTING -s 192.168.2.0/24 -d 192.168.1.0/24 -j MASQUERADE &&
+        iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT &&
+        iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT &&
+        echo 'Router configurado - Redes conectadas' &&
+        tail -f /dev/null
+      "
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+
+networks:
+  network-a:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+  
+  network-b:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.2.0/24
+          gateway: 192.168.2.1
+
+# Los volúmenes se crean automáticamente como bind mounts
