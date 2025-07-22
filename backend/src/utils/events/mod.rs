@@ -1,0 +1,29 @@
+// Events module
+pub mod transfer_event;
+pub mod transfer_progress_event;
+pub mod transfer_error_event;
+pub mod transfer_completed_event;
+pub mod transfer_started_event;
+pub mod transfer_cancelled_event;
+pub mod connection_event;
+pub mod event_emitter;
+pub mod broadcast_event_emitter;
+pub mod noop_event_emitter;
+pub mod console_event_emitter;
+pub mod event_builder;
+pub mod event_aggregator;
+
+// Re-export main types
+pub use transfer_event::TransferEvent;
+pub use transfer_progress_event::TransferProgressEvent;
+pub use transfer_error_event::TransferErrorEvent;
+pub use transfer_completed_event::TransferCompletedEvent;
+pub use transfer_started_event::TransferStartedEvent;
+pub use transfer_cancelled_event::TransferCancelledEvent;
+pub use connection_event::ConnectionEvent;
+pub use event_emitter::EventEmitter;
+pub use broadcast_event_emitter::BroadcastEventEmitter;
+pub use noop_event_emitter::NoOpEventEmitter;
+pub use console_event_emitter::ConsoleEventEmitter;
+pub use event_builder::EventBuilder;
+pub use event_aggregator::EventAggregator;

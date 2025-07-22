@@ -1,0 +1,143 @@
+# Backend File Transfer CLI - Build and Development Workflows
+
+# Default recipe - show available commands
+default:
+    @just --list
+
+# Development commands
+dev:
+    cargo run --bin file-transfer-cli -- --help
+
+run-receiver port="8080":
+    cargo run --bin file-transfer-cli -- receive --port {{port}}
+
+run-sender file target="127.0.0.1:8080":
+    cargo run --bin file-transfer-cli -- send --target {{target}} {{file}}
+
+# Build commands
+build:
+    cargo build --release
+
+build-debug:
+    cargo build
+
+# Test commands
+test:
+    cargo test
+
+test-integration:
+    cargo test --test integration_tests
+
+test-cli:
+    cargo test --test cli_integration_tests
+
+test-all: test test-integration test-cli
+
+# Lint and format commands
+lint:
+    cargo clippy -- -D warnings
+
+format:
+    cargo fmt
+
+check:
+    cargo check
+
+# Docker commands
+docker-build:
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker build -f docker/Dockerfile -t file-transfer-cli .
+
+docker-up:
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose up -d
+
+docker-down:
+    docker compose down
+
+docker-logs:
+    docker compose logs -f
+
+docker-shell:
+    docker compose exec sender /bin/bash
+
+docker-test: docker-up
+    sleep 3
+    docker compose exec sender ft-cli send --target receiver --port 8080 /app/files/hello.txt
+    docker compose logs receiver
+
+docker-setup: create-test-files docker-build docker-up
+    @echo "Docker setup complete! Use 'just docker-test' to run tests"
+
+# File management
+create-test-files:
+    mkdir -p tmp/downloads/tcp tmp/downloads/udp
+    # Test fixtures are now static in tests/fixtures/
+    # Large test files are created in tmp/ as needed
+
+clean-downloads:
+    rm -rf tmp/downloads/tcp/* tmp/downloads/udp/*
+
+clean-temp:
+    rm -rf tmp/*
+
+# Real testing with actual file transfers
+test-real: create-test-files build
+    @echo "Starting real transfer tests..."
+    # Start receiver in background
+    cargo run --bin file-transfer-cli -- receive --port 8080 --output tmp/downloads/tcp &
+    sleep 2
+    # Send test file
+    cargo run --bin file-transfer-cli -- send --target 127.0.0.1:8080 tests/fixtures/hello.txt
+    # Kill background receiver
+    pkill -f "receive --port 8080" || true
+    # Verify transfer
+    @if [ -f "tmp/downloads/tcp/hello.txt" ]; then echo "✅ Transfer successful!"; else echo "❌ Transfer failed"; fi
+
+test-udp: create-test-files build
+    @echo "Starting UDP transfer test..."
+    cargo run --bin file-transfer-cli -- receive --port 8081 --protocol udp --output tmp/downloads/udp &
+    sleep 2
+    cargo run --bin file-transfer-cli -- send --target 127.0.0.1:8081 --protocol udp tests/fixtures/config.json
+    pkill -f "receive --port 8081" || true
+    @if [ -f "tmp/downloads/udp/config.json" ]; then echo "✅ UDP transfer successful!"; else echo "❌ UDP transfer failed"; fi
+
+# Performance testing
+test-performance: create-test-files build
+    @echo "Creating large test file..."
+    mkdir -p tmp
+    dd if=/dev/zero of=tmp/large.dat bs=1024 count=10240 2>/dev/null  # 10MB
+    @echo "Starting performance test..."
+    cargo run --bin file-transfer-cli -- receive --port 8080 --output tmp/downloads/tcp &
+    sleep 2
+    time cargo run --bin file-transfer-cli -- send --target 127.0.0.1:8080 tmp/large.dat
+    pkill -f "receive --port 8080" || true
+
+# Clean commands
+clean:
+    cargo clean
+
+clean-all: clean clean-downloads clean-temp
+
+# Documentation
+docs:
+    cargo doc --open
+
+# Release preparation
+prepare-release version:
+    @echo "Preparing backend release {{version}}..."
+    sed -i 's/version = ".*"/version = "{{version}}"/' Cargo.toml
+    @echo "Backend version updated to {{version}}"
+
+# Development utilities
+check-deps:
+    cargo tree
+
+update-deps:
+    cargo update
+
+# Quick development workflow
+quick-test: create-test-files build test-real
+    @echo "Quick test complete!"
+
+# Continuous development
+watch:
+    cargo watch -x check -x test -x run

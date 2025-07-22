@@ -1,0 +1,66 @@
+services:
+  # Servicio receptor TCP - siempre escuchando
+  receiver:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    container_name: ft-receiver
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./tmp/downloads/tcp:/app/downloads
+      - ./tests/fixtures:/app/files:ro
+    command: ft-cli --verbose receive --port 8080 --output /app/downloads
+    networks:
+      - ft-network
+    restart: unless-stopped
+
+  # Servicio emisor - para pruebas interactivas
+  sender:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    container_name: ft-sender
+    volumes:
+      - ./tests/fixtures:/app/files:ro
+      - ./tmp/downloads/tcp:/app/downloads
+    depends_on:
+      - receiver
+    networks:
+      - ft-network
+    environment:
+      - FT_DEFAULT_TARGET=receiver
+      - FT_DEFAULT_PORT=8080
+    # Mantener container corriendo para comandos interactivos
+    command: tail -f /dev/null
+
+  # Servicio receptor UDP
+  receiver-udp:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    container_name: ft-receiver-udp
+    ports:
+      - "8081:8081/udp"
+    volumes:
+      - ./tmp/downloads/udp:/app/downloads
+      - ./tests/fixtures:/app/files:ro
+    command: ft-cli --verbose receive --port 8081 --protocol udp --output /app/downloads
+    networks:
+      - ft-network
+    restart: unless-stopped
+
+networks:
+  ft-network:
+    driver: bridge
+
+# Volumes are now managed as bind mounts to ./tmp/downloads/

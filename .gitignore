@@ -60,4 +60,4 @@ coverage/
 
 .cursor/
 .kiro/
-backend/test_files
+backend/tmp/

@@ -1,4 +1,4 @@
-use crate::utils::errors::TransferError;
+use crate::errors::TransferError;
 use sha2::{Digest, Sha256};
 use std::fs::File;
 use std::io::{BufReader, Read};
