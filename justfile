@@ -82,6 +82,22 @@ docker-up:
 docker-down:
     cd backend && just docker-down
 
+# Lab environment commands
+lab-setup:
+    cd backend && just lab-setup
+
+lab-test:
+    cd backend && just lab-test
+
+lab-down:
+    cd backend && just lab-down
+
+lab-shell-a:
+    cd backend && just lab-shell-a
+
+lab-shell-b:
+    cd backend && just lab-shell-b
+
 # CLI usage examples
 cli-send file target="127.0.0.1:8080":
     cd backend && just run-sender {{file}} {{target}}
