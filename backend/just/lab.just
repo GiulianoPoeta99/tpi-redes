@@ -3,8 +3,8 @@ lab-setup: create-test-files docker-build
     mkdir -p docker/volumes/lab/machine-a docker/volumes/lab/machine-b
     cd docker && USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f compose-lab.yaml up -d
     @echo "Lab environment ready!"
-    @echo "Machine A: 192.168.1.10 (network-a)"
-    @echo "Machine B: 192.168.2.10 (network-b)"
+    @echo "Machine A: 172.20.0.10 (network-a)"
+    @echo "Machine B: 172.21.0.10 (network-b)"
     @echo "Use 'just lab-shell-a' and 'just lab-shell-b' to access machines"
 
 # Stop lab environment and cleanup
@@ -27,7 +27,7 @@ lab-test: lab-setup
     cd docker && docker compose -f compose-lab.yaml exec -d machine-b ft-cli receive --port 8080 --output /app/downloads
     sleep 2
     # Send file from machine A to machine B
-    cd docker && docker compose -f compose-lab.yaml exec machine-a ft-cli send --target 192.168.2.10:8080 /app/files/hello.txt
+    cd docker && docker compose -f compose-lab.yaml exec machine-a ft-cli send --target 172.21.0.10 --port 8080 /app/files/hello.txt
     sleep 2
     # Check if file was received
     @echo "Checking received files on Machine B:"
@@ -44,4 +44,4 @@ lab-status:
     cd docker && docker compose -f compose-lab.yaml ps
     @echo ""
     @echo "Network connectivity test:"
-    cd docker && docker compose -f compose-lab.yaml exec machine-a ping -c 2 192.168.2.10 || echo "Networks are isolated as expected"
+    cd docker && docker compose -f compose-lab.yaml exec machine-a ping -c 2 172.21.0.10 || echo "Networks are isolated as expected"

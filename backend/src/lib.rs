@@ -1,4 +1,7 @@
 // Library exports for Tauri integration
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 pub mod config;
 pub mod crypto;
 pub mod utils;

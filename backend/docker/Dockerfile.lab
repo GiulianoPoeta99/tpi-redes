@@ -1,0 +1,57 @@
+# Dockerfile específico para el laboratorio con herramientas de red
+FROM rust:1.80-slim as builder
+
+# Instalar dependencias de compilación
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copiar archivos de configuración
+COPY Cargo.toml ./
+
+# Copiar código fuente
+COPY src ./src
+
+# Compilar la aplicación
+RUN cargo build --release --bin file-transfer-cli
+
+# Imagen final con herramientas de red
+FROM debian:bookworm-slim
+
+# Instalar herramientas de red y utilidades
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    iputils-ping \
+    iproute2 \
+    net-tools \
+    netcat-openbsd \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no-root
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN groupadd -g ${GROUP_ID} appuser && \
+    useradd -r -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash -m -d /app appuser
+
+# Crear directorios necesarios
+RUN mkdir -p /app/files /app/downloads && \
+    chown -R appuser:appuser /app
+
+# Copiar el binario compilado
+COPY --from=builder /app/target/release/file-transfer-cli /usr/local/bin/ft-cli
+RUN chmod +x /usr/local/bin/ft-cli
+
+# Configurar usuario
+USER appuser
+WORKDIR /app
+
+# Exponer puertos
+EXPOSE 8080 8081 8082 9090
+
+# Comando por defecto
+CMD ["ft-cli", "--help"]

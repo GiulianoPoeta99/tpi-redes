@@ -1,14 +1,18 @@
 // CLI entry point
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 mod app;
 mod cli;
 mod config;
 mod errors;
-mod sockets;
-mod transfer;
+mod network;
+mod core;
 mod crypto;
 mod utils;
 
 use app::ApplicationRunner;
+#[allow(unused_imports)]
 use cli::CliError;
 
 #[tokio::main]

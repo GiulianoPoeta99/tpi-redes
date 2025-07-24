@@ -13,11 +13,11 @@ pub use crate::errors::TransferError;
 pub use crate::utils::events::{BroadcastEventEmitter, EventEmitter, TransferEvent};
 
 // Core interface
-pub use crate::core::LibraryInterface;
+pub use crate::core::api::library_interface::LibraryInterface;
 
 // Legacy compatibility functions
 pub async fn initialize_orchestrator() -> Result<(), TransferError> {
-    crate::core::LibraryInterface::initialize_orchestrator().await
+    LibraryInterface::initialize_orchestrator().await
 }
 
 pub async fn start_file_transfer(
@@ -25,7 +25,7 @@ pub async fn start_file_transfer(
     file_path: String,
     target: String,
 ) -> Result<String, TransferError> {
-    crate::core::LibraryInterface::start_file_transfer(config, file_path, target).await
+    LibraryInterface::start_file_transfer(config, file_path, target).await
 }
 
 pub async fn start_file_receiver(
@@ -33,25 +33,25 @@ pub async fn start_file_receiver(
     protocol: Protocol,
     output_dir: String,
 ) -> Result<String, TransferError> {
-    crate::core::LibraryInterface::start_file_receiver(port, protocol, output_dir).await
+    LibraryInterface::start_file_receiver(port, protocol, output_dir).await
 }
 
 pub async fn get_transfer_progress(transfer_id: String) -> Result<TransferProgress, TransferError> {
-    crate::core::LibraryInterface::get_transfer_progress(transfer_id).await
+    LibraryInterface::get_transfer_progress(transfer_id).await
 }
 
 pub async fn cancel_transfer(transfer_id: String) -> Result<(), TransferError> {
-    crate::core::LibraryInterface::cancel_transfer(transfer_id).await
+    LibraryInterface::cancel_transfer(transfer_id).await
 }
 
 pub async fn get_active_transfers() -> Result<Vec<TransferSession>, TransferError> {
-    crate::core::LibraryInterface::get_active_transfers().await
+    LibraryInterface::get_active_transfers().await
 }
 
 pub async fn get_transfer_history() -> Result<Vec<TransferSession>, TransferError> {
-    crate::core::LibraryInterface::get_transfer_history().await
+    LibraryInterface::get_transfer_history().await
 }
 
 pub async fn cleanup_completed_transfers() -> Result<usize, TransferError> {
-    crate::core::LibraryInterface::cleanup_completed_transfers().await
+    LibraryInterface::cleanup_completed_transfers().await
 }
