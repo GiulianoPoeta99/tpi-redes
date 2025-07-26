@@ -41,17 +41,67 @@ tpi-redes/
 │   │   ├── main.rs    # CLI entry point
 │   │   ├── lib.rs     # Library exports for Tauri
 │   │   ├── config/    # Configuration management
+│   │   │   ├── mod.rs           # Module exports
+│   │   │   ├── transfer_config.rs    # TransferConfig struct
+│   │   │   ├── protocol.rs      # Protocol enum
+│   │   │   └── transfer_mode.rs # TransferMode enum
 │   │   ├── sockets/   # TCP/UDP implementations
+│   │   │   ├── mod.rs           # Module exports
+│   │   │   ├── tcp_transfer.rs  # TcpTransfer struct
+│   │   │   └── udp_transfer.rs  # UdpTransfer struct
 │   │   ├── transfer/  # File transfer logic
+│   │   │   ├── mod.rs           # Module exports
+│   │   │   ├── tcp_chunker.rs   # TcpFileChunker struct
+│   │   │   ├── udp_chunker.rs   # UdpFileChunker struct
+│   │   │   ├── tcp_messages.rs  # TcpProtocolMessage enum
+│   │   │   └── udp_messages.rs  # UdpProtocolMessage enum
 │   │   ├── crypto/    # Checksums and encryption
+│   │   │   ├── mod.rs           # Module exports
+│   │   │   └── checksum_calculator.rs # ChecksumCalculator struct
 │   │   └── utils/     # Logging, errors, events
+│   │       ├── mod.rs           # Module exports
+│   │       ├── transfer_error.rs # TransferError enum
+│   │       ├── transfer_progress.rs # TransferProgress struct
+│   │       └── transfer_result.rs # TransferResult struct
 │   └── Cargo.toml     # Configured as lib + bin
 ├── frontend/          # Svelte + Tauri
-│   ├── src/           # Frontend Svelte
+│   ├── src/
+│   │   ├── lib/
+│   │   │   ├── components/
+│   │   │   │   ├── ModeSelector.svelte      # Mode selection component
+│   │   │   │   ├── FileDropZone.svelte     # File drop component
+│   │   │   │   ├── ConnectionConfig.svelte # Connection config component
+│   │   │   │   └── TransferProgress.svelte # Progress display component
+│   │   │   ├── stores/
+│   │   │   │   ├── transfer.ts             # Transfer state store
+│   │   │   │   └── config.ts               # Configuration store
+│   │   │   ├── types/
+│   │   │   │   ├── transfer-config.ts      # TransferConfig interface
+│   │   │   │   ├── transfer-progress.ts    # TransferProgress interface
+│   │   │   │   └── transfer-record.ts      # TransferRecord interface
+│   │   │   └── utils/
+│   │   │       ├── tauri-commands.ts       # Tauri command interface
+│   │   │       ├── tauri-events.ts         # Event listeners
+│   │   │       └── transfer-error.ts       # TransferError class
+│   │   └── routes/
 │   └── src-tauri/     # Tauri wrapper (depends on backend)
 ├── persistence/       # Configuration and history
 └── docs/             # Technical documentation
 ```
+
+### Code Organization Principles
+
+#### Single Definition Per File
+- **Backend (Rust)**: Each `.rs` file contains exactly one main struct, enum, or trait definition
+- **Frontend (TypeScript/Svelte)**: Each file contains exactly one main component, class, or interface definition
+- **Helper Functions**: Related helper functions and implementations are co-located with their main definition
+- **Module Structure**: Each module has a clear single responsibility and purpose
+
+#### File Naming Conventions
+- **Rust Files**: Use snake_case matching the main definition name (e.g., `transfer_config.rs` for `TransferConfig`)
+- **TypeScript Files**: Use kebab-case for interfaces and classes (e.g., `transfer-config.ts`)
+- **Svelte Components**: Use PascalCase matching the component name (e.g., `ModeSelector.svelte`)
+- **Module Files**: Use `mod.rs` for module exports and re-exports
 
 ## Protocol Flow Design
 

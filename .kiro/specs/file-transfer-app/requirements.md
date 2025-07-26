@@ -170,3 +170,16 @@ This document outlines the requirements for a socket-based file transfer applica
 7. WHEN using UDP THEN the system SHALL NOT exchange metadata or perform handshakes
 8. WHEN TCP transfer completes THEN the system SHALL verify checksum and send final acknowledgment
 9. WHEN UDP transfer completes THEN the system SHALL NOT perform checksum verification or acknowledgments
+
+### Requirement 13
+
+**User Story:** As a developer, I want each file to contain only one main definition (struct, enum, trait, component, class), so that the codebase is well-organized and maintainable.
+
+#### Acceptance Criteria
+
+1. WHEN creating Rust files THEN each file SHALL contain only one main struct, enum, or trait definition
+2. WHEN creating frontend files THEN each file SHALL contain only one main component, class, or interface definition
+3. WHEN organizing backend code THEN related helper functions MAY be included in the same file as their main struct/enum/trait
+4. WHEN organizing frontend code THEN related helper functions and types MAY be included in the same file as their main component/class
+5. WHEN reviewing code structure THEN each module SHALL have a clear single responsibility
+6. WHEN adding new functionality THEN new definitions SHALL be placed in separate files following the single-definition principle

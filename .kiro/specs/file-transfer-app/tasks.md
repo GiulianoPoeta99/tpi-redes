@@ -49,7 +49,7 @@
   - Write unit tests verifying correct TCP protocol flow and acknowledgment behavior
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 12.1, 12.3, 12.6, 12.8_
 
-- [ ] 6. Build theoretical UDP socket implementation (fire-and-forget)
+- [x] 6. Build theoretical UDP socket implementation (fire-and-forget)
   - Create UdpTransfer struct following theoretical UDP protocol behavior (no reliability layer)
   - Implement direct 1KB chunk transmission without connection establishment
   - Remove all acknowledgment systems and reliability mechanisms from UDP implementation
@@ -162,7 +162,7 @@
   - Write tests for notification functionality across different platforms
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6_
 
-- [ ] 16. Add application settings and configuration persistence
+- [ ] 17. Add application settings and configuration persistence
   - Create Settings component with all user preferences
   - Implement theme selection (light/dark/system) with persistence
   - Add default connection settings configuration
@@ -172,7 +172,7 @@
   - Write tests for settings persistence and restoration
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
 
-- [ ] 17. Develop comprehensive error handling and recovery
+- [ ] 18. Develop comprehensive error handling and recovery
   - Implement user-friendly error message display throughout the UI
   - Create error recovery suggestions and retry mechanisms
   - Add network error detection with automatic retry logic
@@ -182,7 +182,7 @@
   - Write comprehensive error scenario tests
   - _Requirements: 4.6, 5.5, 6.5, 7.5_
 
-- [ ] 18. Build end-to-end integration and testing
+- [ ] 19. Build end-to-end integration and testing
   - Create end-to-end tests for complete transfer workflows
   - Implement cross-platform testing for Windows, macOS, and Linux
   - Add performance testing with various file sizes and network conditions
@@ -192,7 +192,7 @@
   - Write comprehensive test documentation and CI/CD integration
   - _Requirements: All requirements integration testing_
 
-- [ ] 19. Implement final UI polish and user experience enhancements
+- [ ] 20. Implement final UI polish and user experience enhancements
   - Add loading states and skeleton screens for better UX
   - Implement smooth animations and transitions
   - Create responsive design for different window sizes
@@ -202,7 +202,18 @@
   - Write usability tests and gather user feedback
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 20. Finalize documentation and deployment preparation
+- [ ] 21. Review and reorganize code structure for single-definition principle
+  - Audit existing backend Rust files to ensure each contains only one main struct/enum/trait
+  - Audit existing frontend files to ensure each contains only one main component/class/interface
+  - Split any files that contain multiple main definitions into separate files
+  - Reorganize helper functions and related code to be co-located with their main definitions
+  - Update import statements and module declarations after file reorganization
+  - Ensure each module has a clear single responsibility and purpose
+  - Update file naming conventions to reflect the single definition they contain
+  - Write documentation explaining the code organization principles used
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
+
+- [ ] 22. Finalize documentation and deployment preparation
   - Create comprehensive README with installation and usage instructions
   - Write technical documentation for architecture and API
   - Add code documentation and inline comments
