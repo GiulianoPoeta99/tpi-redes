@@ -49,7 +49,7 @@
   - Write unit tests verifying correct TCP protocol flow and acknowledgment behavior
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 12.1, 12.3, 12.6, 12.8_
 
-- [x] 6. Build theoretical UDP socket implementation (fire-and-forget)
+- [ ] 6. Build theoretical UDP socket implementation (fire-and-forget)
   - Create UdpTransfer struct following theoretical UDP protocol behavior (no reliability layer)
   - Implement direct 1KB chunk transmission without connection establishment
   - Remove all acknowledgment systems and reliability mechanisms from UDP implementation
