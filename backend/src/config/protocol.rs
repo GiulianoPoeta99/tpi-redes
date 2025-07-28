@@ -1,7 +1,7 @@
 // Protocol enumeration
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum Protocol {
     Tcp,
     Udp,

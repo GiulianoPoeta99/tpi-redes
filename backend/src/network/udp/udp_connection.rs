@@ -1,10 +1,12 @@
-// UDP connection management
+// UDP connection management - theoretical UDP implementation (fire-and-forget)
 use crate::config::TransferConfig;
 use crate::errors::TransferError;
 use std::net::SocketAddr;
 use tokio::net::UdpSocket;
 use uuid::Uuid;
 
+/// UDP connection for theoretical fire-and-forget protocol implementation
+/// No reliability layer, no acknowledgments, no connection establishment
 pub struct UdpConnection {
     socket: Option<UdpSocket>,
     _config: TransferConfig,
@@ -24,6 +26,7 @@ impl UdpConnection {
         &self.transfer_id
     }
     
+    /// Bind UDP socket for receiving (no connection establishment)
     pub async fn bind(&mut self, addr: SocketAddr) -> Result<(), TransferError> {
         let socket = UdpSocket::bind(addr).await.map_err(|e| TransferError::NetworkError {
             message: format!("Failed to bind UDP socket to {}: {}", addr, e),

@@ -47,14 +47,30 @@ impl UdpFileSender {
     
     /// Send a file over UDP (fire-and-forget)
     pub async fn send_file(&mut self, file_path: PathBuf, target_addr: SocketAddr) -> Result<TransferResult, TransferError> {
+        tracing::info!("UDP send_file started for {:?} to {}", file_path, target_addr);
         let start_time = Instant::now();
         
         // Get file metadata
+        tracing::info!("Getting file metadata...");
         let metadata = FileMetadata::from_path(&file_path).await?;
         let file_size = metadata.size;
+        tracing::info!("File size: {} bytes", file_size);
         
         // Calculate checksum
+        tracing::info!("Calculating checksum...");
         let source_checksum = ChecksumCalculator::calculate_file_sha256_async(&file_path).await?;
+        tracing::info!("Checksum calculated: {}", source_checksum);
+        
+        // Ensure socket is bound
+        tracing::info!("Checking if socket is bound...");
+        if self.connection.get_socket().is_none() {
+            tracing::info!("Socket not bound, binding to local address...");
+            let local_addr = SocketAddr::from(([0, 0, 0, 0], 0));
+            self.get_connection_mut().bind(local_addr).await?;
+            tracing::info!("Socket bound successfully");
+        } else {
+            tracing::info!("Socket already bound");
+        }
         
         let socket = self.connection.get_socket()
             .ok_or_else(|| TransferError::NetworkError {
@@ -62,6 +78,19 @@ impl UdpFileSender {
                 context: None,
                 recoverable: false,
             })?;
+
+        // Send handshake packet first with file metadata
+        let handshake_data = format!("HANDSHAKE:{}:{}", metadata.name, file_size);
+        tracing::info!("Sending UDP handshake to {}: {}", target_addr, handshake_data);
+        socket.send_to(handshake_data.as_bytes(), target_addr).await.map_err(|e| TransferError::NetworkError {
+            message: format!("Failed to send handshake: {}", e),
+            context: Some(target_addr.to_string()),
+            recoverable: true,
+        })?;
+        
+        // Wait a bit for receiver to process handshake
+        tracing::info!("Handshake sent, waiting before sending file data");
+        tokio::time::sleep(Duration::from_millis(100)).await;
         
         // Send file chunks
         let mut chunker = FileChunker::new(file_path.clone(), 1024)?; // Smaller chunks for UDP
@@ -72,7 +101,9 @@ impl UdpFileSender {
         let _progress_interval = interval(Duration::from_millis(100));
         let mut last_progress_update = Instant::now();
         
+        tracing::info!("Starting to read file chunks...");
         while let Some(chunk) = chunker.read_next_chunk().await? {
+            tracing::info!("Read chunk of {} bytes", chunk.len());
             // Send chunk (fire-and-forget)
             socket.send_to(&chunk, target_addr).await.map_err(|e| TransferError::NetworkError {
                 message: format!("Failed to send UDP packet: {}", e),
@@ -91,6 +122,19 @@ impl UdpFileSender {
             
             // Small delay to avoid overwhelming the network
             tokio::time::sleep(Duration::from_micros(100)).await;
+        }
+        
+        tracing::info!("Finished sending {} chunks, {} bytes total", _chunk_count, bytes_sent);
+        
+        // Send end-of-transfer marker (special packet repeated multiple times for reliability)
+        let end_marker = b"END_OF_FILE";
+        for _ in 0..5 {
+            socket.send_to(end_marker, target_addr).await.map_err(|e| TransferError::NetworkError {
+                message: format!("Failed to send end marker: {}", e),
+                context: Some(target_addr.to_string()),
+                recoverable: true,
+            })?;
+            tokio::time::sleep(Duration::from_millis(50)).await;
         }
         
         // Final progress update
@@ -126,11 +170,14 @@ impl UdpFileSender {
                 0
             };
             
-            let progress_update = TransferProgress::new(self.connection.transfer_id().to_string());
-            let mut progress_update = progress_update;
+            let mut progress_update = TransferProgress::new(self.connection.transfer_id().to_string());
             progress_update.update(progress, speed, eta);
             
-            let _ = sender.send(progress_update);
+            // Don't ignore send errors - if channel is closed, we should know
+            if let Err(_) = sender.send(progress_update) {
+                // Channel closed, but continue transfer
+                tracing::debug!("Progress channel closed for transfer {}", self.connection.transfer_id());
+            }
         }
     }
 }

@@ -10,4 +10,4 @@ pub use socket_transfer::SocketTransfer;
 pub use tcp_transfer_wrapper::TcpTransferWrapper;
 pub use udp_transfer_wrapper::UdpTransferWrapper;
 pub use tcp::{TcpConnection, TcpTransfer};
-pub use udp::{UdpConnection, UdpTransfer};
+pub use udp::{UdpConnection, UdpTransfer, UdpFileSender, UdpFileReceiver};

@@ -22,7 +22,13 @@ impl EventEmitter for BroadcastEventEmitter {
     fn emit_event(&self, event: TransferEvent) {
         debug!("Emitting event: {:?}", event);
         if let Err(e) = self.sender.send(event) {
-            error!("Failed to emit event: {}", e);
+            // Only log as debug if no receivers (common case)
+            // Only error if it's a different kind of error
+            match e {
+                broadcast::error::SendError(_) => {
+                    debug!("No receivers for event (this is normal for CLI usage)");
+                }
+            }
         }
     }
 }

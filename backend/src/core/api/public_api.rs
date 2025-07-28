@@ -4,7 +4,7 @@
 pub use crate::config::{TransferConfig, Protocol, TransferMode};
 
 // Transfer types
-pub use crate::core::transfer::{TransferProgress, TransferResult, TransferStatus, TransferOrchestrator, TransferSession};
+pub use crate::core::transfer::{TransferProgress, TransferResult, TransferStatus, TransferOrchestrator, TransferSession, CommunicationManager};
 
 // Error types
 pub use crate::errors::TransferError;
@@ -54,4 +54,17 @@ pub async fn get_transfer_history() -> Result<Vec<TransferSession>, TransferErro
 
 pub async fn cleanup_completed_transfers() -> Result<usize, TransferError> {
     LibraryInterface::cleanup_completed_transfers().await
+}
+
+// Communication manager convenience functions
+pub fn validate_communication_config(config: &TransferConfig) -> Result<(), TransferError> {
+    CommunicationManager::validate_communication_config(config)
+}
+
+pub async fn check_receiver_availability(
+    protocol: Protocol,
+    target_addr: std::net::SocketAddr,
+    timeout: std::time::Duration,
+) -> bool {
+    CommunicationManager::check_receiver_availability(protocol, target_addr, timeout).await
 }

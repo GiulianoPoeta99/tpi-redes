@@ -57,10 +57,43 @@ impl UdpFileReceiver {
                 recoverable: false,
             })?;
         
-        // Create output file with timestamp to avoid conflicts
-        let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-        let output_filename = format!("received_file_{}.bin", timestamp);
-        let output_path = output_dir.join(&output_filename);
+        // Wait for handshake packet first
+        let mut buffer = vec![0u8; 2048];
+        let handshake_timeout = Duration::from_secs(60); // Longer timeout for initial connection
+        
+        tracing::info!("UDP receiver waiting for handshake packet...");
+        let (handshake_size, sender_addr) = timeout(handshake_timeout, socket.recv_from(&mut buffer)).await
+            .map_err(|_| TransferError::NetworkError {
+                message: "Timeout waiting for handshake packet".to_string(),
+                context: None,
+                recoverable: false,
+            })?
+            .map_err(|e| TransferError::NetworkError {
+                message: format!("Failed to receive handshake: {}", e),
+                context: None,
+                recoverable: false,
+            })?;
+        
+        tracing::info!("Received handshake from {}: {} bytes", sender_addr, handshake_size);
+        
+        // Parse handshake
+        let handshake_str = String::from_utf8_lossy(&buffer[..handshake_size]);
+        let (filename, _expected_size) = if handshake_str.starts_with("HANDSHAKE:") {
+            let parts: Vec<&str> = handshake_str.strip_prefix("HANDSHAKE:").unwrap().split(':').collect();
+            if parts.len() >= 2 {
+                let filename = parts[0].to_string();
+                let size = parts[1].parse::<u64>().unwrap_or(0);
+                (filename, size)
+            } else {
+                ("received_file.bin".to_string(), 0)
+            }
+        } else {
+            // No handshake, use default name
+            ("received_file.bin".to_string(), 0)
+        };
+        
+        // Create output file with received filename
+        let output_path = output_dir.join(&filename);
         
         let mut output_file = File::create(&output_path).await.map_err(|e| TransferError::FileError {
             message: format!("Failed to create output file: {}", e),
@@ -71,7 +104,8 @@ impl UdpFileReceiver {
         let mut buffer = vec![0u8; 2048]; // Buffer for UDP packets
         let mut bytes_received = 0u64;
         let mut _last_packet_time = Instant::now();
-        let receive_timeout = Duration::from_secs(5); // Timeout if no packets received
+        let receive_timeout = Duration::from_secs(10); // Reasonable timeout for UDP packets
+        let end_marker = b"END_OF_FILE";
         
         loop {
             // Receive packet with timeout
@@ -79,14 +113,21 @@ impl UdpFileReceiver {
             
             match receive_result {
                 Ok(Ok((size, _sender_addr))) => {
-                    // Write received data to file
-                    output_file.write_all(&buffer[..size]).await.map_err(|e| TransferError::FileError {
-                        message: format!("Failed to write to output file: {}", e),
-                        file_path: Some(output_path.display().to_string()),
-                        recoverable: false,
-                    })?;
+                    // Check if this is the end marker
+                    if size == end_marker.len() && &buffer[..size] == end_marker {
+                        // End of file marker received
+                        break;
+                    } else if size > 0 {
+                        // Write received data to file
+                        output_file.write_all(&buffer[..size]).await.map_err(|e| TransferError::FileError {
+                            message: format!("Failed to write to output file: {}", e),
+                            file_path: Some(output_path.display().to_string()),
+                            recoverable: false,
+                        })?;
+                        
+                        bytes_received += size as u64;
+                    }
                     
-                    bytes_received += size as u64;
                     _last_packet_time = Instant::now();
                     
                     // Emit progress
@@ -141,11 +182,14 @@ impl UdpFileReceiver {
             };
             
             // For UDP, we don't know the total size, so progress is indeterminate
-            let progress_update = TransferProgress::new(self.connection.transfer_id().to_string());
-            let mut progress_update = progress_update;
+            let mut progress_update = TransferProgress::new(self.connection.transfer_id().to_string());
             progress_update.update(0.0, speed, 0); // Indeterminate progress
             
-            let _ = sender.send(progress_update);
+            // Don't ignore send errors - if channel is closed, we should know
+            if let Err(_) = sender.send(progress_update) {
+                // Channel closed, but continue transfer
+                tracing::debug!("Progress channel closed for transfer {}", self.connection.transfer_id());
+            }
         }
     }
 }

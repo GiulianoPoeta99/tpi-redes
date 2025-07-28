@@ -44,17 +44,10 @@ impl SocketTransfer {
                     })
                 }
             }
-            Self::Udp(wrapper) => {
-                if let Some(sender) = wrapper.sender_mut() {
-                    let local_addr = SocketAddr::from(([0, 0, 0, 0], 0));
-                    sender.get_connection_mut().bind(local_addr).await
-                } else {
-                    Err(TransferError::NetworkError {
-                        message: "UDP sender not available".to_string(),
-                        context: None,
-                        recoverable: false,
-                    })
-                }
+            Self::Udp(_wrapper) => {
+                // UDP sender doesn't need explicit binding for sending
+                // The socket will be bound automatically when sending
+                Ok(())
             }
         }
     }

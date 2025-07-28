@@ -14,8 +14,18 @@ impl OrchestratorManager {
     /// Initialize the transfer orchestrator
     pub async fn initialize() -> Result<Arc<TransferOrchestrator>, TransferError> {
         ORCHESTRATOR.get_or_try_init(|| async {
-            let (event_emitter, _receiver) = BroadcastEventEmitter::new(1000);
+            let (event_emitter, receiver) = BroadcastEventEmitter::new(1000);
             let orchestrator = Arc::new(TransferOrchestrator::new(Arc::new(event_emitter)));
+            
+            // Keep a receiver alive to prevent channel from closing
+            tokio::spawn(async move {
+                let mut receiver = receiver;
+                while let Ok(_event) = receiver.recv().await {
+                    // Just consume events to keep channel alive
+                    // In a real application, you might log these or handle them
+                }
+            });
+            
             orchestrator.start().await?;
             Ok(orchestrator)
         }).await.map(|o| Arc::clone(o))

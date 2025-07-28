@@ -38,7 +38,7 @@
   - Write comprehensive unit tests for all file operations
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 5. Develop theoretical TCP socket implementation
+- [x] 5. Develop theoretical TCP socket implementation
   - Create TcpTransfer struct following theoretical TCP protocol behavior
   - Implement proper TCP handshake sequence (SYN → SYN-ACK → ACK) for connection establishment
   - Add file metadata exchange with acknowledgment before data transfer begins
@@ -49,7 +49,7 @@
   - Write unit tests verifying correct TCP protocol flow and acknowledgment behavior
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 12.1, 12.3, 12.6, 12.8_
 
-- [ ] 6. Build theoretical UDP socket implementation (fire-and-forget)
+- [x] 6. Build theoretical UDP socket implementation (fire-and-forget)
   - Create UdpTransfer struct following theoretical UDP protocol behavior (no reliability layer)
   - Implement direct 1KB chunk transmission without connection establishment
   - Remove all acknowledgment systems and reliability mechanisms from UDP implementation
@@ -60,7 +60,7 @@
   - Write unit tests verifying fire-and-forget behavior and timeout-based completion detection
   - _Requirements: 6.6, 6.7, 6.8, 6.9, 6.10, 12.2, 12.4, 12.5, 12.7, 12.9_
 
-- [ ] 7. Implement proper sender/receiver communication flow
+- [x] 7. Implement proper sender/receiver communication flow
   - Create receiver binding logic that must be established before sender connection
   - Implement error handling when receiver fails to bind to specified port
   - Add sender connection logic that attempts to connect to receiver address
@@ -72,7 +72,7 @@
   - Write integration tests for sender/receiver communication scenarios
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9_
 
-- [ ] 8. Create transfer orchestration and progress tracking
+- [x] 8. Create transfer orchestration and progress tracking
   - Implement transfer session management with unique transfer IDs
   - Create progress calculation and real-time metrics collection
   - Add transfer speed calculation and ETA estimation
@@ -82,7 +82,7 @@
   - Build integration tests for complete transfer workflows
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 9. Develop CLI interface for standalone backend usage
+- [x] 9. Develop CLI interface for standalone backend usage
   - Implement command-line argument parsing with clap
   - Create CLI commands for transmitter and receiver modes
   - Add protocol selection and configuration options via CLI

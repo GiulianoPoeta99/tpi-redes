@@ -2,11 +2,13 @@
 pub mod udp_connection;
 pub mod udp_file_sender;
 pub mod udp_file_receiver;
+pub mod udp_transfer;
 
 // Re-export main types
 pub use udp_connection::UdpConnection;
 pub use udp_file_sender::UdpFileSender;
 pub use udp_file_receiver::UdpFileReceiver;
+pub use udp_transfer::UdpTransfer;
 
-// Alias for backward compatibility
-pub use udp_connection::UdpConnection as UdpTransfer;
+// Backward compatibility alias
+pub use udp_connection::UdpConnection as UdpConnectionLegacy;

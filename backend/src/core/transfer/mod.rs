@@ -1,6 +1,7 @@
 // Transfer module - moved from root transfer/
 pub mod ack_status;
 pub mod background_tasks;
+pub mod communication_manager;
 pub mod metrics_collector;
 pub mod progress_tracker;
 pub mod protocol_messages;
@@ -19,6 +20,7 @@ pub mod transfer_status;
 // Re-export all transfer functionality
 pub use ack_status::AckStatus;
 pub use background_tasks::BackgroundTasks;
+pub use communication_manager::CommunicationManager;
 pub use metrics_collector::MetricsCollector;
 pub use progress_tracker::ProgressTracker;
 pub use protocol_messages::ProtocolMessage;
