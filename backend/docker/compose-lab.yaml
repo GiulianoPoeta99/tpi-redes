@@ -14,20 +14,60 @@ services:
     cap_add:
       - NET_ADMIN
     user: root
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ping", "-c", "1", "172.21.0.10"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     command: >
       sh -c "
-        echo 'Configurando Machine A...';
-        sleep 5;
-        echo 'Agregando ruta hacia red B via router...';
-        ip route add 172.21.0.0/24 via 172.20.0.2 2>/dev/null || echo 'Error agregando ruta o ya existe';
-        echo 'Machine A configurada';
+        echo '🚀 Configurando Machine A...';
+        
+        # Wait for router to be ready
+        echo '⏳ Esperando router...';
+        until ping -c 1 172.20.0.2 >/dev/null 2>&1; do
+          echo '  Router no disponible, reintentando...';
+          sleep 2;
+        done;
+        echo '✅ Router disponible';
+        
+        # Configure routing with retry logic
+        echo '🌐 Configurando rutas...';
+        for i in {1..5}; do
+          if ip route add 172.21.0.0/24 via 172.20.0.2 2>/dev/null; then
+            echo '✅ Ruta agregada exitosamente';
+            break;
+          elif ip route show | grep -q '172.21.0.0/24 via 172.20.0.2'; then
+            echo '✅ Ruta ya existe';
+            break;
+          else
+            echo \"⚠️  Intento \$i/5 falló, reintentando...\";
+            sleep 2;
+          fi;
+        done;
+        
+        # Verify connectivity
+        echo '🔍 Verificando conectividad...';
+        if ping -c 2 172.21.0.10 >/dev/null 2>&1; then
+          echo '✅ Machine A configurada y conectada';
+        else
+          echo '⚠️  Machine A configurada pero sin conectividad completa';
+        fi;
+        
+        echo '📋 Rutas configuradas:';
         ip route show;
+        
+        echo '🎯 Machine A lista para transferencias';
         tail -f /dev/null
       "
     environment:
       - MACHINE_NAME=Machine-A
+      - RUST_LOG=info
     depends_on:
-      - router
+      router:
+        condition: service_healthy
 
   # Máquina B - Red 172.21.0.0/24  
   machine-b:
@@ -44,20 +84,60 @@ services:
     cap_add:
       - NET_ADMIN
     user: root
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ping", "-c", "1", "172.20.0.10"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     command: >
       sh -c "
-        echo 'Configurando Machine B...';
-        sleep 5;
-        echo 'Agregando ruta hacia red A via router...';
-        ip route add 172.20.0.0/24 via 172.21.0.2 2>/dev/null || echo 'Error agregando ruta o ya existe';
-        echo 'Machine B configurada';
+        echo '🚀 Configurando Machine B...';
+        
+        # Wait for router to be ready
+        echo '⏳ Esperando router...';
+        until ping -c 1 172.21.0.2 >/dev/null 2>&1; do
+          echo '  Router no disponible, reintentando...';
+          sleep 2;
+        done;
+        echo '✅ Router disponible';
+        
+        # Configure routing with retry logic
+        echo '🌐 Configurando rutas...';
+        for i in {1..5}; do
+          if ip route add 172.20.0.0/24 via 172.21.0.2 2>/dev/null; then
+            echo '✅ Ruta agregada exitosamente';
+            break;
+          elif ip route show | grep -q '172.20.0.0/24 via 172.21.0.2'; then
+            echo '✅ Ruta ya existe';
+            break;
+          else
+            echo \"⚠️  Intento \$i/5 falló, reintentando...\";
+            sleep 2;
+          fi;
+        done;
+        
+        # Verify connectivity
+        echo '🔍 Verificando conectividad...';
+        if ping -c 2 172.20.0.10 >/dev/null 2>&1; then
+          echo '✅ Machine B configurada y conectada';
+        else
+          echo '⚠️  Machine B configurada pero sin conectividad completa';
+        fi;
+        
+        echo '📋 Rutas configuradas:';
         ip route show;
+        
+        echo '🎯 Machine B lista para transferencias';
         tail -f /dev/null
       "
     environment:
       - MACHINE_NAME=Machine-B
+      - RUST_LOG=info
     depends_on:
-      - router
+      router:
+        condition: service_healthy
 
   # Router/Gateway que conecta ambas redes
   router:
@@ -74,18 +154,56 @@ services:
       - NET_ADMIN
     sysctls:
       - net.ipv4.ip_forward=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "ping -c 1 172.20.0.1 && ping -c 1 172.21.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     command: >
       sh -c "
-        echo 'Configurando router...';
-        apk add --no-cache iptables iproute2;
-        sleep 2;
+        echo '🚀 Configurando router...';
+        
+        # Install required packages with retry
+        echo '📦 Instalando paquetes...';
+        for i in {1..3}; do
+          if apk add --no-cache iptables iproute2 >/dev/null 2>&1; then
+            echo '✅ Paquetes instalados';
+            break;
+          else
+            echo \"⚠️  Intento \$i/3 falló, reintentando...\";
+            sleep 2;
+          fi;
+        done;
+        
+        # Configure IP forwarding
+        echo '🌐 Configurando IP forwarding...';
         echo 1 > /proc/sys/net/ipv4/ip_forward;
         sysctl -w net.ipv4.ip_forward=1;
+        
+        # Configure iptables for forwarding
+        echo '🔥 Configurando iptables...';
         iptables -P FORWARD ACCEPT;
-        echo 'Router configurado - IP forwarding habilitado';
-        echo 'Network A: 172.20.0.0/24';
-        echo 'Network B: 172.21.0.0/24';
+        iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT;
+        iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT;
+        
+        # Verify configuration
+        echo '🔍 Verificando configuración...';
+        if [ \$(cat /proc/sys/net/ipv4/ip_forward) = '1' ]; then
+          echo '✅ IP forwarding habilitado';
+        else
+          echo '❌ Error: IP forwarding no habilitado';
+          exit 1;
+        fi;
+        
+        echo '✅ Router configurado exitosamente';
+        echo '📍 Network A: 172.20.0.0/24 (gateway: 172.20.0.2)';
+        echo '📍 Network B: 172.21.0.0/24 (gateway: 172.21.0.2)';
+        echo '📋 Rutas:';
         ip route show;
+        
+        echo '🎯 Router listo para enrutar tráfico';
         tail -f /dev/null
       "
 

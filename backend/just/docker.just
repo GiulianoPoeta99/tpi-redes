@@ -2,6 +2,10 @@
 docker-build:
     USER_ID=$(id -u) GROUP_ID=$(id -g) docker build -f docker/Dockerfile -t file-transfer-cli .
 
+# Build Docker image for lab environment
+docker-build-lab:
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker build -f docker/Dockerfile.lab -t file-transfer-cli-lab .
+
 # Start Docker services (receiver + sender)
 docker-up:
     USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose up -d

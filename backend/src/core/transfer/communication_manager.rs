@@ -2,7 +2,7 @@
 use crate::config::{TransferConfig, Protocol, TransferMode};
 use crate::errors::TransferError;
 use crate::network::tcp::TcpTransfer;
-use crate::network::udp::UdpTransfer;
+use crate::network::udp::{UdpFileSender, UdpFileReceiver, UdpConnection};
 use crate::core::transfer::TransferResult;
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -104,27 +104,25 @@ impl CommunicationManager {
         
         // Requirement 10.1: Bind to specified port (UDP doesn't "listen" but binds)
         // Requirement 10.2: Handle binding failures with proper error messages
-        let mut udp_transfer = match UdpTransfer::bind_receiver(bind_addr, config.timeout).await {
-            Ok(transfer) => {
-                info!("UDP receiver successfully bound to {} (fire-and-forget mode)", bind_addr);
-                transfer
-            }
-            Err(e) => {
-                // Requirement 10.2: Display error message and prevent transfer initiation
-                error!("Failed to bind UDP receiver to {}: {}", bind_addr, e);
-                return Err(TransferError::NetworkError {
-                    message: format!("Receiver failed to bind to port {}: {}. Ensure the port is not in use and you have permission to bind to it.", bind_addr.port(), e),
-                    context: Some(bind_addr.to_string()),
-                    recoverable: false,
-                });
-            }
-        };
+        let mut udp_connection = UdpConnection::new(config.clone());
+        if let Err(e) = udp_connection.bind(bind_addr).await {
+            // Requirement 10.2: Display error message and prevent transfer initiation
+            error!("Failed to bind UDP receiver to {}: {}", bind_addr, e);
+            return Err(TransferError::NetworkError {
+                message: format!("Receiver failed to bind to port {}: {}. Ensure the port is not in use and you have permission to bind to it.", bind_addr.port(), e),
+                context: Some(bind_addr.to_string()),
+                recoverable: false,
+            });
+        }
+        
+        info!("UDP receiver successfully bound to {} (fire-and-forget mode)", bind_addr);
+        let mut udp_receiver = UdpFileReceiver::from_connection(udp_connection);
 
         info!("UDP receiver bound successfully, waiting for packets (timeout-based completion)");
         
         // Receive file with timeout-based completion detection
         // Requirement 10.7: Packets will be lost silently if receiver is not listening (but we are listening now)
-        match udp_transfer.receive_file_with_timeout(output_dir, Duration::from_secs(30)).await {
+        match udp_receiver.receive_file(output_dir).await {
             Ok(result) => {
                 info!("UDP file transfer completed: {} bytes received (no reliability guarantees)", result.bytes_transferred);
                 Ok(result)
@@ -200,21 +198,22 @@ impl CommunicationManager {
     ) -> Result<TransferResult, TransferError> {
         debug!("Starting UDP sender to {} (fire-and-forget mode)", target_addr);
         
-        let mut udp_transfer = UdpTransfer::new(config.clone());
+        let mut udp_connection = UdpConnection::new(config.clone());
         
         // Bind sender socket (UDP needs to bind before sending)
         let local_addr = SocketAddr::from(([0, 0, 0, 0], 0)); // Let OS choose port
-        if let Err(e) = udp_transfer.bind_sender(local_addr).await {
+        if let Err(e) = udp_connection.bind(local_addr).await {
             error!("Failed to bind UDP sender socket: {}", e);
             return Err(e);
         }
 
         info!("UDP sender bound, starting fire-and-forget transfer to {}", target_addr);
+        let mut udp_sender = UdpFileSender::from_connection(udp_connection);
         
         // Requirement 10.6: UDP sender sends packets regardless of receiver status (fire-and-forget behavior)
         // Requirement 10.7: If receiver is not listening, packets will be lost without notification to sender
         // Requirement 10.9: Sender completes normally without knowing receiver status
-        match udp_transfer.send_file_unreliable(file_path, target_addr).await {
+        match udp_sender.send_file(file_path, target_addr).await {
             Ok(result) => {
                 info!("UDP fire-and-forget transfer completed: {} bytes sent (no delivery guarantees)", result.bytes_transferred);
                 // Requirement 10.9: Sender completes normally regardless of receiver status
