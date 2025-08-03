@@ -17,15 +17,15 @@ export function testTypes(): void {
     
     // Test default configuration
     const config: TransferConfig = { ...defaultTransferConfig };
-    config.targetIp = '192.168.1.1';
+    config.target_ip = '192.168.1.1';
     config.port = 8080;
-    config.protocol = 'tcp';
-    config.mode = 'transmitter';
+    config.protocol = 'Tcp';
+    config.mode = 'Transmitter';
     
     console.log('✓ TransferConfig type works');
     console.log('  - Mode:', config.mode);
     console.log('  - Protocol:', config.protocol);
-    console.log('  - Target IP:', config.targetIp);
+    console.log('  - Target IP:', config.target_ip);
     console.log('  - Port:', config.port);
     
     // Test configuration validation
@@ -39,8 +39,8 @@ export function testTypes(): void {
     // Test invalid configuration
     const invalidConfig: TransferConfig = {
         ...defaultTransferConfig,
-        mode: 'transmitter',
-        targetIp: undefined, // Missing required field
+        mode: 'Transmitter',
+        target_ip: undefined, // Missing required field
         port: 70000, // Invalid port
     };
     
@@ -53,15 +53,17 @@ export function testTypes(): void {
     
     // Test TransferProgress type
     const progress: TransferProgress = {
-        transferId: 'test-123',
+        transfer_id: 'test-123',
         progress: 0.75,
         speed: 1024 * 1024, // 1 MB/s
         eta: 30,
-        status: 'transferring',
+        status: 'Transferring',
+        bytes_transferred: 7680000,
+        total_bytes: 10240000,
     };
     
     console.log('✓ TransferProgress type works');
-    console.log('  - Transfer ID:', progress.transferId);
+    console.log('  - Transfer ID:', progress.transfer_id);
     console.log('  - Progress:', TransferUtils.formatProgress(progress.progress));
     console.log('  - Speed:', TransferUtils.formatSpeed(progress.speed));
     console.log('  - ETA:', TransferUtils.formatDuration(progress.eta));
@@ -92,16 +94,16 @@ export function testTypes(): void {
     console.log('  - Format duration (3665s):', TransferUtils.formatDuration(3665));
     
     // Test status utility functions
-    const statuses: TransferStatus[] = ['idle', 'connecting', 'transferring', 'completed', 'error'];
+    const statuses: TransferStatus[] = ['Idle', 'Connecting', 'Transferring', 'Completed', 'Error'];
     console.log('✓ Status utility functions work');
     statuses.forEach(status => {
         console.log(`  - ${status}: terminal=${TransferUtils.isTerminalStatus(status)}, active=${TransferUtils.isActiveStatus(status)}`);
     });
     
     // Test type assignments
-    const protocol: Protocol = 'tcp';
-    const mode: TransferMode = 'transmitter';
-    const status: TransferStatus = 'transferring';
+    const protocol: Protocol = 'Tcp';
+    const mode: TransferMode = 'Transmitter';
+    const status: TransferStatus = 'Transferring';
     
     console.log('✓ Type assignments work');
     console.log('  - Protocol:', protocol);

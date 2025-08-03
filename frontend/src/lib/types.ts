@@ -1,26 +1,28 @@
 // TypeScript interfaces matching backend types
 
 export interface TransferProgress {
-  transferId: string;
+  transfer_id: string;
   progress: number;        // 0.0 - 1.0
   speed: number;           // bytes per second
   eta: number;             // seconds remaining
-  status: 'idle' | 'connecting' | 'transferring' | 'completed' | 'error';
+  status: TransferStatus;
   error?: string;
+  bytes_transferred: number;
+  total_bytes: number;
 }
 
-export type TransferStatus = 'idle' | 'connecting' | 'transferring' | 'completed' | 'error';
-export type Protocol = 'tcp' | 'udp';
-export type TransferMode = 'transmitter' | 'receiver';
+export type TransferStatus = 'Idle' | 'Connecting' | 'Transferring' | 'Completed' | 'Error' | 'Cancelled';
+export type Protocol = 'Tcp' | 'Udp';
+export type TransferMode = 'Transmitter' | 'Receiver';
 
 export interface TransferConfig {
   mode: TransferMode;
   protocol: Protocol;
-  targetIp?: string;
+  target_ip?: string;
   port: number;
   filename?: string;
-  chunkSize: number;
-  timeout: number;
+  chunk_size: number;
+  timeout: number; // Duration in seconds (will be converted to Duration in backend)
 }
 
 // Configuration validation and utility functions
@@ -34,11 +36,11 @@ export class TransferConfigValidator {
     }
     
     // Validate chunk size
-    if (config.chunkSize <= 0) {
+    if (config.chunk_size <= 0) {
       errors.push('Chunk size must be greater than 0');
     }
     
-    if (config.chunkSize > 1024 * 1024) {
+    if (config.chunk_size > 1024 * 1024) {
       errors.push('Chunk size must not exceed 1MB');
     }
     
@@ -52,11 +54,11 @@ export class TransferConfigValidator {
     }
     
     // Validate target IP for transmitter mode
-    if (config.mode === 'transmitter') {
-      if (!config.targetIp || config.targetIp.trim() === '') {
+    if (config.mode === 'Transmitter') {
+      if (!config.target_ip || config.target_ip.trim() === '') {
         errors.push('Target IP address is required for transmitter mode');
-      } else if (!this.isValidIpAddress(config.targetIp)) {
-        errors.push(`Invalid IP address format: ${config.targetIp}`);
+      } else if (!this.isValidIpAddress(config.target_ip)) {
+        errors.push(`Invalid IP address format: ${config.target_ip}`);
       }
     }
     
@@ -77,12 +79,12 @@ export class TransferConfigValidator {
 }
 
 export const defaultTransferConfig: TransferConfig = {
-  mode: 'transmitter',
-  protocol: 'tcp',
-  targetIp: undefined,
+  mode: 'Transmitter',
+  protocol: 'Tcp',
+  target_ip: undefined,
   port: 8080,
   filename: undefined,
-  chunkSize: 8192,
+  chunk_size: 8192,
   timeout: 30,
 };
 
@@ -154,10 +156,10 @@ export class TransferUtils {
   }
   
   static isTerminalStatus(status: TransferStatus): boolean {
-    return status === 'completed' || status === 'error';
+    return status === 'Completed' || status === 'Error' || status === 'Cancelled';
   }
   
   static isActiveStatus(status: TransferStatus): boolean {
-    return status === 'connecting' || status === 'transferring';
+    return status === 'Connecting' || status === 'Transferring';
   }
 }

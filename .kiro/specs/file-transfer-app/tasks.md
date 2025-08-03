@@ -92,7 +92,7 @@
   - Write CLI integration tests and usage examples
   - _Requirements: 8.1, 8.2, 8.5_
 
-- [ ] 10. Build Tauri command interface for frontend integration
+- [x] 10. Build Tauri command interface for frontend integration
   - Implement transfer_file Tauri command invoking backend library
   - Create receive_file Tauri command for receiver mode
   - Add get_progress command for real-time progress queries

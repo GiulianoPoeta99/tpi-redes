@@ -9,11 +9,11 @@ interface TransferState {
 }
 
 const defaultConfig: TransferConfig = {
-  mode: 'transmitter',
-  protocol: 'tcp',
+  mode: 'Transmitter',
+  protocol: 'Tcp',
   port: 8080,
-  chunkSize: 8192,
-  timeout: 30000,
+  chunk_size: 8192,
+  timeout: 30,
 };
 
 export const transferStore = writable<TransferState>({
