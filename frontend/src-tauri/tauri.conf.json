@@ -39,6 +39,14 @@
   "plugins": {
     "shell": {
       "open": true
+    },
+    "dialog": {
+      "open": true,
+      "save": true
+    },
+    "fs": {
+      "readFile": true,
+      "scope": ["**"]
     }
   }
 }

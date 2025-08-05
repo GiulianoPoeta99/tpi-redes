@@ -112,7 +112,7 @@
   - Write component tests for mode selection and configuration
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-- [ ] 12. Build file selection interface with drag-and-drop
+- [x] 12. Build file selection interface with drag-and-drop
   - Create FileDropZone component with drag-and-drop functionality
   - Implement visual feedback for drag-over states
   - Add native file browser integration using Tauri file dialogs
