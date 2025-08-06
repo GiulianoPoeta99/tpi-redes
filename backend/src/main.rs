@@ -59,6 +59,8 @@ enum Commands {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     
+
+    
     match cli.command {
         Commands::Send { target, port, protocol, file, verbose } => {
             if verbose {
@@ -90,13 +92,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 timeout: std::time::Duration::from_secs(30),
             };
             
-            println!("Starting file transfer...");
-            println!("File: {:?}", file);
-            println!("Target: {}:{}", target, port);
-            println!("Protocol: {:?}", protocol);
-            
-            // Implementation will be added in later tasks
-            println!("CLI implementation will be completed in task 8");
+            // Validate the configuration
+            match config.validate() {
+                Ok(()) => {
+                    println!("Starting file transfer...");
+                    println!("File: {:?}", file);
+                    println!("Target: {}:{}", target, port);
+                    println!("Protocol: {:?}", protocol);
+                    println!("Configuration is valid: {:?}", config);
+                    
+                    // Implementation will be added in later tasks
+                    println!("CLI implementation will be completed in task 8");
+                }
+                Err(e) => {
+                    eprintln!("Configuration error: {}", e);
+                    std::process::exit(1);
+                }
+            }
         }
         Commands::Receive { port, protocol, output, verbose } => {
             if verbose {
