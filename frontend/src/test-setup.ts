@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 // Mock SvelteKit environment
 vi.mock('$app/environment', () => ({
-  browser: false,
+  browser: true, // Set to true for component testing
   dev: true,
   building: false,
   version: '1.0.0'
@@ -20,4 +20,14 @@ vi.mock('$app/stores', () => ({
   updated: {
     subscribe: vi.fn()
   }
+}));
+
+// Mock Tauri API for testing
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn()
+}));
+
+vi.mock('@tauri-apps/api/event', () => ({
+  listen: vi.fn(),
+  emit: vi.fn()
 }));
