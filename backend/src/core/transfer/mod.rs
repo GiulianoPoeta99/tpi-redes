@@ -16,6 +16,8 @@ pub mod transfer_progress_update;
 pub mod transfer_result;
 pub mod transfer_session;
 pub mod transfer_status;
+pub mod transfer_logger;
+pub mod transfer_history;
 
 // Re-export all transfer functionality
 pub use ack_status::AckStatus;
@@ -35,3 +37,8 @@ pub use transfer_progress_update::TransferProgressUpdate;
 pub use transfer_result::TransferResult;
 pub use transfer_session::TransferSession;
 pub use transfer_status::TransferStatus;
+pub use transfer_logger::{TransferLogger, NetworkLogEntry, LogLevel, LogCategory};
+pub use transfer_history::{
+    TransferHistoryManager, TransferHistoryRecord, TransferMode as HistoryTransferMode,
+    TransferHistoryStatus, HistoryFilter, create_history_record
+};
