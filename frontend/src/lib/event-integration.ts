@@ -259,27 +259,7 @@ export class EventIntegrationService {
   private showNotification(title: string, message: string, type: 'info' | 'success' | 'warning' | 'error'): void {
     if (!browser) return;
 
-    // Try to use system notifications first
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body: message,
-        icon: this.getNotificationIcon(type),
-        tag: 'file-transfer'
-      });
-    } else if ('Notification' in window && Notification.permission !== 'denied') {
-      // Request permission
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          new Notification(title, {
-            body: message,
-            icon: this.getNotificationIcon(type),
-            tag: 'file-transfer'
-          });
-        }
-      });
-    }
-
-    // Also dispatch custom event for in-app notifications
+    // Dispatch custom event that will be handled by the notification system
     window.dispatchEvent(new CustomEvent('transfer-notification', {
       detail: { title, message, type }
     }));

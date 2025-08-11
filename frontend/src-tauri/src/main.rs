@@ -169,11 +169,71 @@ async fn check_receiver_availability(
     Ok(available)
 }
 
+// System notification types
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SystemNotificationOptions {
+    pub title: String,
+    pub body: String,
+    pub icon: Option<String>,
+}
+
+// Tauri command to show system notification
+#[tauri::command]
+async fn show_system_notification(
+    app_handle: AppHandle,
+    options: SystemNotificationOptions,
+) -> Result<String, TauriError> {
+    use tauri_plugin_notification::NotificationExt;
+    
+    let mut builder = app_handle.notification()
+        .builder()
+        .title(&options.title)
+        .body(&options.body);
+    
+    if let Some(icon) = &options.icon {
+        builder = builder.icon(icon);
+    }
+    
+    builder.show().map_err(|e| TauriError {
+        message: format!("Failed to show notification: {}", e),
+        code: "NotificationError".to_string(),
+    })?;
+    
+    Ok("notification-shown".to_string())
+}
+
+// Tauri command to check notification permission
+#[tauri::command]
+async fn check_notification_permission(app_handle: AppHandle) -> Result<String, TauriError> {
+    use tauri_plugin_notification::NotificationExt;
+    
+    let permission = app_handle.notification().permission_state().map_err(|e| TauriError {
+        message: format!("Failed to check notification permission: {}", e),
+        code: "PermissionError".to_string(),
+    })?;
+    
+    Ok(format!("{:?}", permission))
+}
+
+// Tauri command to request notification permission
+#[tauri::command]
+async fn request_notification_permission(app_handle: AppHandle) -> Result<String, TauriError> {
+    use tauri_plugin_notification::NotificationExt;
+    
+    let permission = app_handle.notification().request_permission().map_err(|e| TauriError {
+        message: format!("Failed to request notification permission: {}", e),
+        code: "PermissionError".to_string(),
+    })?;
+    
+    Ok(format!("{:?}", permission))
+}
+
 fn main() {
     let event_emitter_state: EventEmitterState = Arc::new(Mutex::new(None));
     
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_notification::init())
         .manage(event_emitter_state)
         .invoke_handler(tauri::generate_handler![
             initialize_backend,
@@ -182,7 +242,10 @@ fn main() {
             get_progress,
             cancel_transfer_cmd,
             validate_config,
-            check_receiver_availability
+            check_receiver_availability,
+            show_system_notification,
+            check_notification_permission,
+            request_notification_permission
         ])
         .setup(|_app| {
             // Backend will be initialized when first command is called
