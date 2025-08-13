@@ -1,180 +1,138 @@
-# File Selection Components
+# Settings System
 
-This directory contains the file selection interface components for the file transfer application.
+The application settings system provides comprehensive configuration management with persistence, validation, and a user-friendly interface.
 
 ## Components
 
-### FileDropZone.svelte
+### Settings.svelte
+Main settings component that provides a complete settings interface including:
+- Theme selection (light/dark/system)
+- Default connection settings (protocol, port, timeout, chunk size)
+- Developer mode toggle
+- UI preferences (advanced options, auto-save, confirm exit, show history)
+- File handling preferences (max file size, show hidden files)
+- Notification settings integration
+- Settings import/export functionality
+- Reset to defaults with confirmation
 
-A comprehensive file selection component with drag-and-drop functionality and native file browser integration.
-
-**Features:**
-- Drag and drop file selection with visual feedback
-- Native file browser integration using Tauri dialogs
-- File validation (size limits, type restrictions)
-- Multiple file selection support
-- File preview with detailed information
-- Accessibility support (keyboard navigation, ARIA attributes)
-- Disabled state support
-
-**Props:**
-- `disabled: boolean` - Disables the component
-- `multiple: boolean` - Allows multiple file selection
-- `maxFileSize: number` - Maximum file size in bytes (default: 1GB)
-- `allowedTypes: string[]` - Array of allowed file types (extensions or MIME types)
-- `selectedFiles: File[]` - Currently selected files (bindable)
-
-**Events:**
-- `filesSelected: File[]` - Emitted when files are selected
-- `fileValidationError: { file: File; error: string }` - Emitted when file validation fails
-
-**Usage:**
+### Usage
 ```svelte
 <script>
-  import FileDropZone from '$lib/components/FileDropZone.svelte';
-  
-  let selectedFiles = [];
-  
-  function handleFilesSelected(event) {
-    selectedFiles = event.detail;
-    console.log('Selected files:', selectedFiles);
-  }
-  
-  function handleValidationError(event) {
-    console.error('Validation error:', event.detail);
-  }
+  import Settings from '$lib/components/Settings.svelte';
 </script>
 
-<FileDropZone
-  multiple={true}
-  maxFileSize={10 * 1024 * 1024}
-  allowedTypes={['.txt', '.pdf', '.jpg']}
-  on:filesSelected={handleFilesSelected}
-  on:fileValidationError={handleValidationError}
-/>
+<Settings showAdvanced={false} />
 ```
 
-### FilePreview.svelte
+## Stores
 
-A component for displaying detailed file information with an optional remove button.
+### appSettings
+Main application settings store with the following features:
 
-**Features:**
-- File type detection with appropriate icons
-- File size formatting (B, KB, MB, GB)
-- Last modified date formatting (relative and absolute)
-- MIME type display
-- Remove functionality
-- Disabled state support
-
-**Props:**
-- `file: File` - The file to preview
-- `showRemoveButton: boolean` - Whether to show the remove button (default: true)
-- `disabled: boolean` - Disables the remove button
-- `index: number` - Index of the file (used for event emission)
-
-**Events:**
-- `remove: number` - Emitted when the remove button is clicked (passes the index)
-
-**Usage:**
-```svelte
-<script>
-  import FilePreview from '$lib/components/FilePreview.svelte';
-  
-  let files = [/* array of File objects */];
-  
-  function handleRemove(event) {
-    const index = event.detail;
-    files = files.filter((_, i) => i !== index);
-  }
-</script>
-
-{#each files as file, index}
-  <FilePreview 
-    {file} 
-    {index} 
-    on:remove={handleRemove}
-  />
-{/each}
+#### Settings Structure
+```typescript
+interface AppSettings {
+  theme: 'light' | 'dark' | 'system';
+  defaultConnection: {
+    protocol: 'Tcp' | 'Udp';
+    port: number;
+    timeout: number;
+    chunkSize: number;
+  };
+  notifications: NotificationSettings;
+  developerMode: boolean;
+  ui: {
+    showAdvancedOptions: boolean;
+    autoSaveConfig: boolean;
+    confirmBeforeExit: boolean;
+    showTransferHistory: boolean;
+  };
+  files: {
+    defaultDownloadPath?: string;
+    maxFileSize: number;
+    allowedFileTypes: string[];
+    showHiddenFiles: boolean;
+  };
+}
 ```
 
-## File Validation
+#### Store Methods
+```typescript
+// Update individual settings
+appSettings.updateSetting('theme', 'dark');
 
-The components include comprehensive file validation:
+// Update nested settings
+appSettings.updateNestedSetting('defaultConnection', 'port', 9090);
 
-### Size Validation
-- Configurable maximum file size
-- User-friendly error messages with formatted sizes
+// Export settings as JSON
+const exported = appSettings.export();
 
-### Type Validation
-- Extension-based validation (e.g., `.txt`, `.pdf`)
-- MIME type validation (e.g., `image/`, `text/plain`)
-- Flexible configuration supporting both approaches
+// Import settings from JSON
+const result = appSettings.import(jsonString);
 
-### Example Validation Configurations
+// Reset to defaults
+appSettings.reset();
 
-```javascript
-// Allow only text files
-allowedTypes: ['.txt', '.md', 'text/']
+// Get default transfer config
+const transferConfig = appSettings.getDefaultTransferConfig();
 
-// Allow only images
-allowedTypes: ['.jpg', '.png', '.gif', 'image/']
-
-// Allow documents
-allowedTypes: ['.pdf', '.doc', '.docx', 'application/pdf']
-
-// No restrictions (empty array)
-allowedTypes: []
+// Apply theme to document
+appSettings.applyTheme();
 ```
 
-## File Type Detection
+## Features
 
-The FilePreview component automatically detects file types and displays appropriate icons:
+### Persistence
+- Automatic localStorage persistence
+- Graceful error handling for storage failures
+- Settings validation before saving
 
-- 🖼️ Images (jpg, png, gif, etc.)
-- 📄 Documents (pdf, doc, txt, etc.)
-- 🎥 Videos (mp4, avi, mov, etc.)
-- 🎵 Audio (mp3, wav, flac, etc.)
-- 💻 Code files (js, ts, py, java, etc.)
-- 🗜️ Archives (zip, rar, 7z, etc.)
-- 📁 Unknown/other files
+### Theme Management
+- Light, dark, and system theme options
+- Automatic theme application to document
+- System theme change detection
 
-## Accessibility
+### Validation
+- Comprehensive settings validation
+- Port range validation (1-65535)
+- File size limits (1B - 10GB)
+- Timeout limits (1s - 1h)
+- Chunk size limits (1B - 1MB)
 
-Both components are built with accessibility in mind:
+### Import/Export
+- JSON format for settings portability
+- Validation during import
+- Error reporting for invalid settings
+- Partial settings import support
 
-- Keyboard navigation support
-- ARIA attributes for screen readers
-- Focus management
-- High contrast support
-- Semantic HTML structure
+### Integration
+- Seamless integration with notification settings
+- Default transfer configuration generation
+- Developer mode for advanced features
 
 ## Testing
 
-The components include comprehensive tests covering:
-
-- File selection workflows
-- Validation logic
-- Error handling
-- Accessibility features
-- Edge cases
+The settings system includes comprehensive tests:
+- Unit tests for validation logic
+- Integration tests for store functionality
+- Component tests for UI interactions
+- Error handling tests for edge cases
 
 Run tests with:
 ```bash
-npm test -- --run file-validation
+npm test -- --run src/lib/stores/settings.test.ts
+npm test -- --run src/lib/stores/settings.integration.test.ts
 ```
 
-## Dependencies
+## Requirements Fulfilled
 
-- `@tauri-apps/plugin-dialog` - For native file browser integration
-- `@tauri-apps/plugin-fs` - For file system access
-- Tailwind CSS - For styling
-- Svelte 5 - Component framework
+This implementation satisfies all requirements from task 17:
 
-## Browser Compatibility
+- ✅ **9.1**: Persistent configuration settings with localStorage
+- ✅ **9.2**: Settings load and apply on application start
+- ✅ **9.3**: Automatic saving of configuration changes
+- ✅ **9.4**: Reset configuration with user confirmation
+- ✅ **9.5**: Graceful handling of corrupted configuration files
+- ✅ **9.6**: Portable configuration file export/import
 
-The components use modern web APIs:
-- File API
-- Drag and Drop API
-- FileReader API
-
-These are supported in all modern browsers. For older browser support, polyfills may be required.
+The settings system provides a robust foundation for user preferences and application configuration management.

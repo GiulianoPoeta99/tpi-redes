@@ -162,7 +162,7 @@
   - Write tests for notification functionality across different platforms
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6_
 
-- [ ] 17. Add application settings and configuration persistence
+- [x] 17. Add application settings and configuration persistence
   - Create Settings component with all user preferences
   - Implement theme selection (light/dark/system) with persistence
   - Add default connection settings configuration
