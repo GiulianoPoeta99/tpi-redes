@@ -50,6 +50,7 @@ pub async fn handle_send_command(
         filename: file.file_name().and_then(|n| n.to_str()).map(String::from),
         chunk_size,
         timeout: Duration::from_secs(timeout),
+        ..Default::default()
     };
     
     // Validate configuration

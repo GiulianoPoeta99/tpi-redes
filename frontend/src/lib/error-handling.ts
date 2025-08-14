@@ -165,7 +165,7 @@ export class ErrorRecovery {
     const jitter = delay * 0.25 * (Math.random() - 0.5);
     delay += jitter;
     
-    // Special cases
+    // Special cases with more sophisticated handling
     switch (errorCode) {
       case 'RATE_LIMIT_EXCEEDED':
         delay = Math.max(delay, 5000); // Minimum 5 seconds for rate limits
@@ -173,9 +173,41 @@ export class ErrorRecovery {
       case 'NETWORK_ERROR':
         delay = Math.min(delay, 10000); // Cap at 10 seconds for network errors
         break;
+      case 'CONNECTION_REFUSED':
+        delay = Math.min(delay * 0.75, 8000); // Slightly faster retry for connection issues
+        break;
+      case 'TIMEOUT':
+        delay = Math.min(delay * 1.5, 15000); // Longer delay for timeouts
+        break;
+      case 'CHECKSUM_MISMATCH':
+        delay = Math.max(delay, 2000); // Minimum 2 seconds for checksum issues
+        break;
+      case 'CORRUPTED_DATA':
+        delay = Math.max(delay, 3000); // Minimum 3 seconds for data corruption
+        break;
     }
     
     return Math.min(delay, maxDelay);
+  }
+
+  static getTimeoutRecommendation(errorCode: string, context?: string): string | undefined {
+    switch (errorCode) {
+      case 'TIMEOUT':
+        if (context?.includes('connect')) {
+          return 'Try increasing the connection timeout in settings';
+        } else if (context?.includes('read')) {
+          return 'Try increasing the read timeout for slow networks';
+        } else if (context?.includes('write')) {
+          return 'Try increasing the write timeout for slow uploads';
+        }
+        return 'Consider increasing timeout values in settings';
+      case 'NETWORK_ERROR':
+        return 'Check network stability and consider increasing timeouts';
+      case 'CONNECTION_REFUSED':
+        return 'Verify the target is running and accessible';
+      default:
+        return undefined;
+    }
   }
 }
 
@@ -235,6 +267,85 @@ export class RetryHandler {
     }
     
     throw lastError!;
+  }
+
+  async retryWithProgress<T>(
+    operation: () => Promise<T>,
+    onProgress?: (attempt: number, maxAttempts: number, error: TransferError) => void,
+    errorHandler?: (error: TransferError, attempt: number) => boolean
+  ): Promise<T> {
+    let lastError: TransferError;
+    
+    for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        const transferError = error instanceof TransferError 
+          ? error 
+          : TransferError.fromBackendError(error);
+        
+        lastError = transferError;
+        
+        // Notify progress callback
+        onProgress?.(attempt, this.config.maxAttempts, transferError);
+        
+        // Check if we should continue retrying
+        const shouldRetry = attempt < this.config.maxAttempts && 
+                           transferError.recoverable &&
+                           ErrorRecovery.shouldAutoRetry(transferError.code, attempt, this.config.maxAttempts);
+        
+        // Allow custom error handler to override retry decision
+        const customShouldRetry = errorHandler?.(transferError, attempt) ?? shouldRetry;
+        
+        if (!customShouldRetry) {
+          throw transferError;
+        }
+        
+        // Calculate delay for next attempt
+        const delay = ErrorRecovery.getRetryDelay(transferError.code, attempt);
+        console.warn(`Attempt ${attempt} failed: ${transferError.message}. Retrying in ${delay}ms...`);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    throw lastError!;
+  }
+
+  // Specialized retry methods for different error types
+  async retryNetworkOperation<T>(operation: () => Promise<T>): Promise<T> {
+    const networkConfig: RetryConfig = {
+      maxAttempts: 5,
+      initialDelay: 500,
+      maxDelay: 10000,
+      backoffMultiplier: 1.5,
+      jitter: true,
+    };
+
+    const handler = new RetryHandler(networkConfig);
+    return handler.retry(operation, (error, attempt) => {
+      // More aggressive retries for network errors
+      if (['NETWORK_ERROR', 'CONNECTION_REFUSED', 'TIMEOUT'].includes(error.code)) {
+        return attempt <= networkConfig.maxAttempts;
+      }
+      return ErrorRecovery.shouldAutoRetry(error.code, attempt, networkConfig.maxAttempts);
+    });
+  }
+
+  async retryChecksumOperation<T>(operation: () => Promise<T>): Promise<T> {
+    const checksumConfig: RetryConfig = {
+      maxAttempts: 2,
+      initialDelay: 1000,
+      maxDelay: 3000,
+      backoffMultiplier: 1.0,
+      jitter: false,
+    };
+
+    const handler = new RetryHandler(checksumConfig);
+    return handler.retry(operation, (error, attempt) => {
+      // Only retry once for checksum mismatches
+      return error.code === 'CHECKSUM_MISMATCH' && attempt <= 1;
+    });
   }
 }
 

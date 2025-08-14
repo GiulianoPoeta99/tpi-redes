@@ -44,6 +44,7 @@ impl TransferManager {
             filename: None,
             chunk_size: 8192,
             timeout: std::time::Duration::from_secs(30),
+            ..Default::default()
         };
         
         // Create transfer session

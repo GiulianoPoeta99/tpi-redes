@@ -12,6 +12,12 @@ pub struct TransferConfig {
     pub filename: Option<String>,
     pub chunk_size: usize,
     pub timeout: Duration,
+    pub connection_timeout: Duration,
+    pub read_timeout: Duration,
+    pub write_timeout: Duration,
+    pub retry_attempts: u32,
+    pub retry_delay: Duration,
+    pub auto_retry_enabled: bool,
 }
 
 impl Default for TransferConfig {
@@ -24,6 +30,12 @@ impl Default for TransferConfig {
             filename: None,
             chunk_size: 8192,
             timeout: Duration::from_secs(30),
+            connection_timeout: Duration::from_secs(10),
+            read_timeout: Duration::from_secs(30),
+            write_timeout: Duration::from_secs(30),
+            retry_attempts: 3,
+            retry_delay: Duration::from_secs(1),
+            auto_retry_enabled: true,
         }
     }
 }
@@ -52,6 +64,29 @@ impl TransferConfig {
         
         if self.timeout.as_secs() > 3600 {
             return Err("Timeout must not exceed 1 hour".to_string());
+        }
+        
+        // Validate connection timeout
+        if self.connection_timeout.as_secs() == 0 {
+            return Err("Connection timeout must be greater than 0 seconds".to_string());
+        }
+        
+        // Validate read/write timeouts
+        if self.read_timeout.as_secs() == 0 {
+            return Err("Read timeout must be greater than 0 seconds".to_string());
+        }
+        
+        if self.write_timeout.as_secs() == 0 {
+            return Err("Write timeout must be greater than 0 seconds".to_string());
+        }
+        
+        // Validate retry configuration
+        if self.retry_attempts > 10 {
+            return Err("Retry attempts must not exceed 10".to_string());
+        }
+        
+        if self.retry_delay.as_secs() > 60 {
+            return Err("Retry delay must not exceed 60 seconds".to_string());
         }
         
         // Validate target IP for transmitter mode
@@ -93,9 +128,46 @@ impl TransferConfig {
             filename,
             chunk_size: chunk_size.unwrap_or(8192),
             timeout: timeout.unwrap_or(Duration::from_secs(30)),
+            ..Default::default()
         };
         
         config.validate()?;
         Ok(config)
+    }
+    
+    /// Creates a configuration with custom timeout settings
+    pub fn with_timeouts(
+        mut self,
+        connection_timeout: Duration,
+        read_timeout: Duration,
+        write_timeout: Duration,
+    ) -> Self {
+        self.connection_timeout = connection_timeout;
+        self.read_timeout = read_timeout;
+        self.write_timeout = write_timeout;
+        self
+    }
+    
+    /// Creates a configuration with custom retry settings
+    pub fn with_retry_config(
+        mut self,
+        retry_attempts: u32,
+        retry_delay: Duration,
+        auto_retry_enabled: bool,
+    ) -> Self {
+        self.retry_attempts = retry_attempts;
+        self.retry_delay = retry_delay;
+        self.auto_retry_enabled = auto_retry_enabled;
+        self
+    }
+    
+    /// Gets the appropriate timeout for the given operation
+    pub fn get_timeout_for_operation(&self, operation: &str) -> Duration {
+        match operation {
+            "connect" | "connection" => self.connection_timeout,
+            "read" | "receive" => self.read_timeout,
+            "write" | "send" => self.write_timeout,
+            _ => self.timeout,
+        }
     }
 }

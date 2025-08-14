@@ -82,6 +82,7 @@ impl UdpTransfer {
             filename: None,
             chunk_size: 1024,
             timeout: timeout_duration,
+            ..Default::default()
         };
 
         let mut udp_transfer = UdpTransfer::new(config);
@@ -289,6 +290,7 @@ mod tests {
             filename: None,
             chunk_size: 1024,
             timeout: Duration::from_secs(30),
+            ..Default::default()
         }
     }
 

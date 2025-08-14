@@ -89,6 +89,7 @@ impl TcpTransfer {
                     filename: None,
                     chunk_size: 8192,
                     timeout: timeout_duration,
+                    ..Default::default()
                 };
 
                 let mut tcp_transfer = TcpTransfer::new(config);
@@ -496,6 +497,7 @@ mod tests {
             filename: None,
             chunk_size: 8192,
             timeout: Duration::from_secs(30),
+            ..Default::default()
         }
     }
 

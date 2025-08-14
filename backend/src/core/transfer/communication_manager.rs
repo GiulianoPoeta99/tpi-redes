@@ -311,6 +311,7 @@ mod tests {
             filename: None,
             chunk_size: if protocol == Protocol::Tcp { 8192 } else { 1024 },
             timeout: Duration::from_secs(5),
+            ..Default::default()
         }
     }
 
