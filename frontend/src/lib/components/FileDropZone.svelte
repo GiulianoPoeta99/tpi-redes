@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { open } from '@tauri-apps/plugin-dialog';
-  import { readBinaryFile } from '@tauri-apps/plugin-fs';
+  import { readFile } from '@tauri-apps/plugin-fs';
   import { TransferUtils } from '../types';
   import FilePreview from './FilePreview.svelte';
 
