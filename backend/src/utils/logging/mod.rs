@@ -6,4 +6,7 @@ pub mod transfer_logger;
 // Re-export main types
 pub use log_config::LogConfig;
 pub use logging::*;
-pub use transfer_logger::TransferLogger;
+pub use transfer_logger::SimpleTransferLogger;
+// TransferLogger is now in core::transfer module
+// Re-export for backward compatibility
+pub use crate::core::transfer::TransferLogger;

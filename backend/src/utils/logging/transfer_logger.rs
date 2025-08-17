@@ -2,9 +2,9 @@
 use crate::errors::TransferError;
 use tracing::{debug, error, info, warn};
 
-pub struct TransferLogger;
+pub struct SimpleTransferLogger;
 
-impl TransferLogger {
+impl SimpleTransferLogger {
     /// Log transfer initiation
     pub fn log_transfer_start(transfer_id: &str, filename: &str, target: &str, protocol: &str, mode: &str) {
         info!(

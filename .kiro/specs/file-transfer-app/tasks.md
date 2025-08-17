@@ -202,7 +202,7 @@
   - Write usability tests and gather user feedback
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 21. Review and reorganize code structure for single-definition principle
+- [x] 21. Review and reorganize code structure for single-definition principle
   - Audit existing backend Rust files to ensure each contains only one main struct/enum/trait
   - Audit existing frontend files to ensure each contains only one main component/class/interface
   - Split any files that contain multiple main definitions into separate files

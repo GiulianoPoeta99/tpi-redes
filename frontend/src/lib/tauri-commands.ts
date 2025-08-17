@@ -2,11 +2,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { TransferConfig, TransferProgress } from './types';
 
-// Error type returned by Tauri commands
-export interface TauriError {
-  message: string;
-  code: string;
-}
+import type { TauriError } from './tauri/tauri-error';
 
 // Tauri command interface
 export class TauriCommands {
