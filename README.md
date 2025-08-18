@@ -160,11 +160,24 @@ The application uses a hybrid architecture:
 
 The backend is designed as a library that can be used by both the CLI and the Tauri desktop application.
 
-## Documentation
+## 📚 Documentation
 
-- **[`backend/README.md`](backend/README.md)** - Complete backend documentation, CLI usage, Docker setup, testing guides
-- **[`docs/`](docs/)** - Additional documentation and guides
-- **[`.kiro/specs/`](.kiro/specs/)** - Implementation specifications and task tracking
+### Getting Started
+- **[Quick Start Guide](docs/quick-start.md)** - Get running in 30 seconds
+- **[Installation Guide](docs/installation.md)** - Complete setup for all platforms
+- **[User Manual](docs/user-manual.md)** - Complete user guide with examples
+
+### Technical Documentation
+- **[Architecture Overview](docs/architecture.md)** - System design and components
+- **[API Reference](docs/api-reference.md)** - Complete API documentation
+- **[Deployment Guide](docs/deployment.md)** - Build and deployment instructions
+
+### Backend Documentation
+- **[Backend README](backend/README.md)** - CLI usage, Docker setup, testing guides
+
+### Development
+- **[Development Guide](docs/development.md)** - Setup for contributors
+- **[Specification](`.kiro/specs/`)** - Implementation specifications and task tracking
 
 ## Contributing
 

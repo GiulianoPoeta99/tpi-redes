@@ -34,7 +34,47 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "identifier": "com.filetransfer.app",
+    "publisher": "File Transfer Team",
+    "category": "Utility",
+    "shortDescription": "Socket-based file transfer application",
+    "longDescription": "A cross-platform file transfer application supporting TCP and UDP protocols with integrity verification and real-time progress monitoring.",
+    "copyright": "Copyright © 2024 File Transfer Team. All rights reserved.",
+    "licenseFile": "../../LICENSE",
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "wix": {
+        "language": "en-US",
+        "template": "main.wxs",
+        "fragmentPaths": [],
+        "componentGroupRefs": [],
+        "componentRefs": [],
+        "featureGroupRefs": [],
+        "featureRefs": [],
+        "mergeRefs": []
+      }
+    },
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.15",
+      "exceptionDomain": "",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null
+    },
+    "linux": {
+      "deb": {
+        "depends": ["libwebkit2gtk-4.0-37", "libgtk-3-0", "libayatana-appindicator3-1"]
+      },
+      "rpm": {
+        "epoch": 0,
+        "release": "1",
+        "depends": ["webkit2gtk3", "gtk3", "libappindicator-gtk3"]
+      }
+    }
   },
   "plugins": {
     "shell": {

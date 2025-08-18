@@ -133,10 +133,30 @@ docs-frontend:
 # Release preparation
 prepare-release version:
     @echo "Preparing release {{version}}..."
-    cd backend && just prepare-release {{version}}
-    sed -i 's/"version": ".*"/"version": "{{version}}"/' frontend/package.json
-    sed -i 's/"version": ".*"/"version": "{{version}}"/' frontend/src-tauri/tauri.conf.json
-    @echo "Version updated to {{version}} in all files"
+    ./scripts/prepare-release.sh {{version}}
+
+# Package for all platforms
+package-all version:
+    @echo "Packaging for all platforms..."
+    ./scripts/package-all.sh {{version}}
+
+# Generate update manifest
+generate-update-manifest version notes="Bug fixes and performance improvements":
+    @echo "Generating update manifest..."
+    ./scripts/generate-update-manifest.sh {{version}} "{{notes}}"
+
+# Complete release process (dry run)
+release-dry-run version:
+    @echo "Running release dry run for {{version}}..."
+    ./scripts/prepare-release.sh {{version}} patch true
+
+# Complete release process
+release version:
+    @echo "Creating release {{version}}..."
+    ./scripts/prepare-release.sh {{version}} patch false
+    ./scripts/package-all.sh {{version}}
+    ./scripts/generate-update-manifest.sh {{version}}
+    @echo "Release {{version}} complete! Check dist/ for artifacts."
 
 # Quick development setup
 quick-start: setup-all
