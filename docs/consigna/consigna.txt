@@ -1,0 +1,123 @@
+Asignatura: Redes y Transmisión de Datos
+Proyecto Final
+Título: Desarrollo basado en Sockets – App de transferencia de
+archivos
+Fundamentos
+Para cumplir con las condiciones de programa vigentes durante la cursada del alumno, a continuación se
+describe el trabajo de investigación y desarrollo que debe realizar y defender para finalizar la asignatura de
+Redes y Transmisión de Datos.
+
+Objetivo
+El objetivo de este proyecto es que el estudiante aplique los conocimientos adquiridos en la cursada para
+aplicarlos en la programación de sockets, tipos de comunicación en red y detección de errores,
+desarrollando una aplicación funcional de transferencia de archivos entre dos nodos de red. El trabajo
+permite explorar distintos tipos de sockets (TCP, UDP) y comprender su comportamiento, fortalezas y
+limitaciones en entornos controlados.
+
+Descripción del Proyecto
+Se solicita el desarrollo de una aplicación de transferencia de archivos entre dos nodos que contemple los
+siguientes elementos:
+
+1. Interfaz de usuario (front-end)
+Debe incluir una interfaz simple y funcional, preferentemente de tipo web (HTML/CSS/JS), aunque se
+aceptará interfaz gráfica de escritorio si se justifica.
+Funciones que debe permitir:
+ Ingresar la dirección IP del nodo remoto (peer).
+ Seleccionar un archivo local para transferir.
+ Elegir el tipo de socket a utilizar: a) Stream (TCP), b) Datagram (UDP).
+ Definir el modo de operación del nodo local: Tx (Transmisor) o Rx (Receptor).
+
+2. Transferencia y verificación
+El sistema debe calcular un hash de verificación (ej. MD5, SHA-256, etc.) del archivo antes de su envío.
+Este archivo de verificación (checksum) debe generarse automáticamente y:
+
+
+
+
+Guardarse localmente.
+Ser enviado al receptor junto con el archivo original.
+
+El receptor debe calcular el hash del archivo recibido, compararlo con el transmitido y mostrar en pantalla si
+la transferencia fue exitosa o si hubo errores de integridad.
+
+3. Estructura general del sistema
+El sistema debe estar compuesto al menos por:
+
+
+
+
+Un módulo transmisor que se conecta a una IP remota, transmite el archivo y su checksum.
+Un módulo receptor que escucha en un puerto configurado, recibe el archivo, reconstruye el
+contenido, genera su propio checksum, compara y valida.
+La aplicación debe poder ejecutarse en modo Tx o Rx, según se defina desde el front. Si se elije el
+
+Asignatura: Redes y Transmisión de Datos
+Proyecto Final
+modo de operación Rx, los controles de selección para archivo y dirección IP deben quedar
+deshabilitados.
+
+4. Funciones opcionales
+
+
+
+
+
+Soporte para transferencia de múltiples archivos.
+Barras de progreso de envío.
+Cifrado de archivos antes de transmitirlos.
+Logs de actividad.
+
+Requisitos técnicos
+
+
+
+
+Utilizar sockets nativos del lenguaje elegido (preferentemente Python, C o Java).
+Ejecutar transferencias entre dos máquinas distintas conectadas a una red IP.
+Incluir documentación clara del código.
+
+Cronograma de referencia
+Semana Actividad
+1
+
+Investigación y recopilación de información
+
+2
+
+Diseño del sistema y planificación del proyecto
+
+3-5
+
+Desarrollo del backend
+
+6-9
+
+Desarrollo del frontend
+
+10
+
+Integración de componentes y pruebas iniciales
+
+11
+
+Pruebas finales y ajustes
+
+12
+
+Documentación y preparación de la presentación
+
+13
+
+Presentación del proyecto
+
+Evaluación
+El proyecto será evaluado en base a:
+ Funcionalidad: Implementación correcta de la transmisión según requerimientos.
+ Código: Calidad y claridad.
+ Documentación: Descripción del diseño, funcionamiento y decisiones tomadas.
+ Presentación: Efectividad de la presentación del proyecto.
+
+Deadline de entrega
+1ra llamada a exámenes finales turno Febrero 2026
+
+
