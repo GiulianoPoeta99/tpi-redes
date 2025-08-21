@@ -29,24 +29,20 @@ Estas funcionalidades son requeridas para aprobar el Trabajo Práctico según la
 ---
 
 ## 2. Funcionalidades Extra (Valor Agregado)
-Estas funcionalidades aprovechan la potencia de Python y el diseño de escritorio para destacar el proyecto.
+Estas funcionalidades están orientadas a demostrar un dominio profundo de conceptos de Redes (Capa 4, Protocolos, Seguridad).
 
-### Nivel Redes y Transmisión (Avanzado)
+### Nivel Redes y Transmisión (Advanced)
 1.  **Analizador de Tráfico (Packet Sniffer):**
-    *   Integración con `scapy` para capturar y mostrar los paquetes en tiempo real.
-    *   **Desglose de Cabeceras:** Visualización detallada de Flags (SYN, ACK, FIN), Números de Secuencia (Seq) y Confirmación (Ack).
-2.  **Gráfico de Ventana Deslizante (Sliding Window Visualizer):**
-    *   Representación gráfica en tiempo real de los bytes "en vuelo" (enviados vs confirmados).
-    *   Ideal para visualizar el Control de Flujo de TCP.
+    *   Captura en tiempo real con desglose detallado de cabeceras (Flags TCP, Números de Secuencia/Ack, Window Size).
+    *   Visualización hexadecimal del payload.
+2.  **Visualizador de Ventana Deslizante (Sliding Window):**
+    *   Gráfico en tiempo real que muestre los bytes en vuelo, la ventana de recepción y los ACKs.
+    *   Fundamental para explicar el Control de Flujo en TCP.
 3.  **Estadísticas de Capa 4 (Transporte):**
-    *   Panel de métricas en vivo: **RTT** (Round Trip Time), **Jitter** (Variación del retardo), **Throughput** (Caudal efectivo) y conteo de **Retransmisiones**.
+    *   Panel de métricas en vivo: RTT (Round Trip Time), Jitter, Throughput real vs teórico, y conteo de retransmisiones.
 4.  **Simulación de "Man-in-the-Middle" (MITM):**
-    *   Modo especial donde la app intercepta tráfico, permite modificar el payload al vuelo y retransmitirlo, demostrando la vulnerabilidad de protocolos no seguros y la importancia del checksum.
+    *   Modo especial donde la app actúa como proxy, permitiendo interceptar y modificar paquetes al vuelo (ej: Bit Flipping) para probar la robustez del receptor.
 5.  **Auto-Descubrimiento (UDP Broadcast):**
-    *   Funcionalidad "Escanear Red" que envía paquetes broadcast (`255.255.255.255`) para encontrar automáticamente otros nodos activos sin ingresar IPs manualmente.
-
-### Nivel Aplicación / Seguridad
-6.  **Cifrado E2E:**
-    *   Encriptar el archivo con AES-256 antes de enviar y desencriptar al recibir.
-7.  **Compresión al Vuelo:**
-    *   Comprimir (gzip/lzma) el archivo antes de enviar.
+    *   Botón "Escanear Red" que envía un broadcast UDP para encontrar otros nodos activos sin necesidad de ingresar IPs manualmente.
+6.  **Inspección de Flujo estilo Wireshark:**
+    *   Interfaz dedicada para ver la secuencia completa de la conversación (Handshake SYN/ACK, Transferencia, FIN) de forma legible y estructurada.

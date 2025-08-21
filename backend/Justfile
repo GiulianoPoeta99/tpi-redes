@@ -1,0 +1,24 @@
+# Justfile
+
+set shell := ["zsh", "-c"]
+
+default: test
+
+# Run all tests
+test:
+    uv run pytest
+
+# Run linter and type checker
+lint:
+    uv run ruff check .
+    uv run pyright
+
+# Format code
+format:
+    uv run ruff format .
+
+# Clean temporary files
+clean:
+    rm -rf .pytest_cache .ruff_cache .venv __pycache__ dist build
+    find . -type d -name "__pycache__" -exec rm -rf {} +
+    find . -type f -name "*.pyc" -delete
