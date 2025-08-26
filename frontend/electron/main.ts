@@ -66,9 +66,34 @@ function spawnPythonProcess(args: string[]) {
     pythonProcess = spawn(pythonPath, [scriptPath, ...args]);
 
     pythonProcess.stdout.on('data', (data: any) => {
-        if (mainWindow) {
-            mainWindow.webContents.send('python-log', data.toString());
-        }
+        const str = data.toString();
+        const lines = str.split('\n');
+        
+        lines.forEach((line: string) => {
+            if (!line.trim()) return;
+            
+            try {
+                const json = JSON.parse(line);
+                if (json.type === 'WINDOW_UPDATE') {
+                    if (mainWindow) {
+                        mainWindow.webContents.send('window-update', json);
+                    }
+                    return; 
+                }
+                if (json.type === 'STATS') {
+                    if (mainWindow) {
+                        mainWindow.webContents.send('stats-update', json);
+                    }
+                    return;
+                }
+            } catch (e) {
+                // Not JSON, treat as normal log
+            }
+
+            if (mainWindow) {
+                mainWindow.webContents.send('python-log', line);
+            }
+        });
     });
 
     pythonProcess.stderr.on('data', (data: any) => {

@@ -1,5 +1,7 @@
 import logging
 import socket
+import json
+import time
 from pathlib import Path
 
 from tpi_redes.transfer.integrity import IntegrityVerifier
@@ -27,8 +29,11 @@ class TCPClient:
 
         # 3. Connect and Send
         logger.info(f"Connecting to {ip}:{port}...")
+        
+        start_connect = time.time()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((ip, port))
+            rtt = (time.time() - start_connect) * 1000 # RTT in ms
 
             # Send Header
             s.sendall(header)
@@ -39,10 +44,50 @@ class TCPClient:
 
             # Send Content
             logger.info("Sending content...")
+            
+            chunk_size = 4096
+            total_bytes = file_size
+            bytes_sent = 0
+            # Simulate a visual window of 20KB (5 chunks)
+            window_size = 5 * chunk_size 
+            
+            start_transfer = time.time()
+            last_stats_time = start_transfer
+
             with open(file_path, "rb") as f:
-                # Send in chunks using sendfile for efficiency if available,
-                # but manual loop allows for progress tracking later.
-                while chunk := f.read(4096):
+                while chunk := f.read(chunk_size):
                     s.sendall(chunk)
+                    bytes_sent += len(chunk)
+                    
+                    current_time = time.time()
+                    
+                    # Emit Stats every 0.5 seconds
+                    if current_time - last_stats_time >= 0.5:
+                        elapsed = current_time - start_transfer
+                        throughput = (bytes_sent / elapsed) / (1024 * 1024) if elapsed > 0 else 0 # MB/s
+                        
+                        stats_event = {
+                            "type": "STATS",
+                            "rtt": round(rtt, 2),
+                            "throughput": round(throughput, 2),
+                            "progress": round((bytes_sent / total_bytes) * 100, 1)
+                        }
+                        print(json.dumps(stats_event), flush=True)
+                        last_stats_time = current_time
+
+                    # Simulate Window Update for Visualization
+                    # We pretend the window covers the most recently sent bytes
+                    window_end = bytes_sent
+                    window_start = max(0, window_end - window_size)
+                    
+                    event = {
+                        "type": "WINDOW_UPDATE",
+                        "base": window_start,
+                        "next_seq": window_end,
+                        "window_size": window_size,
+                        "total": total_bytes
+                    }
+                    # Print JSON to stdout for Electron to parse
+                    print(json.dumps(event), flush=True)
 
             logger.info("File sent successfully.")

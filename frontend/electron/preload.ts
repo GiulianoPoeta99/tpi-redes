@@ -5,5 +5,11 @@ contextBridge.exposeInMainWorld('api', {
   sendFile: (config: any) => ipcRenderer.invoke('send-file', config),
   onLog: (callback: (log: string) => void) => {
       ipcRenderer.on('python-log', (_event, value) => callback(value));
+  },
+  onWindowUpdate: (callback: (data: any) => void) => {
+      ipcRenderer.on('window-update', (_event, value) => callback(value));
+  },
+  onStatsUpdate: (callback: (data: any) => void) => {
+      ipcRenderer.on('stats-update', (_event, value) => callback(value));
   }
 });
