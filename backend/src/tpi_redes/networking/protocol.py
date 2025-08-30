@@ -10,6 +10,7 @@ class Header:
     file_size: int
     hash_len: int
 
+
 class ProtocolHandler:
     # Header Format:
     # ! = Network (Big-endian)
@@ -35,7 +36,7 @@ class ProtocolHandler:
             len(name_bytes),
             file_size,
             len(hash_bytes),
-            b"\x00\x00\x00"  # Padding
+            b"\x00\x00\x00",  # Padding
         )
 
     @staticmethod
@@ -54,5 +55,5 @@ class ProtocolHandler:
             op_code=unpacked[0],
             name_len=unpacked[1],
             file_size=unpacked[2],
-            hash_len=unpacked[3]
+            hash_len=unpacked[3],
         )

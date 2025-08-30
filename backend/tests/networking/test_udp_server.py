@@ -14,13 +14,14 @@ class TestUDPServer:
         server = UDPServer(host="127.0.0.1", port=0, save_dir=str(save_dir))
 
         from tpi_redes.networking.protocol import ProtocolHandler
+
         filename = "udp_test.txt"
         content = b"Hello UDP!"
         file_hash = "dummy_hash"
         addr = ("127.0.0.1", 55555)
 
         # 1. Header
-        header = ProtocolHandler.pack_header(b'F', filename, len(content), file_hash)
+        header = ProtocolHandler.pack_header(b"F", filename, len(content), file_hash)
         server.process_datagram(header, addr)
 
         # 2. Metadata

@@ -9,6 +9,7 @@ from .protocol import Header, ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
 
+
 @dataclass
 class UDPSession:
     state: str  # "WAITING_HEADER", "WAITING_METADATA", "RECEIVING_CONTENT"
@@ -17,6 +18,7 @@ class UDPSession:
     file_hash: Optional[str] = None
     received_bytes: int = 0
     file_path: Optional[Path] = None
+
 
 class UDPServer(BaseServer):
     def __init__(self, host: str, port: int, save_dir: str):
@@ -31,7 +33,7 @@ class UDPServer(BaseServer):
 
             try:
                 while True:
-                    data, addr = s.recvfrom(65535) # Max UDP size
+                    data, addr = s.recvfrom(65535)  # Max UDP size
                     self.process_datagram(data, addr)
             except KeyboardInterrupt:
                 logger.info("Server stopping...")
@@ -64,10 +66,10 @@ class UDPServer(BaseServer):
         try:
             if session.state == "WAITING_METADATA":
                 # Expecting Name + Hash
-                expected_len = session.header.name_len + session.header.hash_len # type: ignore
+                expected_len = session.header.name_len + session.header.hash_len  # type: ignore
                 if len(data) == expected_len:
-                    name_bytes = data[:session.header.name_len] # type: ignore
-                    hash_bytes = data[session.header.name_len:] # type: ignore
+                    name_bytes = data[: session.header.name_len]  # type: ignore
+                    hash_bytes = data[session.header.name_len :]  # type: ignore
 
                     session.filename = name_bytes.decode("utf-8")
                     session.file_hash = hash_bytes.decode("utf-8")
@@ -99,11 +101,10 @@ class UDPServer(BaseServer):
                     session.received_bytes += len(data)
 
                 logger.debug(
-                    f"[{addr}] Chunk {len(data)} bytes. "
-                    f"Total: {session.received_bytes}"
+                    f"[{addr}] Chunk {len(data)} bytes. Total: {session.received_bytes}"
                 )
 
-                if session.received_bytes >= session.header.file_size: # type: ignore
+                if session.received_bytes >= session.header.file_size:  # type: ignore
                     logger.info(f"[{addr}] Transfer complete: {session.filename}")
                     del self.sessions[addr]
 

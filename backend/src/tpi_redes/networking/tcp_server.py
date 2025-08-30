@@ -8,6 +8,7 @@ from .protocol import ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
 
+
 class TCPServer(BaseServer):
     def start(self):
         """Start listening for TCP connections."""

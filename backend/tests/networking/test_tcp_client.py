@@ -15,18 +15,23 @@ class TestTCPClient:
         class MockSocket:
             def connect(self, addr: tuple[str, int]):
                 pass
+
             def sendall(self, data: bytes):
                 nonlocal sent_data
                 sent_data += data
+
             def close(self):
                 pass
+
             def __enter__(self):
                 return self
+
             def __exit__(self, exc_type: object, exc_val: object, exc_tb: object):
                 pass
 
         # Mock socket.socket
         import socket
+
         original_socket = socket.socket
 
         def mock_socket_ctor(*_args, **_kwargs):
@@ -43,7 +48,7 @@ class TestTCPClient:
             header_data = sent_data[:16]
             header = ProtocolHandler.unpack_header(header_data)
 
-            assert header.op_code == b'F'
+            assert header.op_code == b"F"
             assert header.file_size == len(content)
 
             # 2. Filename

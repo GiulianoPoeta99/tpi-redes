@@ -1,0 +1,32 @@
+# Frontend Justfile
+
+default:
+    @just --list
+
+# Start development server (Electron + Vite)
+run:
+    npm run dev:electron
+
+# Build for production
+build:
+    npm run build
+
+# Run tests (Vitest)
+test:
+    npm run test
+
+# Lint code (Biome)
+lint:
+    npm run lint
+
+# Format code (Biome)
+format:
+    npm run format
+
+# Preview production build
+preview:
+    npm run preview
+
+# Compile Electron main process
+compile:
+    npm run compile:electron

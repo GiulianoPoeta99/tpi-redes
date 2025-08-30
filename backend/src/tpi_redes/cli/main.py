@@ -40,6 +40,7 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     sniffer = None
     if sniff:
         from tpi_redes.networking.sniffer import PacketSniffer
+
         # Default interface 'lo' for localhost testing, ideally configurable
         sniffer = PacketSniffer(interface="lo", port=port)
         sniffer.start()
@@ -50,10 +51,12 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     try:
         if protocol == "tcp":
             from tpi_redes.networking.tcp_server import TCPServer
+
             server = TCPServer(host="0.0.0.0", port=port, save_dir=save_dir)
             server.start()
         else:
             from tpi_redes.networking.udp_server import UDPServer
+
             server = UDPServer(host="0.0.0.0", port=port, save_dir=save_dir)
             server.start()
     finally:
@@ -79,6 +82,7 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
     sniffer = None
     if sniff:
         from tpi_redes.networking.sniffer import PacketSniffer
+
         sniffer = PacketSniffer(interface="lo", port=port)
         sniffer.start()
 
@@ -89,6 +93,7 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
             from pathlib import Path
 
             from tpi_redes.networking.tcp_client import TCPClient
+
             client = TCPClient()
             try:
                 client.send_file(Path(file), ip, port)
@@ -98,6 +103,7 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
             from pathlib import Path
 
             from tpi_redes.networking.udp_client import UDPClient
+
             client = UDPClient()
             try:
                 client.send_file(Path(file), ip, port)

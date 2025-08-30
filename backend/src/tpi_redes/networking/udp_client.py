@@ -9,6 +9,7 @@ from .protocol import ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
 
+
 class UDPClient:
     def send_file(self, file_path: Path, ip: str, port: int):
         """Send a file to a remote UDP server (Best Effort)."""
@@ -24,7 +25,7 @@ class UDPClient:
         filename = file_path.name
 
         # 2. Pack Header
-        header = ProtocolHandler.pack_header(b'F', filename, file_size, file_hash)
+        header = ProtocolHandler.pack_header(b"F", filename, file_size, file_hash)
 
         # 3. Send Datagrams
         logger.info(f"Sending {filename} to {ip}:{port} via UDP...")
@@ -33,7 +34,7 @@ class UDPClient:
 
             # Send Header
             s.sendto(header, addr)
-            time.sleep(0.001) # Small delay to help receiver process
+            time.sleep(0.001)  # Small delay to help receiver process
 
             # Send Metadata
             metadata = filename.encode("utf-8") + file_hash.encode("utf-8")
@@ -41,7 +42,7 @@ class UDPClient:
             time.sleep(0.001)
 
             # Send Content in Chunks
-            chunk_size = 1024 # Safe payload size for MTU 1500
+            chunk_size = 1024  # Safe payload size for MTU 1500
             sent_bytes = 0
 
             with open(file_path, "rb") as f:

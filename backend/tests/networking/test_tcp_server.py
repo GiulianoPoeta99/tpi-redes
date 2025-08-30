@@ -32,11 +32,12 @@ class TestTCPServer:
 
         # Prepare data: Header + Content
         from tpi_redes.networking.protocol import ProtocolHandler
+
         filename = "test_file.txt"
         content = b"Hello TCP World!"
         file_hash = "dummy_hash"
 
-        header = ProtocolHandler.pack_header(b'F', filename, len(content), file_hash)
+        header = ProtocolHandler.pack_header(b"F", filename, len(content), file_hash)
         stream_data = header + filename.encode() + file_hash.encode() + content
 
         mock_sock = MockSocket(stream_data)
@@ -48,4 +49,3 @@ class TestTCPServer:
         saved_file = save_dir / filename
         assert saved_file.exists()
         assert saved_file.read_bytes() == content
-

@@ -15,15 +15,19 @@ class TestUDPClient:
         class MockSocket:
             def sendto(self, data, addr):
                 sent_packets.append((data, addr))
+
             def close(self):
                 pass
+
             def __enter__(self):
                 return self
+
             def __exit__(self, exc_type, exc_val, exc_tb):
                 pass
 
         # Mock socket.socket
         import socket
+
         original_socket = socket.socket
 
         def mock_socket_ctor(*_args, **_kwargs):
@@ -45,7 +49,7 @@ class TestUDPClient:
             assert addr1 == (target_ip, target_port)
 
             header = ProtocolHandler.unpack_header(header_pkt)
-            assert header.op_code == b'F'
+            assert header.op_code == b"F"
             assert header.file_size == len(content)
 
             # 2. Metadata

@@ -50,11 +50,7 @@ class PacketSniffer:
                 src = pkt[IP].src
                 dst = pkt[IP].dst
                 proto = (
-                    "TCP"
-                    if pkt.haslayer(TCP)
-                    else "UDP"
-                    if pkt.haslayer(UDP)
-                    else "IP"
+                    "TCP" if pkt.haslayer(TCP) else "UDP" if pkt.haslayer(UDP) else "IP"
                 )
 
                 info = f"[{proto}] {src} -> {dst}"
