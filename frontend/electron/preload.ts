@@ -12,5 +12,9 @@ contextBridge.exposeInMainWorld('api', {
   onStatsUpdate: (callback: (data: any) => void) => {
       ipcRenderer.on('stats-update', (_event, value) => callback(value));
   },
-  startProxy: (config: any) => ipcRenderer.invoke('start-proxy', config)
+  startProxy: (config: any) => ipcRenderer.invoke('start-proxy', config),
+  scanNetwork: () => ipcRenderer.invoke('scan-network'),
+  onPacketCapture: (callback: (data: any) => void) => {
+      ipcRenderer.on('packet-capture', (_event, value) => callback(value));
+  }
 });

@@ -86,6 +86,12 @@ function spawnPythonProcess(args: string[]) {
                     }
                     return;
                 }
+                if (json.type === 'PACKET_CAPTURE') {
+                    if (mainWindow) {
+                        mainWindow.webContents.send('packet-capture', json);
+                    }
+                    return;
+                }
             } catch (e) {
                 // Not JSON, treat as normal log
             }

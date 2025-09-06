@@ -45,6 +45,11 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
         sniffer = PacketSniffer(interface="lo", port=port)
         sniffer.start()
 
+    # Start Discovery Service Listener
+    from tpi_redes.networking.discovery import DiscoveryService
+    discovery = DiscoveryService()
+    discovery.listen(port)
+
     logger.info(f"Starting {protocol.upper()} server on port {port}...")
     logger.info(f"Saving files to: {save_dir}")
 
@@ -62,6 +67,7 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     finally:
         if sniffer:
             sniffer.stop()
+        discovery.stop()
 
 
 @cli.command()
@@ -132,6 +138,34 @@ def start_proxy(listen_port: int, target_ip: str, target_port: int, corruption_r
         proxy.start()
     except KeyboardInterrupt:
         console.print("\n[yellow]Stopping proxy...[/yellow]")
+
+@cli.command()
+def scan_network():
+    """Scan for active peers on the local network."""
+    from tpi_redes.networking.discovery import DiscoveryService
+    import json
+    
+    console.print("[bold blue]Scanning for peers...[/bold blue]")
+    discovery = DiscoveryService()
+    peers = discovery.scan()
+    
+    if not peers:
+        console.print("[yellow]No peers found.[/yellow]")
+    else:
+        # Output JSON for Electron to parse
+        console.print(json.dumps(peers))
+        
+        # Also print pretty table for CLI users
+        from rich.table import Table
+        table = Table(title="Discovered Peers")
+        table.add_column("Hostname", style="cyan")
+        table.add_column("IP Address", style="green")
+        table.add_column("Port", style="magenta")
+        
+        for peer in peers:
+            table.add_row(peer['hostname'], peer['ip'], str(peer['port']))
+            
+        console.print(table)
 
 if __name__ == "__main__":
     cli()

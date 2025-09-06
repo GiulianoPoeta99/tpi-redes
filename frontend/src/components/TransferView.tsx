@@ -9,6 +9,9 @@ const TransferView: React.FC = () => {
     const [file, setFile] = useState('');
     const [sniff, setSniff] = useState(false);
     const [status, setStatus] = useState('');
+    const [isScanning, setIsScanning] = useState(false);
+    const [discoveredPeers, setDiscoveredPeers] = useState<{ hostname: string; ip: string; port: number }[]>([]);
+    const [showPeers, setShowPeers] = useState(false);
 
     const handleStartServer = async () => {
         setStatus('Starting server...');
@@ -42,6 +45,19 @@ const TransferView: React.FC = () => {
             setStatus(result);
         } catch (error) {
             setStatus(`Error: ${error}`);
+        }
+    };
+
+    const handleScanNetwork = async () => {
+        setIsScanning(true);
+        try {
+            const peers = await window.api.scanNetwork();
+            setDiscoveredPeers(peers);
+            setShowPeers(true);
+        } catch (error) {
+            console.error("Scan failed:", error);
+        } finally {
+            setIsScanning(false);
         }
     };
 
@@ -109,12 +125,53 @@ const TransferView: React.FC = () => {
                             {mode === 'client' && (
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1">Destination IP</label>
-                                    <input 
-                                        type="text" 
-                                        value={ip}
-                                        onChange={(e) => setIp(e.target.value)}
-                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                                    />
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            value={ip}
+                                            onChange={(e) => setIp(e.target.value)}
+                                            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            placeholder="192.168.1.X"
+                                        />
+                                        <button 
+                                            onClick={handleScanNetwork}
+                                            disabled={isScanning}
+                                            className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                            title="Scan Local Network"
+                                        >
+                                            {isScanning ? (
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Peers Dropdown */}
+                                    {showPeers && discoveredPeers.length > 0 && (
+                                        <div className="absolute z-50 mt-1 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl">
+                                            <div className="p-2 text-xs text-gray-400 border-b border-gray-700 flex justify-between items-center">
+                                                <span>Discovered Peers</span>
+                                                <button onClick={() => setShowPeers(false)} className="hover:text-white">&times;</button>
+                                            </div>
+                                            {discoveredPeers.map((peer, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => {
+                                                        setIp(peer.ip);
+                                                        setPort(peer.port);
+                                                        setShowPeers(false);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm flex flex-col"
+                                                >
+                                                    <span className="text-white font-medium">{peer.hostname}</span>
+                                                    <span className="text-gray-400 text-xs">{peer.ip}:{peer.port}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

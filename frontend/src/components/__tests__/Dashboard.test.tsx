@@ -10,6 +10,8 @@ window.api = {
   onWindowUpdate: vi.fn(),
   onStatsUpdate: vi.fn(),
   startProxy: vi.fn(),
+  scanNetwork: vi.fn(),
+  onPacketCapture: vi.fn(),
 };
 
 describe('Dashboard', () => {

@@ -42,23 +42,53 @@ class PacketSniffer:
     def _process_packet(self, pkt: Any):
         """Callback for each captured packet."""
         try:
+            import json
+            import time
+
+            # Legacy summary for internal storage
             summary = pkt.summary()
             self.packets.append(summary)
 
-            # Detailed logging for debugging
             if pkt.haslayer(IP):
                 src = pkt[IP].src
                 dst = pkt[IP].dst
-                proto = (
-                    "TCP" if pkt.haslayer(TCP) else "UDP" if pkt.haslayer(UDP) else "IP"
-                )
+                length = pkt[IP].len
+                
+                protocol = "IP"
+                info = ""
+                flags = ""
+                seq = 0
+                ack = 0
 
-                info = f"[{proto}] {src} -> {dst}"
                 if pkt.haslayer(TCP):
-                    flags = pkt[TCP].flags
-                    info += f" Flags=[{flags}] Seq={pkt[TCP].seq} Ack={pkt[TCP].ack}"
+                    protocol = "TCP"
+                    flags = str(pkt[TCP].flags)
+                    seq = pkt[TCP].seq
+                    ack = pkt[TCP].ack
+                    info = f"{src} -> {dst} [{flags}] Seq={seq} Ack={ack}"
+                elif pkt.haslayer(UDP):
+                    protocol = "UDP"
+                    info = f"{src} -> {dst} Len={pkt[UDP].len}"
+                
+                # Log for Raw View
+                if info:
+                    logger.info(f"SNIFFER: {info}")
 
-                logger.info(f"SNIFFER: {info}")
+                # JSON for Table View
+                packet_data = {
+                    "type": "PACKET_CAPTURE",
+                    "timestamp": time.time(),
+                    "src": src,
+                    "dst": dst,
+                    "protocol": protocol,
+                    "length": length,
+                    "info": info,
+                    "flags": flags,
+                    "seq": seq,
+                    "ack": ack
+                }
+                
+                print(json.dumps(packet_data), flush=True)
 
         except Exception as e:
             logger.error(f"Error processing packet: {e}")
