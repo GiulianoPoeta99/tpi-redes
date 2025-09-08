@@ -9,6 +9,7 @@ window.api = {
   onLog: vi.fn(),
   onWindowUpdate: vi.fn(),
   onStatsUpdate: vi.fn(),
+  startProxy: vi.fn(),
 };
 
 describe('Dashboard', () => {

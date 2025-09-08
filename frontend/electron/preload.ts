@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('api', {
   },
   onStatsUpdate: (callback: (data: any) => void) => {
       ipcRenderer.on('stats-update', (_event, value) => callback(value));
-  }
+  },
+  startProxy: (config: any) => ipcRenderer.invoke('start-proxy', config)
 });

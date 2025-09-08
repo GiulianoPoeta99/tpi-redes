@@ -8,6 +8,7 @@ declare global {
       onLog: (callback: (log: string) => void) => void;
       onWindowUpdate: (callback: (data: { type: string; base: number; next_seq: number; window_size: number; total: number }) => void) => void;
       onStatsUpdate: (callback: (data: { type: string; rtt: number; throughput: number; progress: number }) => void) => void;
+      startProxy: (config: { listenPort: number; targetIp: string; targetPort: number; corruptionRate: number }) => Promise<string>;
     };
   }
 }

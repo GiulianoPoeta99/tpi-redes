@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import TransferView from './TransferView';
 import SnifferLog from './SnifferLog';
 import StatsPanel from './StatsPanel';
+import MitmView from './MitmView';
 
-type View = 'transfer' | 'sniffer' | 'stats';
+type View = 'transfer' | 'sniffer' | 'stats' | 'mitm';
 
 const Dashboard: React.FC = () => {
     const [currentView, setCurrentView] = useState<View>('transfer');
@@ -35,6 +36,11 @@ const Dashboard: React.FC = () => {
                         active={currentView === 'stats'} 
                         onClick={() => setCurrentView('stats')} 
                     />
+                    <SidebarItem 
+                        label="MITM Attack" 
+                        active={currentView === 'mitm'} 
+                        onClick={() => setCurrentView('mitm')} 
+                    />
                 </nav>
 
                 <div className="p-4 border-t border-gray-700">
@@ -52,6 +58,7 @@ const Dashboard: React.FC = () => {
                     {currentView === 'transfer' && <TransferView />}
                     {currentView === 'sniffer' && <SnifferLog />}
                     {currentView === 'stats' && <StatsPanel />}
+                    {currentView === 'mitm' && <MitmView />}
                 </div>
             </main>
         </div>

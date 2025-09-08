@@ -114,5 +114,24 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
             sniffer.stop()
 
 
+@cli.command()
+@click.option("--listen-port", default=8081, help="Port to listen on (Proxy)")
+@click.option("--target-ip", default="127.0.0.1", help="Target Server IP")
+@click.option("--target-port", default=8080, help="Target Server Port")
+@click.option("--corruption-rate", default=0.0, help="Probability of bit flipping (0.0 - 1.0)")
+def start_proxy(listen_port: int, target_ip: str, target_port: int, corruption_rate: float):
+    """Start a MITM Proxy Server."""
+    from tpi_redes.networking.proxy import ProxyServer
+    
+    console.print(f"[bold red]Starting MITM Proxy on port {listen_port}...[/bold red]")
+    console.print(f"Target: {target_ip}:{target_port}")
+    console.print(f"Corruption Rate: {corruption_rate}")
+    
+    proxy = ProxyServer(listen_port, target_ip, target_port, corruption_rate)
+    try:
+        proxy.start()
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Stopping proxy...[/yellow]")
+
 if __name__ == "__main__":
     cli()
