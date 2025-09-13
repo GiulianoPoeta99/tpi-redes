@@ -26,12 +26,14 @@ class TestPacketSniffer:
     def test_callback_logic(self, _):
         # Use real Scapy packets to avoid Mock serialization issues with json.dumps
         from scapy.layers.inet import IP, TCP
-        
+
         sniffer = PacketSniffer(interface="lo", port=8080)
 
         # Create a real packet
-        pkt = IP(src="127.0.0.1", dst="127.0.0.1") / TCP(dport=8080, flags="S", seq=100, ack=0)
-        
+        pkt = IP(src="127.0.0.1", dst="127.0.0.1") / TCP(
+            dport=8080, flags="S", seq=100, ack=0
+        )
+
         # Execute callback
         # We need to access the private method or expose it.
         # For testing, accessing _process_packet is acceptable.
@@ -39,4 +41,4 @@ class TestPacketSniffer:
 
         # Verify it added to the list
         assert len(sniffer.get_packets()) == 1
-        assert "S" in sniffer.get_packets()[0] # Summary should contain flag
+        assert "S" in sniffer.get_packets()[0]  # Summary should contain flag

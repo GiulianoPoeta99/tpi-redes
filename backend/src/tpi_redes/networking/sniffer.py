@@ -53,7 +53,7 @@ class PacketSniffer:
                 src = pkt[IP].src
                 dst = pkt[IP].dst
                 length = pkt[IP].len
-                
+
                 protocol = "IP"
                 info = ""
                 flags = ""
@@ -69,7 +69,7 @@ class PacketSniffer:
                 elif pkt.haslayer(UDP):
                     protocol = "UDP"
                     info = f"{src} -> {dst} Len={pkt[UDP].len}"
-                
+
                 # Log for Raw View
                 if info:
                     logger.info(f"SNIFFER: {info}")
@@ -85,9 +85,9 @@ class PacketSniffer:
                     "info": info,
                     "flags": flags,
                     "seq": seq,
-                    "ack": ack
+                    "ack": ack,
                 }
-                
+
                 print(json.dumps(packet_data), flush=True)
 
         except Exception as e:
