@@ -4,6 +4,14 @@ set shell := ["zsh", "-c"]
 
 default: test
 
+# Install dependencies
+install:
+    uv sync
+
+# Run CLI (Help)
+run:
+    PYTHONPATH=src uv run python -m tpi_redes.cli.main --help
+
 # Run all tests
 test:
     uv run pytest

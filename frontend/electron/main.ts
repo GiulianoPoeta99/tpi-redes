@@ -56,14 +56,19 @@ function spawnPythonProcess(args: string[]) {
         pythonProcess.kill();
     }
 
-    // Path to python venv. Adjust as needed for dev/prod.
-    // In dev, we assume we are in frontend/ and backend is in ../backend
-    const pythonPath = path.resolve(__dirname, '../../backend/venv/bin/python');
-    const scriptPath = path.resolve(__dirname, '../../backend/src/tpi_redes/cli/main.py');
+    // Path to python venv. Adjust for uv (.venv)
+    const backendDir = path.resolve(__dirname, '../../backend');
+    const pythonPath = path.join(backendDir, '.venv/bin/python');
+    
+    // Run as module
+    const moduleName = 'tpi_redes.cli.main';
 
-    console.log(`Spawning: ${pythonPath} ${scriptPath} ${args.join(' ')}`);
+    console.log(`Spawning: ${pythonPath} -m ${moduleName} ${args.join(' ')}`);
 
-    pythonProcess = spawn(pythonPath, [scriptPath, ...args]);
+    pythonProcess = spawn(pythonPath, ['-m', moduleName, ...args], {
+        cwd: backendDir,
+        env: { ...process.env, PYTHONPATH: 'src' }
+    });
 
     pythonProcess.stdout.on('data', (data: any) => {
         const str = data.toString();

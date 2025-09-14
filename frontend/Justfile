@@ -3,6 +3,10 @@
 default:
     @just --list
 
+# Install dependencies
+install:
+    npm install
+
 # Start development server (Electron + Vite)
 run:
     npm run dev:electron

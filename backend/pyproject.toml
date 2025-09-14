@@ -3,7 +3,7 @@ name = "backend"
 version = "0.1.0"
 description = "Socket-based File Transfer App Backend"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.14"
 dependencies = [
     "click>=8.1.8",
     "rich>=14.2.0",
@@ -27,7 +27,7 @@ venv = ".venv"
 
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py313"
 src = ["src"]
 
 [tool.ruff.lint]

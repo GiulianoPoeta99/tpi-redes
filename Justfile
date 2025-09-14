@@ -3,6 +3,14 @@
 default:
     @just --list
 
+# --- Global Commands ---
+
+install:
+    cd backend && just install
+    cd frontend && just install
+
+run: run-frontend
+
 # --- Backend Commands ---
 
 run-backend:

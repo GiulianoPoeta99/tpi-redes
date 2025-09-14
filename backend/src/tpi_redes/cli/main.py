@@ -3,6 +3,10 @@ import logging
 import click
 from rich.console import Console
 from rich.logging import RichHandler
+from rich.traceback import install
+
+# Install rich traceback handler
+install(show_locals=True)
 
 # Configure Rich Console
 console = Console()
@@ -65,6 +69,15 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
 
             server = UDPServer(host="0.0.0.0", port=port, save_dir=save_dir)
             server.start()
+    except OSError as e:
+        if e.errno == 98:  # Address already in use
+            logger.critical(f"Port {port} is already in use. Please choose another port.")
+        elif e.errno == 13:  # Permission denied
+            logger.critical(f"Permission denied to bind to port {port}. Try using sudo.")
+        else:
+            logger.exception("Failed to start server")
+    except Exception:
+        logger.exception("An unexpected error occurred while starting the server")
     finally:
         if sniffer:
             sniffer.stop()
@@ -104,8 +117,8 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
             client = TCPClient()
             try:
                 client.send_file(Path(file), ip, port)
-            except Exception as e:
-                logger.error(f"Failed to send file: {e}")
+            except Exception:
+                logger.exception("Failed to send file")
         else:
             from pathlib import Path
 
@@ -114,8 +127,8 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
             client = UDPClient()
             try:
                 client.send_file(Path(file), ip, port)
-            except Exception as e:
-                logger.error(f"Failed to send file: {e}")
+            except Exception:
+                logger.exception("Failed to send file")
     finally:
         if sniffer:
             sniffer.stop()
@@ -143,6 +156,15 @@ def start_proxy(
         proxy.start()
     except KeyboardInterrupt:
         console.print("\n[yellow]Stopping proxy...[/yellow]")
+    except OSError as e:
+        if e.errno == 98:
+            console.print(f"[bold red]Port {listen_port} is already in use.[/bold red]")
+        elif e.errno == 13:
+            console.print(f"[bold red]Permission denied for port {listen_port}.[/bold red]")
+        else:
+            console.print_exception()
+    except Exception:
+        console.print_exception()
 
 
 @cli.command()
