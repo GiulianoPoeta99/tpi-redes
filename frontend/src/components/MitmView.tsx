@@ -1,108 +1,88 @@
 import React, { useState } from 'react';
 
+// Simplified MITM View for now - reusing existing proxy logic triggers would be ideal
+// But for Phase 12 we just want the layout.
 const MitmView: React.FC = () => {
-    const [listenPort, setListenPort] = useState(8081);
-    const [targetIp, setTargetIp] = useState('127.0.0.1');
-    const [targetPort, setTargetPort] = useState(8080);
-    const [corruptionRate, setCorruptionRate] = useState(0.01);
-    const [status, setStatus] = useState('');
+    const [config, setConfig] = useState({
+        listenPort: 8081,
+        targetIp: '127.0.0.1',
+        targetPort: 8080,
+        corruption: 0.0
+    });
+    const [isRunning, setIsRunning] = useState(false);
 
-    const handleStartProxy = async () => {
-        setStatus('Starting proxy...');
-        try {
-            const result = await window.api.startProxy({
-                listenPort,
-                targetIp,
-                targetPort,
-                corruptionRate
-            });
-            setStatus(result);
-        } catch (error) {
-            setStatus(`Error: ${error}`);
+    const toggleMitm = async () => {
+        if (isRunning) {
+            await window.api.stopProcess();
+            setIsRunning(false);
+        } else {
+            try {
+                await window.api.startProxy({
+                    listenPort: config.listenPort,
+                    targetIp: config.targetIp,
+                    targetPort: config.targetPort,
+                    corruptionRate: config.corruption
+                });
+                setIsRunning(true);
+            } catch (e) {
+                console.error(e);
+            }
         }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="bg-gray-800 p-6 rounded-xl border border-red-900/50 shadow-lg shadow-red-900/20">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <h3 className="text-xl font-semibold text-red-400">MITM Attack Configuration</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-1">Listen Port (Proxy)</label>
-                            <input 
-                                type="number" 
-                                value={listenPort}
-                                onChange={(e) => setListenPort(parseInt(e.target.value))}
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-red-500 outline-none"
-                            />
-                        </div>
+        <div className="h-full flex flex-col justify-between">
+            <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-xl mb-6">
+                <h3 className="text-red-400 font-bold flex items-center gap-2">
+                    ⚠️ Man-In-The-Middle Mode
+                </h3>
+                <p className="text-xs text-red-300 mt-1">
+                    This mode intercepts traffic. Ensure you have 3 distinct terminals/nodes if testing locally, 
+                    or use this instance as the specialized Proxy node.
+                </p>
+            </div>
 
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-1">Target IP</label>
-                            <input 
-                                type="text" 
-                                value={targetIp}
-                                onChange={(e) => setTargetIp(e.target.value)}
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-red-500 outline-none"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-1">Target Port</label>
-                            <input 
-                                type="number" 
-                                value={targetPort}
-                                onChange={(e) => setTargetPort(parseInt(e.target.value))}
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-red-500 outline-none"
-                            />
-                        </div>
+            <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase">Listener Config</h4>
+                    <div>
+                        <label className="text-xs text-gray-400 block mb-1">Listen Port</label>
+                        <input type="number" value={config.listenPort} onChange={e => setConfig({...config, listenPort: Number(e.target.value)})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" />
                     </div>
+                </div>
 
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-1">
-                                Corruption Rate: <span className="text-red-400 font-bold">{(corruptionRate * 100).toFixed(1)}%</span>
-                            </label>
-                            <input 
-                                type="range" 
-                                min="0" 
-                                max="0.5" 
-                                step="0.005"
-                                value={corruptionRate}
-                                onChange={(e) => setCorruptionRate(parseFloat(e.target.value))}
-                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Probability of flipping a bit in each packet.</p>
-                        </div>
-
-                        <div className="pt-4">
-                            <button
-                                onClick={handleStartProxy}
-                                className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-bold py-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                                Start Attack Proxy
-                            </button>
-                        </div>
-
-                        {status && (
-                            <div className="p-4 bg-gray-900 rounded-lg border border-gray-700 text-sm text-gray-300">
-                                Status: <span className="text-white font-medium">{status}</span>
-                            </div>
-                        )}
+                <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase">Target Config</h4>
+                    <div>
+                         <label className="text-xs text-gray-400 block mb-1">Target IP</label>
+                         <input value={config.targetIp} onChange={e => setConfig({...config, targetIp: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" />
+                    </div>
+                    <div>
+                         <label className="text-xs text-gray-400 block mb-1">Target Port</label>
+                         <input type="number" value={config.targetPort} onChange={e => setConfig({...config, targetPort: Number(e.target.value)})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h4 className="text-lg font-semibold text-gray-300 mb-4">Attack Logs</h4>
-                <div className="h-48 bg-gray-950 rounded-lg border border-gray-800 p-4 font-mono text-xs text-gray-400 overflow-y-auto">
-                    <p className="italic text-gray-600">Proxy logs will appear here...</p>
+            <div className="mt-8 p-6 bg-gray-900 rounded-xl border border-gray-700">
+                <h4 className="text-sm font-bold text-gray-500 uppercase mb-4">Attack Vectors</h4>
+                <div>
+                     <label className="text-xs text-gray-400 block mb-1">Data Corruption Rate ({config.corruption * 100}%)</label>
+                     <input type="range" min="0" max="1" step="0.1" value={config.corruption} onChange={e => setConfig({...config, corruption: Number(e.target.value)})} className="w-full accent-red-500" />
+                     <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0% (Pass-through)</span>
+                        <span>100% (Garbage)</span>
+                     </div>
                 </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+                <button 
+                    onClick={toggleMitm} 
+                    className={`px-8 py-3 rounded-xl font-bold font-mono transition-all ${isRunning ? 'bg-red-600 animate-pulse shadow-[0_0_20px_rgba(220,38,38,0.5)]' : 'bg-gray-700 hover:bg-gray-600'}`}
+                >
+                    {isRunning ? 'STOP PROXY' : 'START PROXY'}
+                </button>
             </div>
         </div>
     );

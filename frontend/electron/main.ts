@@ -60,9 +60,33 @@ ipcMain.handle('send-file', async (event, args) => {
     return spawnPythonProcess(cmdArgs);
 });
 
-function spawnPythonProcess(args: string[]) {
+ipcMain.handle('start-proxy', async (event, args) => {
+    // args: { listenPort, targetIp, targetPort, corruptionRate }
+    const cmdArgs = [
+        'start-proxy', 
+        '--listen-port', args.listenPort, 
+        '--target-ip', args.targetIp, 
+        '--target-port', args.targetPort,
+        '--corruption-rate', args.corruptionRate
+    ];
+    return spawnPythonProcess(cmdArgs);
+});
+
+ipcMain.handle('stop-process', () => {
     if (pythonProcess) {
+        console.log('Stopping python process via IPC...');
         pythonProcess.kill();
+        pythonProcess = null;
+    }
+    return true;
+});
+
+function spawnPythonProcess(args: string[]) {
+    // Kill existing process if running
+    if (pythonProcess) {
+        console.log('Killing existing python process...');
+        pythonProcess.kill(); // Sends SIGTERM
+        pythonProcess = null;
     }
 
     // Path to python venv. Adjust for uv (.venv)
@@ -76,8 +100,13 @@ function spawnPythonProcess(args: string[]) {
 
     pythonProcess = spawn(pythonPath, ['-m', moduleName, ...args], {
         cwd: backendDir,
-        env: { ...process.env, PYTHONPATH: 'src' }
+    }); // Removed env modification that might cause issues
+
+    pythonProcess.on('exit', (code: number, signal: string) => {
+        console.log(`Python process exited with code ${code} and signal ${signal}`);
+        pythonProcess = null;
     });
+
 
     pythonProcess.stdout.on('data', (data: any) => {
         const str = data.toString();

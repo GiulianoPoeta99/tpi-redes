@@ -45,12 +45,17 @@ class TCPClient:
 
             # Send Content (Emit Start Event)
             logger.info("Sending content...")
-            print(json.dumps({
-                "type": "TRANSFER_UPDATE",
-                "status": "start",
-                "filename": filename,
-                "total": file_size
-            }), flush=True)
+            print(
+                json.dumps(
+                    {
+                        "type": "TRANSFER_UPDATE",
+                        "status": "start",
+                        "filename": filename,
+                        "total": file_size,
+                    }
+                ),
+                flush=True,
+            )
 
             chunk_size = 4096
             total_bytes = file_size
@@ -98,10 +103,15 @@ class TCPClient:
                     }
                     # Print JSON to stdout for Electron to parse
                     print(json.dumps(event), flush=True)
-                    
+
             logger.info("File sent successfully.")
-            print(json.dumps({
-                "type": "TRANSFER_UPDATE",
-                "status": "complete",
-                "filename": filename
-            }), flush=True)
+            print(
+                json.dumps(
+                    {
+                        "type": "TRANSFER_UPDATE",
+                        "status": "complete",
+                        "filename": filename,
+                    }
+                ),
+                flush=True,
+            )

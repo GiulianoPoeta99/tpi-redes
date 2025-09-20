@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('api', {
   },
   startProxy: (config: any) => ipcRenderer.invoke('start-proxy', config),
   scanNetwork: () => ipcRenderer.invoke('scan-network'),
+  stopProcess: () => ipcRenderer.invoke('stop-process'),
   onPacketCapture: (callback: (data: any) => void) => {
       ipcRenderer.on('packet-capture', (_event, value) => callback(value));
   }

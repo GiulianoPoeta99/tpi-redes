@@ -19,7 +19,7 @@ class DiscoveryService:
 
     def scan(self, timeout: int = 2) -> list[dict[str, Any]]:
         """Sends a broadcast PING and returns a list of discovered peers."""
-        discovered_peers = []
+        discovered_peers: list[dict[str, Any]] = []
 
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -36,10 +36,10 @@ class DiscoveryService:
                 while time.time() - start_time < timeout:
                     try:
                         data, addr = s.recvfrom(1024)
-                        response = json.loads(data.decode("utf-8"))
+                        response: dict[str, Any] = json.loads(data.decode("utf-8"))
 
                         if response.get("type") == "PONG":
-                            peer = {
+                            peer: dict[str, Any] = {
                                 "hostname": response.get("hostname"),
                                 "ip": addr[0],  # Use the IP from the packet source
                                 "port": response.get(
@@ -47,13 +47,16 @@ class DiscoveryService:
                                 ),  # Default or specified port
                             }
                             # Avoid duplicates
-                            if not any(p["ip"] == peer["ip"] for p in discovered_peers):
+                            # Use explicit Any annotation for p to suppress type error
+                            if not any(
+                                (p["ip"] == peer["ip"]) for p in discovered_peers
+                            ):
                                 discovered_peers.append(peer)
+                                hostname = peer.get("hostname", "Unknown")
                                 logger.info(
-                                    f"Discovered peer: {peer['hostname']} "
-                                    f"({peer['ip']})"
+                                    f"Discovered peer: {hostname} ({peer['ip']})"
                                 )
-                    except socket.timeout:
+                    except TimeoutError:
                         break
                     except Exception:
                         continue

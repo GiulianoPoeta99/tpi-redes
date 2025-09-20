@@ -2,7 +2,6 @@ import logging
 import socket
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from .base import BaseServer
 from .protocol import Header, ProtocolHandler
@@ -13,11 +12,11 @@ logger = logging.getLogger("tpi-redes")
 @dataclass
 class UDPSession:
     state: str  # "WAITING_HEADER", "WAITING_METADATA", "RECEIVING_CONTENT"
-    header: Optional[Header] = None
-    filename: Optional[str] = None
-    file_hash: Optional[str] = None
+    header: Header | None = None
+    filename: str | None = None
+    file_hash: str | None = None
     received_bytes: int = 0
-    file_path: Optional[Path] = None
+    file_path: Path | None = None
 
 
 class UDPServer(BaseServer):
