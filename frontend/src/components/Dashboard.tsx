@@ -79,42 +79,37 @@ const Dashboard: React.FC = () => {
                 </header>
 
                 {/* Main Content Area - Grid Layout */}
-                <main className="flex-1 p-6 overflow-auto grid grid-cols-12 gap-6">
+                {/* Main Content Area - Split Layout */}
+                <main className="flex-1 p-6 overflow-hidden flex gap-6">
                     
-                    {/* Primary Mode View (Occupies 8 cols) */}
-                    <div className="col-span-8 flex flex-col gap-6">
-                        <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative">
-                            {mode === 'receiver' && <ReceiverView />}
-                            {mode === 'transmitter' && <TransmitterView />}
-                            {mode === 'mitm' && <MitmView />}
-                        </div>
-
-                        {/* Sniffer Log (Below main view or side? User hates hidden things) 
-                            Let's put Sniffer here at the bottom of main col if relevant, or side.
-                        */}
-                         <div className="h-64 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col">
-                            <div className="p-3 bg-gray-800/50 border-b border-gray-700 font-semibold text-sm text-gray-400">
-                                Packet Sniffer
-                            </div>
-                            <div className="flex-1 overflow-auto p-0">
-                                <SnifferLog /> 
+                    {/* LEFT COLUMN: Modes + Stats */}
+                    <div className="flex-1 flex flex-col gap-6 min-w-0">
+                        
+                        {/* Primary Mode View (Occupies majority of left side) */}
+                        <div className="flex-[3] bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden">
+                            <div className="h-full overflow-auto">
+                                {mode === 'receiver' && <ReceiverView />}
+                                {mode === 'transmitter' && <TransmitterView />}
+                                {mode === 'mitm' && <MitmView />}
                             </div>
                         </div>
-                    </div>
 
-                    {/* Widgets Column (Occupies 4 cols) */}
-                    <div className="col-span-4 flex flex-col gap-6">
-                        {/* Statistics Widget */}
-                        <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4">
-                            <h3 className="text-gray-400 text-sm font-semibold mb-4 uppercase tracking-wider">Network Stats</h3>
+                        {/* Statistics Widget (Bottom of left side) */}
+                        <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center">
+                            <h3 className="text-gray-400 text-sm font-semibold mb-2 uppercase tracking-wider">Network Stats</h3>
                             <StatsPanel stats={stats} />
                         </div>
-                        
-                        {/* Additional widgets or info could go here */}
-                         <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-2xl border border-white/5 p-6 flex items-center justify-center text-center">
-                            <p className="text-gray-500 text-sm">
-                                System Status: <span className="text-green-400 font-bold">Ready</span>
-                            </p>
+
+                    </div>
+
+                    {/* RIGHT COLUMN: Packet Sniffer (Full Height) */}
+                    <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col">
+                        <div className="p-3 bg-gray-800/50 border-b border-gray-700 font-semibold text-sm text-gray-400 flex justify-between items-center">
+                            <span>Packet Sniffer</span>
+                            <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">Live Capture</span>
+                        </div>
+                        <div className="flex-1 overflow-auto p-0 relative">
+                            <SnifferLog /> 
                         </div>
                     </div>
 

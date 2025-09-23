@@ -47,7 +47,7 @@ const PacketTable: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-900 rounded-xl border border-gray-700 overflow-hidden text-xs font-mono">
+        <div className="flex flex-col h-full w-full bg-transparent overflow-hidden text-xs font-mono">
             <div className="flex justify-between items-center p-2 bg-gray-800 border-b border-gray-700">
                 <span className="font-semibold text-gray-300">Packet Capture</span>
                 <div className="flex gap-2">

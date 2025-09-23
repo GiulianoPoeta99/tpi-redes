@@ -21,7 +21,7 @@ const SnifferLog: React.FC = () => {
     }, [logs, viewMode]);
 
     return (
-        <div className="flex flex-col h-full bg-gray-950 rounded-xl border border-gray-800 shadow-2xl overflow-hidden">
+        <div className="flex flex-col h-full w-full overflow-hidden">
             <div className="bg-gray-900 px-4 py-2 border-b border-gray-800 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                     <h2 className="text-sm font-mono text-gray-400">Network Traffic</h2>
