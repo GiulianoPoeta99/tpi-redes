@@ -2,10 +2,19 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { spawn } from 'child_process';
 
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
+
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 let pythonProcess: any = null;
@@ -16,7 +25,7 @@ const createWindow = () => {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
     },

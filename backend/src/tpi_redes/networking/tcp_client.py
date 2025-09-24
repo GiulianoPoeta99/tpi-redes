@@ -43,8 +43,14 @@ class TCPClient:
             s.sendall(filename.encode("utf-8"))
             s.sendall(file_hash.encode("utf-8"))
 
-            # Send Content
+            # Send Content (Emit Start Event)
             logger.info("Sending content...")
+            print(json.dumps({
+                "type": "TRANSFER_UPDATE",
+                "status": "start",
+                "filename": filename,
+                "total": file_size
+            }), flush=True)
 
             chunk_size = 4096
             total_bytes = file_size
@@ -62,8 +68,8 @@ class TCPClient:
 
                     current_time = time.time()
 
-                    # Emit Stats every 0.5 seconds
-                    if current_time - last_stats_time >= 0.5:
+                    # Emit Stats every 0.1 seconds (faster for local UI)
+                    if current_time - last_stats_time >= 0.1:
                         elapsed = current_time - start_transfer
                         throughput = (
                             (bytes_sent / elapsed) / (1024 * 1024) if elapsed > 0 else 0
@@ -92,5 +98,10 @@ class TCPClient:
                     }
                     # Print JSON to stdout for Electron to parse
                     print(json.dumps(event), flush=True)
-
+                    
             logger.info("File sent successfully.")
+            print(json.dumps({
+                "type": "TRANSFER_UPDATE",
+                "status": "complete",
+                "filename": filename
+            }), flush=True)

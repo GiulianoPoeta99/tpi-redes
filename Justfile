@@ -13,8 +13,8 @@ run: run-frontend
 
 # --- Backend Commands ---
 
-run-backend:
-    cd backend && just run
+run-backend +args:
+    cd backend && just run {{args}}
 
 test-backend:
     cd backend && just test

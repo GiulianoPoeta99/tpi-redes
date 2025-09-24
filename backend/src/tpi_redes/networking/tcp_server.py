@@ -29,6 +29,10 @@ class TCPServer(BaseServer):
     def stop(self):
         pass
 
+import json
+
+# ... (imports)
+
     def handle_client(self, conn: Any, addr: Any):
         """Handle a single client connection."""
         try:
@@ -48,6 +52,12 @@ class TCPServer(BaseServer):
             logger.debug(f"Expected Hash: {file_hash}")
 
             logger.info(f"Receiving '{filename}' ({header.file_size} bytes)...")
+            print(json.dumps({
+                "type": "TRANSFER_UPDATE",
+                "status": "start",
+                "filename": filename,
+                "total": header.file_size
+            }), flush=True)
 
             # 3. Receive Content & Save
             save_path = Path(self.save_dir) / filename
@@ -62,8 +72,27 @@ class TCPServer(BaseServer):
                         break
                     f.write(chunk)
                     received_bytes += len(chunk)
+                    
+                    # Emit progress (optional: throttle this if too frequent)
+                    # For now only start/end to keep it simple, or every 1MB?
+                    # Let's emit every chunk for local smoothing, UI handles throttling
+                    # Actually, emitting every 4KB is too much for stdout -> IPC
+                    # Let's emit every ~100KB or 10%
+                    if received_bytes % (1024 * 100) < 4096 or received_bytes == header.file_size:
+                         print(json.dumps({
+                            "type": "TRANSFER_UPDATE",
+                            "status": "progress",
+                            "filename": filename,
+                            "current": received_bytes,
+                            "total": header.file_size
+                        }), flush=True)
 
             logger.info(f"File '{filename}' received successfully.")
+            print(json.dumps({
+                "type": "TRANSFER_UPDATE",
+                "status": "complete",
+                "filename": filename
+            }), flush=True)
 
             # TODO: Verify Hash
 

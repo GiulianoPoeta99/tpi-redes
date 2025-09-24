@@ -1,108 +1,138 @@
+import sys
+import json
 import logging
-
 import click
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.traceback import install
 
-# Install rich traceback handler
-install(show_locals=True)
-
 # Configure Rich Console
-console = Console()
+console = Console(stderr=True)  # Logs to stderr to keep stdout clean for JSON
+
+# Global flag for debug mode
+DEBUG_MODE = False
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    """Global exception handler."""
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    # In Debug mode, show full traceback
+    if DEBUG_MODE:
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    # In Production mode, pretty print error and emit JSON
+    console.print(f"[bold red]Error:[/bold red] {exc_value}")
+    
+    # Emit JSON error for Electron
+    print(json.dumps({
+        "type": "ERROR",
+        "message": str(exc_value),
+        "code": exc_type.__name__
+    }), flush=True)
+    
+    sys.exit(1)
+
+# Install rich traceback handler (we control when to show it via DEBUG_MODE)
+install(show_locals=True)
 
 # Configure Logging
 logging.basicConfig(
     level="INFO",
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(console=console, rich_tracebacks=True)],
+    handlers=[RichHandler(console=console, rich_tracebacks=True, show_path=False)],
 )
 logger = logging.getLogger("tpi-redes")
 
-
 @click.group()
-def cli():
+@click.option("--debug", is_flag=True, help="Enable debug mode (tracebacks).")
+def cli(debug):
     """Socket-based File Transfer App CLI"""
-    pass
+    global DEBUG_MODE
+    if debug:
+        DEBUG_MODE = True
+        logger.setLevel(logging.DEBUG)
+        logger.debug("Debug mode enabled.")
+    # Hook global exception handler
+    sys.excepthook = handle_exception
 
+# ... (commands)
+
+# NOTE: Updated commands to use global error handling implicitly, 
+# preventing 'try-except-print-traceback' duplication.
+# Also removed explicit 'from ... import ...' inside commands where possible or kept for cleanliness.
 
 @cli.command()
 @click.option("--port", default=8080, help="Port to listen on")
-@click.option(
-    "--protocol",
-    type=click.Choice(["tcp", "udp"]),
-    default="tcp",
-    help="Protocol to use",
-)
-@click.option(
-    "--save-dir", default="./received_files", help="Directory to save received files"
-)
+@click.option("--protocol", type=click.Choice(["tcp", "udp"]), default="tcp", help="Protocol to use")
+@click.option("--save-dir", default="./received_files", help="Directory to save received files")
 @click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root)")
 def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     """Start the file receiver server."""
     sniffer = None
-    if sniff:
-        from tpi_redes.networking.sniffer import PacketSniffer
-
-        # Default interface 'lo' for localhost testing, ideally configurable
-        sniffer = PacketSniffer(interface="lo", port=port)
-        sniffer.start()
-
-    # Start Discovery Service Listener
-    from tpi_redes.networking.discovery import DiscoveryService
-
-    discovery = DiscoveryService()
-    discovery.listen(port)
-
-    logger.info(f"Starting {protocol.upper()} server on port {port}...")
-    logger.info(f"Saving files to: {save_dir}")
-
+    discovery = None
+    
     try:
+        if sniff:
+            from tpi_redes.networking.sniffer import PacketSniffer
+            # Default interface 'lo' for localhost testing, ideally configurable
+            sniffer = PacketSniffer(interface="lo", port=port)
+            sniffer.start()
+
+        # Start Discovery Service Listener
+        from tpi_redes.networking.discovery import DiscoveryService
+        discovery = DiscoveryService()
+        try:
+            discovery.listen(port)
+        except OSError:
+            logger.warning("Discovery service could not bind (port in use?). Skipping.")
+
+        logger.info(f"Starting {protocol.upper()} server on port {port}...")
+        logger.info(f"Saving files to: {save_dir}")
+
+        # Emit Ready Event
+        print(json.dumps({
+            "type": "SERVER_READY",
+            "protocol": protocol,
+            "port": port
+        }), flush=True)
+
         if protocol == "tcp":
             from tpi_redes.networking.tcp_server import TCPServer
-
             server = TCPServer(host="0.0.0.0", port=port, save_dir=save_dir)
             server.start()
         else:
             from tpi_redes.networking.udp_server import UDPServer
-
             server = UDPServer(host="0.0.0.0", port=port, save_dir=save_dir)
             server.start()
+            
     except OSError as e:
         if e.errno == 98:  # Address already in use
-            logger.critical(f"Port {port} is already in use. Please choose another port.")
+            raise ConnectionError(f"Port {port} is already in use.")
         elif e.errno == 13:  # Permission denied
-            logger.critical(f"Permission denied to bind to port {port}. Try using sudo.")
-        else:
-            logger.exception("Failed to start server")
-    except Exception:
-        logger.exception("An unexpected error occurred while starting the server")
+            raise PermissionError(f"Permission denied to bind to port {port}. Try using sudo.")
+        raise
     finally:
         if sniffer:
             sniffer.stop()
-        discovery.stop()
+        if discovery:
+            discovery.stop()
 
 
 @cli.command()
-@click.option(
-    "--file", required=True, type=click.Path(exists=True), help="File to send"
-)
+@click.option("--file", required=True, type=click.Path(exists=True), help="File to send")
 @click.option("--ip", required=True, help="Destination IP")
 @click.option("--port", default=8080, help="Destination Port")
-@click.option(
-    "--protocol",
-    type=click.Choice(["tcp", "udp"]),
-    default="tcp",
-    help="Protocol to use",
-)
+@click.option("--protocol", type=click.Choice(["tcp", "udp"]), default="tcp", help="Protocol to use")
 @click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root)")
 def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
     """Send a file to a remote peer."""
     sniffer = None
     if sniff:
         from tpi_redes.networking.sniffer import PacketSniffer
-
         sniffer = PacketSniffer(interface="lo", port=port)
         sniffer.start()
 
@@ -111,24 +141,14 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
     try:
         if protocol == "tcp":
             from pathlib import Path
-
             from tpi_redes.networking.tcp_client import TCPClient
-
             client = TCPClient()
-            try:
-                client.send_file(Path(file), ip, port)
-            except Exception:
-                logger.exception("Failed to send file")
+            client.send_file(Path(file), ip, port)
         else:
             from pathlib import Path
-
             from tpi_redes.networking.udp_client import UDPClient
-
             client = UDPClient()
-            try:
-                client.send_file(Path(file), ip, port)
-            except Exception:
-                logger.exception("Failed to send file")
+            client.send_file(Path(file), ip, port)
     finally:
         if sniffer:
             sniffer.stop()
@@ -138,12 +158,8 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
 @click.option("--listen-port", default=8081, help="Port to listen on (Proxy)")
 @click.option("--target-ip", default="127.0.0.1", help="Target Server IP")
 @click.option("--target-port", default=8080, help="Target Server Port")
-@click.option(
-    "--corruption-rate", default=0.0, help="Probability of bit flipping (0.0 - 1.0)"
-)
-def start_proxy(
-    listen_port: int, target_ip: str, target_port: int, corruption_rate: float
-):
+@click.option("--corruption-rate", default=0.0, help="Probability of bit flipping (0.0 - 1.0)")
+def start_proxy(listen_port: int, target_ip: str, target_port: int, corruption_rate: float):
     """Start a MITM Proxy Server."""
     from tpi_redes.networking.proxy import ProxyServer
 
@@ -156,47 +172,34 @@ def start_proxy(
         proxy.start()
     except KeyboardInterrupt:
         console.print("\n[yellow]Stopping proxy...[/yellow]")
-    except OSError as e:
-        if e.errno == 98:
-            console.print(f"[bold red]Port {listen_port} is already in use.[/bold red]")
-        elif e.errno == 13:
-            console.print(f"[bold red]Permission denied for port {listen_port}.[/bold red]")
-        else:
-            console.print_exception()
-    except Exception:
-        console.print_exception()
 
 
 @cli.command()
 def scan_network():
     """Scan for active peers on the local network."""
-    import json
-
     from tpi_redes.networking.discovery import DiscoveryService
-
-    console.print("[bold blue]Scanning for peers...[/bold blue]")
+    # ... logic mostly same but cleaner output
+    
+    # We keep print(json) for Electron, using console(stderr) for logs
+    # Actually wait, handle_exception prints to stdout for Electron.
+    # We should ensure normal logs use stderr.
+    pass # Refactor this logic next step if needed, or inline here:
+    
     discovery = DiscoveryService()
     peers = discovery.scan()
-
+    print(json.dumps(peers or [])) 
+    
     if not peers:
         console.print("[yellow]No peers found.[/yellow]")
     else:
-        # Output JSON for Electron to parse
-        console.print(json.dumps(peers))
-
-        # Also print pretty table for CLI users
         from rich.table import Table
-
         table = Table(title="Discovered Peers")
         table.add_column("Hostname", style="cyan")
         table.add_column("IP Address", style="green")
         table.add_column("Port", style="magenta")
-
         for peer in peers:
             table.add_row(peer["hostname"], peer["ip"], str(peer["port"]))
-
         console.print(table)
-
 
 if __name__ == "__main__":
     cli()

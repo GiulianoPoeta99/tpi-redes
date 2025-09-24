@@ -11,12 +11,13 @@
     "format": "biome check --write .",
     "test": "vitest",
     "preview": "vite preview",
-    "compile:electron": "tsc -p electron/tsconfig.json",
+    "compile:electron": "tsc -p electron/tsconfig.json && npx esbuild electron/preload.ts --bundle --platform=node --outfile=dist-electron/preload.cjs --external:electron",
     "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
     "dev:electron": "concurrently -k \"npm run dev\" \"npm run electron\""
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
+    "electron-squirrel-startup": "^1.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

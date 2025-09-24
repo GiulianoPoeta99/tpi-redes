@@ -8,9 +8,9 @@ default: test
 install:
     uv sync
 
-# Run CLI (Help)
-run:
-    PYTHONPATH=src uv run python -m tpi_redes.cli.main --help
+# Run CLI
+run +args:
+    PYTHONPATH=src uv run python -m tpi_redes.cli.main {{args}}
 
 # Run all tests
 test:
