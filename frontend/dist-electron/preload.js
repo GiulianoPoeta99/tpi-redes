@@ -3,17 +3,27 @@ contextBridge.exposeInMainWorld('api', {
     startServer: (config) => ipcRenderer.invoke('start-server', config),
     sendFile: (config) => ipcRenderer.invoke('send-file', config),
     onLog: (callback) => {
-        ipcRenderer.on('python-log', (_event, value) => callback(value));
+        const subscription = (_event, value) => callback(value);
+        ipcRenderer.on('python-log', subscription);
+        return () => ipcRenderer.removeListener('python-log', subscription);
     },
     onWindowUpdate: (callback) => {
-        ipcRenderer.on('window-update', (_event, value) => callback(value));
+        const subscription = (_event, value) => callback(value);
+        ipcRenderer.on('window-update', subscription);
+        return () => ipcRenderer.removeListener('window-update', subscription);
     },
     onStatsUpdate: (callback) => {
-        ipcRenderer.on('stats-update', (_event, value) => callback(value));
+        const subscription = (_event, value) => callback(value);
+        ipcRenderer.on('stats-update', subscription);
+        return () => ipcRenderer.removeListener('stats-update', subscription);
     },
     startProxy: (config) => ipcRenderer.invoke('start-proxy', config),
     scanNetwork: () => ipcRenderer.invoke('scan-network'),
+    stopProcess: () => ipcRenderer.invoke('stop-process'),
+    getLocalIp: () => ipcRenderer.invoke('get-local-ip'),
     onPacketCapture: (callback) => {
-        ipcRenderer.on('packet-capture', (_event, value) => callback(value));
-    }
+        const subscription = (_event, value) => callback(value);
+        ipcRenderer.on('packet-capture', subscription);
+        return () => ipcRenderer.removeListener('packet-capture', subscription);
+    },
 });

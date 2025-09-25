@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import Dashboard from '../Dashboard';
-import { describe, it, expect, vi } from 'vitest';
 
 // Mock window.api
 window.api = {
@@ -12,6 +12,8 @@ window.api = {
   startProxy: vi.fn(),
   scanNetwork: vi.fn(),
   onPacketCapture: vi.fn(),
+  stopProcess: vi.fn().mockResolvedValue(true),
+  getLocalIp: vi.fn().mockResolvedValue('127.0.0.1'),
 };
 
 describe('Dashboard', () => {

@@ -23,16 +23,19 @@ class UDPServer(BaseServer):
     def __init__(self, host: str, port: int, save_dir: str):
         super().__init__(host, port, save_dir)
         self.sessions: dict[tuple[str, int], UDPSession] = {}
+        self.sock: socket.socket | None = None # Initialize sock attribute
 
     def start(self):
-        """Start listening for UDP datagrams."""
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.bind((self.host, self.port))
+        """Start listening for UDP packets."""
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.sock.bind((self.host, self.port))
             logger.info(f"UDP Server listening on {self.host}:{self.port}")
 
             try:
                 while True:
-                    data, addr = s.recvfrom(65535)  # Max UDP size
+                    data, addr = self.sock.recvfrom(65535)  # Max UDP size
                     self.process_datagram(data, addr)
             except KeyboardInterrupt:
                 logger.info("Server stopping...")
