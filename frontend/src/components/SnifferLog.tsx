@@ -14,6 +14,7 @@ const SnifferLog: React.FC = () => {
     });
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Auto-scroll trigger
   useEffect(() => {
     // Auto-scroll to bottom only in raw view
     if (viewMode === 'raw') {
@@ -29,21 +30,23 @@ const SnifferLog: React.FC = () => {
 
           <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-700">
             <button
+              type="button"
               onClick={() => setViewMode('table')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                 viewMode === 'table'
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-gray-700 text-white shadow'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               Table
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('raw')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                 viewMode === 'raw'
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-gray-700 text-white shadow'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               Raw
@@ -70,6 +73,7 @@ const SnifferLog: React.FC = () => {
               <div className="text-gray-600 italic">Waiting for activity...</div>
             )}
             {logs.map((log, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: Immutable logs
               <div key={i} className={`${getLogColor(log)} break-all`}>
                 {log}
               </div>

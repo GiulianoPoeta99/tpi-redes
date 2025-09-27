@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webUtils } from 'electron';
 contextBridge.exposeInMainWorld('api', {
     startServer: (config) => ipcRenderer.invoke('start-server', config),
     sendFile: (config) => ipcRenderer.invoke('send-file', config),
@@ -26,4 +26,5 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.on('packet-capture', subscription);
         return () => ipcRenderer.removeListener('packet-capture', subscription);
     },
+    getFilePath: (file) => webUtils.getPathForFile(file),
 });

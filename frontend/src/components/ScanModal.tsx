@@ -34,7 +34,11 @@ const ScanModal: React.FC<ScanModalProps> = ({
             {scanning ? <span className="animate-spin">⏳</span> : '📡'}
             Discovering Peers
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
             ✕
           </button>
         </div>
@@ -65,6 +69,7 @@ const ScanModal: React.FC<ScanModalProps> = ({
           <div className="space-y-2">
             {peers.map((peer, idx) => (
               <button
+                type="button"
                 key={`${peer.ip}-${idx}`}
                 onClick={() => onSelect(peer)}
                 className="w-full text-left p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700 border border-gray-700 hover:border-blue-500 transition-all group"

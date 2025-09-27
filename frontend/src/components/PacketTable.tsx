@@ -27,6 +27,7 @@ const PacketTable: React.FC = () => {
     });
   }, [paused]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Manual scroll logic
   useEffect(() => {
     if (!paused && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -57,11 +58,13 @@ const PacketTable: React.FC = () => {
         <span className="font-semibold text-gray-300">Packet Capture</span>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={() => setPackets([])}
             className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
             title="Clear"
           >
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               className="h-4 w-4"
               fill="none"
@@ -77,11 +80,13 @@ const PacketTable: React.FC = () => {
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => setPaused(!paused)}
             className={`p-1 rounded ${paused ? 'bg-red-900/50 text-red-200' : 'hover:bg-gray-700 text-gray-400 hover:text-white'}`}
             title={paused ? 'Resume Auto-Scroll' : 'Pause Auto-Scroll'}
           >
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               className="h-4 w-4"
               fill="none"
@@ -114,6 +119,7 @@ const PacketTable: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-gray-800">
             {packets.map((pkt, idx) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: Rows are immutable for this view
               <tr key={idx} className={`${getRowClass(pkt)} transition-colors`}>
                 <td className="p-1 px-2 text-gray-500">{idx + 1}</td>
                 <td className="p-1 px-2 text-gray-400">{formatTime(pkt.timestamp)}</td>

@@ -99,7 +99,9 @@ ipcMain.handle('scan-network', async () => {
             },
         });
         let output = '';
-        child.stdout.on('data', (d) => { output += d.toString(); });
+        child.stdout.on('data', (d) => {
+            output += d.toString();
+        });
         child.stderr.on('data', (d) => console.error(`Scan stderr: ${d}`));
         child.on('close', (code) => {
             if (code !== 0) {

@@ -14,7 +14,11 @@ const ReceiverView: React.FC = () => {
 
   useEffect(() => {
     // Fetch local IP
-    window.api.getLocalIp().then(setLocalIp);
+    // Fetch local IP
+    window.api
+      .getLocalIp()
+      .then(setLocalIp)
+      .catch((_err) => setLocalIp('Error'));
 
     const cleanup = window.api.onLog((log: string) => {
       try {
@@ -55,12 +59,13 @@ const ReceiverView: React.FC = () => {
       {/* Control Bar */}
       <div className="flex items-end gap-4 mb-8">
         <div className="flex-1">
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+          <span className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             Protocol
-          </label>
+          </span>
           <div className="flex bg-gray-900 rounded-lg p-1">
             {['tcp', 'udp'].map((p) => (
               <button
+                type="button"
                 key={p}
                 onClick={() => setProtocol(p as any)}
                 className={`flex-1 py-2 text-sm rounded ${protocol === p ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-white'}`}
@@ -73,15 +78,16 @@ const ReceiverView: React.FC = () => {
         <div className="flex-1">
           <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             Port
+            <input
+              type="number"
+              value={port}
+              onChange={(e) => setPort(Number(e.target.value))}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 outline-none mt-1"
+            />
           </label>
-          <input
-            type="number"
-            value={port}
-            onChange={(e) => setPort(Number(e.target.value))}
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 outline-none"
-          />
         </div>
         <button
+          type="button"
           onClick={startServer}
           disabled={isConnected}
           className={`flex-1 py-2.5 rounded-lg font-bold text-sm shadow-lg transition-all ${isConnected ? 'bg-green-600 cursor-default' : 'bg-blue-600 hover:bg-blue-500 hover:-translate-y-0.5'}`}
@@ -95,6 +101,7 @@ const ReceiverView: React.FC = () => {
         {!isConnected ? (
           <div className="text-center text-gray-500">
             <svg
+              aria-hidden="true"
               className="w-16 h-16 mx-auto mb-4 opacity-50"
               fill="none"
               stroke="currentColor"
@@ -109,6 +116,11 @@ const ReceiverView: React.FC = () => {
             </svg>
             <p className="text-lg font-medium">Server is Offline</p>
             <p className="text-sm opacity-70">Configure settings above and click Start.</p>
+
+            <div className="mt-6 px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg inline-block">
+              <span className="text-gray-500 text-xs font-bold uppercase mr-2">Machine IP:</span>
+              <span className="text-gray-300 font-mono font-bold">{localIp}</span>
+            </div>
           </div>
         ) : (
           <>
@@ -124,6 +136,7 @@ const ReceiverView: React.FC = () => {
               <div className="text-center">
                 <div className="text-green-500 animate-pulse mb-6">
                   <svg
+                    aria-hidden="true"
                     className="w-20 h-20 mx-auto"
                     fill="none"
                     stroke="currentColor"

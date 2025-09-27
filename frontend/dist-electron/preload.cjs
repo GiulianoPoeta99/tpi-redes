@@ -28,5 +28,6 @@ import_electron.contextBridge.exposeInMainWorld("api", {
     const subscription = (_event, value) => callback(value);
     import_electron.ipcRenderer.on("packet-capture", subscription);
     return () => import_electron.ipcRenderer.removeListener("packet-capture", subscription);
-  }
+  },
+  getFilePath: (file) => import_electron.webUtils.getPathForFile(file)
 });

@@ -14,6 +14,7 @@ window.api = {
   onPacketCapture: vi.fn(),
   stopProcess: vi.fn().mockResolvedValue(true),
   getLocalIp: vi.fn().mockResolvedValue('127.0.0.1'),
+  getFilePath: vi.fn().mockReturnValue('/mock/path'),
 };
 
 describe('Dashboard', () => {
