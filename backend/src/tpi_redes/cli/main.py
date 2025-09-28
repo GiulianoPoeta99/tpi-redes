@@ -102,8 +102,8 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
         if sniff:
             from tpi_redes.networking.sniffer import PacketSniffer
 
-            # Default interface 'lo' for localhost testing, ideally configurable
-            sniffer = PacketSniffer(interface="lo", port=port)
+            # Use default interface if not specified (None lets Scapy choose)
+            sniffer = PacketSniffer(interface=None, port=port)
             sniffer.start()
 
         # Start Discovery Service Listener
@@ -169,7 +169,7 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
     if sniff:
         from tpi_redes.networking.sniffer import PacketSniffer
 
-        sniffer = PacketSniffer(interface="lo", port=port)
+        sniffer = PacketSniffer(interface=None, port=port)
         sniffer.start()
 
     logger.info(f"Sending {file} to {ip}:{port} via {protocol.upper()}...")

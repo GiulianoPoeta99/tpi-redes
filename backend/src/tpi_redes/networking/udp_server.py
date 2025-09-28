@@ -39,6 +39,11 @@ class UDPServer(BaseServer):
                     self.process_datagram(data, addr)
             except KeyboardInterrupt:
                 logger.info("Server stopping...")
+        except Exception as e:
+            logger.error(f"UDP Server error: {e}")
+        finally:
+            if self.sock:
+                self.sock.close()
 
     def stop(self):
         pass

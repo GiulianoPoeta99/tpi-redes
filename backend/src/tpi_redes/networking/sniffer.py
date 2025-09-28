@@ -8,7 +8,7 @@ logger = logging.getLogger("tpi-redes")
 
 
 class PacketSniffer:
-    def __init__(self, interface: str, port: int):
+    def __init__(self, interface: str | None, port: int):
         self.interface = interface
         self.port = port
         self.sniffer: Any = None
@@ -16,9 +16,13 @@ class PacketSniffer:
 
     def start(self):
         """Start the background sniffer."""
+        import os
+        if os.geteuid() != 0:
+            logger.info("Sniffer running without root (App-Level Fallback active).")
+
         filter_str = f"tcp port {self.port} or udp port {self.port}"
         logger.info(
-            f"Starting Sniffer on {self.interface} with filter '{filter_str}'..."
+            f"Starting Sniffer on {self.interface or 'default'} with filter '{filter_str}'..."
         )
 
         self.sniffer = AsyncSniffer(
@@ -27,13 +31,23 @@ class PacketSniffer:
             prn=self._process_packet,
             store=False,
         )
-        self.sniffer.start()
+        try:
+            self.sniffer.start()
+            logger.info("Sniffer started successfully.")
+        except Exception as e:
+            logger.error(f"Failed to start sniffer: {e}")
 
     def stop(self):
         """Stop the sniffer."""
         if self.sniffer:
-            self.sniffer.stop()
-            logger.info("Sniffer stopped.")
+            try:
+                self.sniffer.stop()
+                logger.info("Sniffer stopped.")
+            except Exception as e:
+                if "Unsupported" in str(e):
+                    logger.debug(f"Ignored expected sniffer shutdown error: {e}")
+                else:
+                    logger.warning(f"Error stopping sniffer: {e}")
 
     def get_packets(self) -> list[str]:
         """Return the list of captured packet summaries."""

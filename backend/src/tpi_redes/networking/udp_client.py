@@ -27,18 +27,23 @@ class UDPClient:
         # 2. Pack Header
         header = ProtocolHandler.pack_header(b"F", filename, file_size, file_hash)
 
+        from tpi_redes.networking.packet_logger import PacketLogger
+
         # 3. Send Datagrams
         logger.info(f"Sending {filename} to {ip}:{port} via UDP...")
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             addr = (ip, port)
+            local_ip, local_port = s.getsockname()
 
             # Send Header
             s.sendto(header, addr)
+            PacketLogger.log_packet(local_ip, ip, "UDP", f"{local_ip} -> {ip} Len={len(header)}", len(header))
             time.sleep(0.001)  # Small delay to help receiver process
 
             # Send Metadata
             metadata = filename.encode("utf-8") + file_hash.encode("utf-8")
             s.sendto(metadata, addr)
+            PacketLogger.log_packet(local_ip, ip, "UDP", f"{local_ip} -> {ip} Len={len(metadata)}", len(metadata))
             time.sleep(0.001)
 
             # Send Content in Chunks
@@ -48,7 +53,10 @@ class UDPClient:
             with open(file_path, "rb") as f:
                 while chunk := f.read(chunk_size):
                     s.sendto(chunk, addr)
-                    sent_bytes += len(chunk)
+                    chunk_len = len(chunk)
+                    sent_bytes += chunk_len
+                    PacketLogger.log_packet(local_ip, ip, "UDP", f"{local_ip} -> {ip} Len={chunk_len}", chunk_len)
+
                     # Simple flow control: sleep every N packets?
                     # For now just a tiny sleep per packet is safer for localhost/LAN
                     time.sleep(0.0005)

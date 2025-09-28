@@ -78,6 +78,8 @@ just run
 2.  Deberías ver barras que representan los paquetes en vuelo y cómo se mueve la ventana.
 
 ### Test 7: Packet Sniffer (Wireshark-style)
+> **Nota:** El Sniffer funciona automáticamente sin permisos de administrador gracias al **App-Level Fallback**. No es necesario usar `sudo` para ver el tráfico de la aplicación.
+
 1.  En la pestaña **Transfer**, activa el switch **"Packet Sniffer"**.
 2.  Realiza una transferencia.
 3.  Ve a la pestaña **Packet Sniffer**.

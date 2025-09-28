@@ -31,17 +31,28 @@ class TCPClient:
         # 3. Connect and Send
         logger.info(f"Connecting to {ip}:{port}...")
 
+        from tpi_redes.networking.packet_logger import PacketLogger
+
         start_connect = time.time()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((ip, port))
+            local_ip, local_port = s.getsockname()
             rtt = (time.time() - start_connect) * 1000  # RTT in ms
+
+            # Simulate Handshake Logs
+            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [SYN] Seq=0 Win=65535", 0, "S", 0, 0)
+            PacketLogger.log_packet(ip, local_ip, "TCP", f"{port} -> {local_port} [SYN, ACK] Seq=0 Ack=1", 0, "SA", 0, 1)
+            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [ACK] Seq=1 Ack=1", 0, "A", 1, 1)
 
             # Send Header
             s.sendall(header)
+            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [PSH, ACK] Seq=1 Ack=1 Len={len(header)}", len(header), "PA", 1, 1)
 
             # Send Metadata
             s.sendall(filename.encode("utf-8"))
             s.sendall(file_hash.encode("utf-8"))
+            meta_len = len(filename.encode("utf-8")) + len(file_hash.encode("utf-8"))
+            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [PSH, ACK] Seq={1+len(header)} Ack=1 Len={meta_len}", meta_len, "PA", 1+len(header), 1)
 
             # Send Content (Emit Start Event)
             logger.info("Sending content...")
@@ -66,10 +77,27 @@ class TCPClient:
             start_transfer = time.time()
             last_stats_time = start_transfer
 
+            # Track sequence number roughly
+            current_seq = 1 + len(header) + meta_len
+
             with open(file_path, "rb") as f:
                 while chunk := f.read(chunk_size):
                     s.sendall(chunk)
-                    bytes_sent += len(chunk)
+                    chunk_len = len(chunk)
+                    bytes_sent += chunk_len
+
+                    # Log Packet
+                    PacketLogger.log_packet(
+                        local_ip, 
+                        ip, 
+                        "TCP", 
+                        f"{local_port} -> {port} [PSH, ACK] Seq={current_seq} Ack=1 Len={chunk_len}", 
+                        chunk_len, 
+                        "PA", 
+                        current_seq, 
+                        1
+                    )
+                    current_seq += chunk_len
 
                     current_time = time.time()
 

@@ -176,6 +176,7 @@ function spawnPythonProcess(args: string[]) {
 
   // Path to python venv. Adjust for uv (.venv)
   const backendDir = path.resolve(__dirname, '../../backend');
+  const srcDir = path.join(backendDir, 'src');
   const pythonPath = path.join(backendDir, '.venv/bin/python');
 
   // Run as module
@@ -187,7 +188,12 @@ function spawnPythonProcess(args: string[]) {
 
   pythonProcess = spawn(pythonPath, ['-m', moduleName, ...args], {
     cwd: backendDir,
-  }); // Removed env modification that might cause issues
+    env: {
+      ...process.env,
+      PYTHONPATH: srcDir,
+      PYTHONUNBUFFERED: '1',
+    },
+  });
 
   pythonProcess.on('exit', (code: number, signal: string) => {
     console.log(`Python process exited with code ${code} and signal ${signal}`);
