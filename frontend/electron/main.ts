@@ -239,7 +239,7 @@ function spawnPythonProcess(args: string[]) {
 
   pythonProcess.stderr.on('data', (data: any) => {
     if (mainWindow) {
-      mainWindow.webContents.send('python-log', `ERROR: ${data.toString()}`);
+      mainWindow.webContents.send('python-log', data.toString());
     }
   });
 

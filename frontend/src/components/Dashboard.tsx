@@ -14,6 +14,7 @@ const Dashboard: React.FC = () => {
   const [mode, setMode] = useState<'receiver' | 'transmitter' | 'mitm'>('receiver');
   const [stats, setStats] = useState<AppStats>(StorageService.loadStats());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [logs, setLogs] = useState<string[]>([]);
 
   const addToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -36,9 +37,11 @@ const Dashboard: React.FC = () => {
       });
     });
 
-    // Global Log Listener for Toasts
+    // Global Log Listener for Toasts & Sniffer
     // We filter specific events that deserve a global toast
     const cleanupLog = window.api.onLog((log: string) => {
+      setLogs(prev => [...prev, log]); // Update Sniffer Logs
+
       try {
         const json = JSON.parse(log);
         if (json.type === 'ERROR') {
@@ -50,6 +53,7 @@ const Dashboard: React.FC = () => {
         }
       } catch (e) {
         // Ignore non-json logs for toasts
+        // Normal text logs are handled by setLogs above
       }
     });
 
@@ -62,6 +66,9 @@ const Dashboard: React.FC = () => {
   // Switching modes should hard-kill previous process to free ports
   const handleModeSwitch = async (newMode: 'receiver' | 'transmitter' | 'mitm') => {
     if (mode === newMode) return;
+
+    // Clear Logs on mode switch (Optional, but cleaner)
+    setLogs([]);
 
     // Stop current backend process
     try {
@@ -143,7 +150,7 @@ const Dashboard: React.FC = () => {
               </span>
             </div>
             <div className="flex-1 overflow-auto p-0 relative">
-              <SnifferLog />
+              <SnifferLog logs={logs} />
             </div>
           </div>
         </main>

@@ -2,17 +2,13 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import PacketTable from './PacketTable';
 
-const SnifferLog: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'raw' | 'table'>('table');
-  const [logs, setLogs] = useState<string[]>([]);
-  const logEndRef = useRef<HTMLDivElement>(null);
+interface SnifferLogProps {
+  logs: string[];
+}
 
-  useEffect(() => {
-    // Subscribe to logs
-    window.api.onLog((log) => {
-      setLogs((prev) => [...prev, log]);
-    });
-  }, []);
+const SnifferLog: React.FC<SnifferLogProps> = ({ logs }) => {
+  const [viewMode, setViewMode] = useState<'raw' | 'table'>('table');
+  const logEndRef = useRef<HTMLDivElement>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Auto-scroll trigger
   useEffect(() => {
@@ -63,34 +59,38 @@ const SnifferLog: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-hidden relative">
-        {viewMode === 'table' ? (
-          <div className="absolute inset-0 p-1">
+        <div className={`absolute inset-0 p-1 ${viewMode === 'table' ? 'block' : 'hidden'}`}>
             <PacketTable />
-          </div>
-        ) : (
-          <div className="absolute inset-0 p-4 overflow-y-auto font-mono text-xs space-y-1">
+        </div>
+        <div className={`absolute inset-0 p-4 overflow-y-auto font-mono text-xs space-y-1 ${viewMode === 'raw' ? 'block' : 'hidden'}`}>
             {logs.length === 0 && (
               <div className="text-gray-600 italic">Waiting for activity...</div>
             )}
             {logs.map((log, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: Immutable logs
               <div key={i} className={`${getLogColor(log)} break-all`}>
-                {log}
+                {stripAnsi(log)}
               </div>
             ))}
             <div ref={logEndRef} />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
 };
 
+function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1B\[[0-9;]*[mK]/g, '');
+}
+
 function getLogColor(log: string): string {
-  if (log.includes('ERROR')) return 'text-red-400';
-  if (log.includes('SNIFFER')) return 'text-cyan-400';
-  if (log.includes('WARNING')) return 'text-yellow-400';
-  if (log.includes('Starting')) return 'text-green-400';
+  const cleanLog = stripAnsi(log);
+  // Check for log levels inside the message first
+  if (cleanLog.includes('INFO')) return 'text-cyan-400';
+  if (cleanLog.includes('WARNING')) return 'text-yellow-400';
+  if (cleanLog.includes('ERROR') || cleanLog.includes('Error:')) return 'text-red-400';
+  if (cleanLog.includes('Starting')) return 'text-green-400';
   return 'text-gray-300';
 }
 
