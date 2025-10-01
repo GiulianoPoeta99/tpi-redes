@@ -50,12 +50,7 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs }) => {
           </div>
         </div>
 
-        <div className="flex gap-2">
-          {/* Traffic Lights Decoration */}
-          <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-        </div>
+
       </div>
 
       <div className="flex-1 overflow-hidden relative">
