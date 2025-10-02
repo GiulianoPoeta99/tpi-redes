@@ -40,7 +40,7 @@ const Dashboard: React.FC = () => {
     // Global Log Listener for Toasts & Sniffer
     // We filter specific events that deserve a global toast
     const cleanupLog = window.api.onLog((log: string) => {
-      setLogs(prev => [...prev, log]); // Update Sniffer Logs
+      setLogs((prev) => [...prev, log]); // Update Sniffer Logs
 
       try {
         const json = JSON.parse(log);
@@ -51,15 +51,15 @@ const Dashboard: React.FC = () => {
         } else if (json.type === 'TRANSFER_UPDATE' && json.status === 'complete') {
           addToast('success', `Transfer Complete: ${json.filename}`);
         }
-      } catch (e) {
+      } catch (_e) {
         // Ignore non-json logs for toasts
         // Normal text logs are handled by setLogs above
       }
     });
 
     return () => {
-      cleanupStats && cleanupStats();
-      cleanupLog && cleanupLog();
+      cleanupStats?.();
+      cleanupLog?.();
     };
   }, [addToast]);
 

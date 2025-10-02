@@ -23,6 +23,9 @@ class TestTCPClient:
             def close(self):
                 pass
 
+            def getsockname(self):
+                return ("127.0.0.1", 12345)
+
             def __enter__(self):
                 return self
 

@@ -1,7 +1,7 @@
+import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { spawn } from 'child_process';
+import path from 'node:path';
 import { app, BrowserWindow, ipcMain } from 'electron';
-import path from 'path';
 
 const require = createRequire(import.meta.url);
 
@@ -10,7 +10,7 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,7 +43,7 @@ const createWindow = () => {
 };
 
 // IPC Handlers for Python CLI
-ipcMain.handle('start-server', async (event, args) => {
+ipcMain.handle('start-server', async (_event, args) => {
   // args: { port, protocol, saveDir, sniff }
   const cmdArgs = [
     'start-server',
@@ -59,7 +59,7 @@ ipcMain.handle('start-server', async (event, args) => {
   return spawnPythonProcess(cmdArgs);
 });
 
-ipcMain.handle('send-file', async (event, args) => {
+ipcMain.handle('send-file', async (_event, args) => {
   // args: { file, ip, port, protocol, sniff }
   const cmdArgs = [
     'send-file',
@@ -77,7 +77,7 @@ ipcMain.handle('send-file', async (event, args) => {
   return spawnPythonProcess(cmdArgs);
 });
 
-ipcMain.handle('start-proxy', async (event, args) => {
+ipcMain.handle('start-proxy', async (_event, args) => {
   // args: { listenPort, targetIp, targetPort, corruptionRate }
   const cmdArgs = [
     'start-proxy',
@@ -131,7 +131,7 @@ ipcMain.handle('scan-network', async () => {
           console.log('No JSON found in scan output', output);
           resolve([]);
         }
-      } catch (e) {
+      } catch (_e) {
         console.error('Failed to parse scan output:', output);
         resolve([]);
       }
@@ -139,7 +139,7 @@ ipcMain.handle('scan-network', async () => {
   });
 });
 
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 
 ipcMain.handle('stop-process', async () => {
   if (pythonProcess) {
@@ -151,7 +151,7 @@ ipcMain.handle('stop-process', async () => {
 });
 
 // Helper to get local IP
-import os from 'os';
+import os from 'node:os';
 
 ipcMain.handle('get-local-ip', () => {
   const nets = os.networkInterfaces();
@@ -227,7 +227,7 @@ function spawnPythonProcess(args: string[]) {
           }
           return;
         }
-      } catch (e) {
+      } catch (_e) {
         // Not JSON, treat as normal log
       }
 
@@ -267,11 +267,11 @@ async function killProcessTree(pid: number) {
     if (!pid) return resolve();
     // Command to kill children then parent
     // pkill -P <pid> kills children
-    exec(`pkill -P ${pid}`, (err) => {
+    exec(`pkill -P ${pid}`, (_err) => {
       // Then kill parent
       try {
         process.kill(pid, 'SIGKILL'); // Force kill parent
-      } catch (e) {
+      } catch (_e) {
         // Ignore if already dead
       }
       resolve();

@@ -17,6 +17,7 @@ class PacketSniffer:
     def start(self):
         """Start the background sniffer."""
         import os
+
         if os.geteuid() != 0:
             logger.info("Sniffer running without root (App-Level Fallback active).")
 

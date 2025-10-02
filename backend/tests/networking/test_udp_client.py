@@ -19,10 +19,13 @@ class TestUDPClient:
             def close(self):
                 pass
 
+            def getsockname(self):
+                return ("127.0.0.1", 12345)
+
             def __enter__(self):
                 return self
 
-            def __exit__(self, exc_type, exc_val, exc_tb):
+            def __exit__(self, exc_type, exc_val, exc_tb, **kwargs):
                 pass
 
         # Mock socket.socket

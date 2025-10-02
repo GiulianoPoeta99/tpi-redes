@@ -37,13 +37,25 @@ class UDPClient:
 
             # Send Header
             s.sendto(header, addr)
-            PacketLogger.log_packet(local_ip, ip, "UDP", f"{local_ip} -> {ip} Len={len(header)}", len(header))
+            PacketLogger.log_packet(
+                local_ip,
+                ip,
+                "UDP",
+                f"{local_ip} -> {ip} Len={len(header)}",
+                len(header),
+            )
             time.sleep(0.001)  # Small delay to help receiver process
 
             # Send Metadata
             metadata = filename.encode("utf-8") + file_hash.encode("utf-8")
             s.sendto(metadata, addr)
-            PacketLogger.log_packet(local_ip, ip, "UDP", f"{local_ip} -> {ip} Len={len(metadata)}", len(metadata))
+            PacketLogger.log_packet(
+                local_ip,
+                ip,
+                "UDP",
+                f"{local_ip} -> {ip} Len={len(metadata)}",
+                len(metadata),
+            )
             time.sleep(0.001)
 
             # Send Content in Chunks
@@ -55,7 +67,13 @@ class UDPClient:
                     s.sendto(chunk, addr)
                     chunk_len = len(chunk)
                     sent_bytes += chunk_len
-                    PacketLogger.log_packet(local_ip, ip, "UDP", f"{local_ip} -> {ip} Len={chunk_len}", chunk_len)
+                    PacketLogger.log_packet(
+                        local_ip,
+                        ip,
+                        "UDP",
+                        f"{local_ip} -> {ip} Len={chunk_len}",
+                        chunk_len,
+                    )
 
                     # Simple flow control: sleep every N packets?
                     # For now just a tiny sleep per packet is safer for localhost/LAN

@@ -38,7 +38,7 @@ const ReceiverView: React.FC = () => {
           setTransferActive(false);
           // Toast handled by Dashboard
         }
-      } catch (e) {
+      } catch (_e) {
         /* ignore */
       }
     });
@@ -122,60 +122,56 @@ const ReceiverView: React.FC = () => {
               <span className="text-gray-300 font-mono font-bold">{localIp}</span>
             </div>
           </div>
+        ) : transferActive ? (
+          <div className="w-full h-full p-4 relative">
+            {/* Visualizer replaces logic when active */}
+            <SlidingWindow />
+            <div className="absolute bottom-4 left-0 right-0 text-center text-blue-400 animate-pulse font-mono text-sm">
+              RECEIVING DATA...
+            </div>
+          </div>
         ) : (
-          <>
-            {transferActive ? (
-              <div className="w-full h-full p-4 relative">
-                {/* Visualizer replaces logic when active */}
-                <SlidingWindow />
-                <div className="absolute bottom-4 left-0 right-0 text-center text-blue-400 animate-pulse font-mono text-sm">
-                  RECEIVING DATA...
-                </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="text-green-500 animate-pulse mb-6">
-                  <svg
-                    aria-hidden="true"
-                    className="w-20 h-20 mx-auto"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Ready to Receive</h3>
-                <p className="text-gray-400">Listening for incoming connections...</p>
+          <div className="text-center">
+            <div className="text-green-500 animate-pulse mb-6">
+              <svg
+                aria-hidden="true"
+                className="w-20 h-20 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">Ready to Receive</h3>
+            <p className="text-gray-400">Listening for incoming connections...</p>
 
-                <div className="mt-4 px-4 py-2 bg-blue-900/20 border border-blue-500/30 rounded-lg inline-block">
-                  <span className="text-blue-400 text-xs font-bold uppercase mr-2">
-                    Your IP Address:
-                  </span>
-                  <span className="text-white font-mono font-bold">{localIp}</span>
-                </div>
+            <div className="mt-4 px-4 py-2 bg-blue-900/20 border border-blue-500/30 rounded-lg inline-block">
+              <span className="text-blue-400 text-xs font-bold uppercase mr-2">
+                Your IP Address:
+              </span>
+              <span className="text-white font-mono font-bold">{localIp}</span>
+            </div>
 
-                {lastFile && (
-                  <div className="mt-8 bg-gray-800 p-4 rounded-lg flex items-center justify-between gap-4 max-w-sm mx-auto border border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-900/30 rounded text-green-400">📄</div>
-                      <div className="text-left">
-                        <p className="text-xs text-gray-500 uppercase font-bold">Last Received:</p>
-                        <p className="text-sm font-mono text-white truncate max-w-[150px]">
-                          {lastFile}
-                        </p>
-                      </div>
-                    </div>
+            {lastFile && (
+              <div className="mt-8 bg-gray-800 p-4 rounded-lg flex items-center justify-between gap-4 max-w-sm mx-auto border border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-900/30 rounded text-green-400">📄</div>
+                  <div className="text-left">
+                    <p className="text-xs text-gray-500 uppercase font-bold">Last Received:</p>
+                    <p className="text-sm font-mono text-white truncate max-w-[150px]">
+                      {lastFile}
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

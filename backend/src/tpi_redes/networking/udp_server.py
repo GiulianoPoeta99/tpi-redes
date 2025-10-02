@@ -23,7 +23,7 @@ class UDPServer(BaseServer):
     def __init__(self, host: str, port: int, save_dir: str):
         super().__init__(host, port, save_dir)
         self.sessions: dict[tuple[str, int], UDPSession] = {}
-        self.sock: socket.socket | None = None # Initialize sock attribute
+        self.sock: socket.socket | None = None  # Initialize sock attribute
 
     def start(self):
         """Start listening for UDP packets."""

@@ -40,19 +40,64 @@ class TCPClient:
             rtt = (time.time() - start_connect) * 1000  # RTT in ms
 
             # Simulate Handshake Logs
-            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [SYN] Seq=0 Win=65535", 0, "S", 0, 0)
-            PacketLogger.log_packet(ip, local_ip, "TCP", f"{port} -> {local_port} [SYN, ACK] Seq=0 Ack=1", 0, "SA", 0, 1)
-            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [ACK] Seq=1 Ack=1", 0, "A", 1, 1)
+            PacketLogger.log_packet(
+                local_ip,
+                ip,
+                "TCP",
+                f"{local_port} -> {port} [SYN] Seq=0 Win=65535",
+                0,
+                "S",
+                0,
+                0,
+            )
+            PacketLogger.log_packet(
+                ip,
+                local_ip,
+                "TCP",
+                f"{port} -> {local_port} [SYN, ACK] Seq=0 Ack=1",
+                0,
+                "SA",
+                0,
+                1,
+            )
+            PacketLogger.log_packet(
+                local_ip,
+                ip,
+                "TCP",
+                f"{local_port} -> {port} [ACK] Seq=1 Ack=1",
+                0,
+                "A",
+                1,
+                1,
+            )
 
             # Send Header
             s.sendall(header)
-            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [PSH, ACK] Seq=1 Ack=1 Len={len(header)}", len(header), "PA", 1, 1)
+            PacketLogger.log_packet(
+                local_ip,
+                ip,
+                "TCP",
+                f"{local_port} -> {port} [PSH, ACK] Seq=1 Ack=1 Len={len(header)}",
+                len(header),
+                "PA",
+                1,
+                1,
+            )
 
             # Send Metadata
             s.sendall(filename.encode("utf-8"))
             s.sendall(file_hash.encode("utf-8"))
             meta_len = len(filename.encode("utf-8")) + len(file_hash.encode("utf-8"))
-            PacketLogger.log_packet(local_ip, ip, "TCP", f"{local_port} -> {port} [PSH, ACK] Seq={1+len(header)} Ack=1 Len={meta_len}", meta_len, "PA", 1+len(header), 1)
+            PacketLogger.log_packet(
+                local_ip,
+                ip,
+                "TCP",
+                f"{local_port} -> {port} [PSH, ACK] Seq={1 + len(header)} Ack=1 Len={meta_len}",
+                meta_len,
+                "PA",
+                1 + len(header),
+                1,
+            )
 
             # Send Content (Emit Start Event)
             logger.info("Sending content...")
@@ -88,14 +133,14 @@ class TCPClient:
 
                     # Log Packet
                     PacketLogger.log_packet(
-                        local_ip, 
-                        ip, 
-                        "TCP", 
-                        f"{local_port} -> {port} [PSH, ACK] Seq={current_seq} Ack=1 Len={chunk_len}", 
-                        chunk_len, 
-                        "PA", 
-                        current_seq, 
-                        1
+                        local_ip,
+                        ip,
+                        "TCP",
+                        f"{local_port} -> {port} [PSH, ACK] Seq={current_seq} Ack=1 Len={chunk_len}",
+                        chunk_len,
+                        "PA",
+                        current_seq,
+                        1,
                     )
                     current_seq += chunk_len
 

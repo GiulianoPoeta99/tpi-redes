@@ -49,25 +49,23 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs }) => {
             </button>
           </div>
         </div>
-
-
       </div>
 
       <div className="flex-1 overflow-hidden relative">
         <div className={`absolute inset-0 p-1 ${viewMode === 'table' ? 'block' : 'hidden'}`}>
-            <PacketTable />
+          <PacketTable />
         </div>
-        <div className={`absolute inset-0 p-4 overflow-y-auto font-mono text-xs space-y-1 ${viewMode === 'raw' ? 'block' : 'hidden'}`}>
-            {logs.length === 0 && (
-              <div className="text-gray-600 italic">Waiting for activity...</div>
-            )}
-            {logs.map((log, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: Immutable logs
-              <div key={i} className={`${getLogColor(log)} break-all`}>
-                {stripAnsi(log)}
-              </div>
-            ))}
-            <div ref={logEndRef} />
+        <div
+          className={`absolute inset-0 p-4 overflow-y-auto font-mono text-xs space-y-1 ${viewMode === 'raw' ? 'block' : 'hidden'}`}
+        >
+          {logs.length === 0 && <div className="text-gray-600 italic">Waiting for activity...</div>}
+          {logs.map((log, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: Immutable logs
+            <div key={i} className={`${getLogColor(log)} break-all`}>
+              {stripAnsi(log)}
+            </div>
+          ))}
+          <div ref={logEndRef} />
         </div>
       </div>
     </div>

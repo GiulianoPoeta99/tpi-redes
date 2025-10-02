@@ -30,7 +30,7 @@ const PacketTable: React.FC = () => {
   // biome-ignore lint/correctness/useExhaustiveDependencies: Manual scroll logic
   useEffect(() => {
     if (!paused && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+      bottomRef.current.scrollIntoView?.({ behavior: 'smooth' });
     }
   }, [packets, paused]);
 
