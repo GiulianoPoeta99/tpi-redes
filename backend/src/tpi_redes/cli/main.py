@@ -163,7 +163,8 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     help="Protocol to use",
 )
 @click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root)")
-def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
+@click.option("--delay", default=0.0, help="Delay between packets in seconds")
+def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool, delay: float):
     """Send a file to a remote peer."""
     sniffer = None
     if sniff:
@@ -181,14 +182,14 @@ def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool):
             from tpi_redes.networking.tcp_client import TCPClient
 
             client = TCPClient()
-            client.send_file(Path(file), ip, port)
+            client.send_file(Path(file), ip, port, delay=delay)
         else:
             from pathlib import Path
 
             from tpi_redes.networking.udp_client import UDPClient
 
             client = UDPClient()
-            client.send_file(Path(file), ip, port)
+            client.send_file(Path(file), ip, port, delay=delay)
     finally:
         if sniffer:
             sniffer.stop()

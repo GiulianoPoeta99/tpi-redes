@@ -67,7 +67,7 @@ const ReceiverView: React.FC = () => {
               <button
                 type="button"
                 key={p}
-                onClick={() => setProtocol(p as any)}
+                onClick={() => setProtocol(p as 'tcp' | 'udp')}
                 className={`flex-1 py-2 text-sm rounded ${protocol === p ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-white'}`}
               >
                 {p.toUpperCase()}

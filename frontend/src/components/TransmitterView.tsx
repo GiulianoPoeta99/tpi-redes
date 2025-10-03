@@ -9,32 +9,32 @@ const TransmitterView: React.FC = () => {
   const [ip, setIp] = useState('');
   const [port, setPort] = useState(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
-  const [file, setFile] = useState('');
-
-  // Transfer State
+  const [delay, setDelay] = useState(0);
+  const [file, setFile] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'sending' | 'completed'>('idle');
   const [progress, setProgress] = useState(0);
-
-  // Stats State
-  const [startTime, setStartTime] = useState<number>(0);
-  const [transferStats, setTransferStats] = useState({
-    filename: '',
-    totalBytes: 0,
-    timeTaken: 0,
-    throughput: 0,
-    protocol: 'tcp',
-  });
   const [showStats, setShowStats] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Modal State
+  // Discovery
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  // biome-ignore lint/suspicious/noExplicitAny: Discovery peer type
   const [discoveredPeers, setDiscoveredPeers] = useState<any[]>([]);
   const [scanError, setScanError] = useState<string>();
 
-  // DnD State
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Transfer Stats
+  const [transferStats, setTransferStats] = useState({
+    filename: '',
+    totalBytes: 0,
+    startTime: 0,
+    endTime: 0,
+    timeTaken: 0,
+    throughput: 0,
+    protocol: 'TCP',
+  });
+  const totalBytesRef = useRef(0);
 
   const isValid = ip && port && file;
 
@@ -46,78 +46,49 @@ const TransmitterView: React.FC = () => {
           if (json.status === 'start') {
             setStatus('sending');
             setProgress(0);
-            setStartTime(Date.now());
+            setTransferStats((prev) => ({
+              ...prev,
+              startTime: Date.now(),
+              totalBytes: 0,
+              timeTaken: 0,
+              throughput: 0,
+            }));
           } else if (json.status === 'progress') {
-            if (json.total > 0) setProgress((json.current / json.total) * 100);
+            if (json.total > 0) {
+              setProgress((json.current / json.total) * 100);
+              totalBytesRef.current = json.total; // Capture total bytes
+            }
           } else if (json.status === 'complete') {
-            const endT = Date.now();
-            const durationSec = (endT - startTime) / 1000 || 0.1; // Avoid div by zero
-            // Update stats
-            setTransferStats({
-              filename: json.filename,
-              totalBytes: 0, // We miss total bytes in complete event? 'progress' has it.
-              // We can cache it from progress or just assume file size if we had it.
-              // Let's use a ref or state for bytes if needed, but for now I'll check if 'complete' has it
-              // Checks backend: {"type": "TRANSFER_UPDATE", "status": "complete", "filename": ...}
-              // It lacks size. I should store size from start/progress.
-              // I'll grab it from file state if possible or previous progress update.
-              // Doing a lazy calc: throughput = file_size / duration.
-              // But I don't have file size easily in 'complete' event.
-              // I'll use a hack: I can't easily get it unless I stored it.
-              // Let's rely on 'progress' event updating a ref.
-              timeTaken: durationSec,
-              throughput: 0, // Will calc below in render or effect?
-              // Actually safer to calc here if I had size.
-              protocol: protocol,
-            });
             setStatus('completed');
             setProgress(100);
+
+            setTransferStats((prev) => {
+              const now = Date.now();
+              const duration = (now - prev.startTime) / 1000;
+              // Use captured totalBytes or fallback
+              const bytes = totalBytesRef.current;
+              return {
+                ...prev,
+                filename: json.filename || prev.filename,
+                totalBytes: bytes,
+                endTime: now,
+                timeTaken: duration,
+                throughput: duration > 0 ? bytes / duration : 0, // B/s
+                protocol: protocol.toUpperCase(),
+              };
+            });
           }
         } else if (json.type === 'ERROR') {
           setStatus('idle');
         }
-      } catch (_e) {}
+      } catch (_e) {
+        // Ignore
+      }
     });
     return cleanup;
-  }, [startTime, protocol]);
+  }, [protocol]);
 
-  // Keep track of total bytes from progress updates to populate stats
-  const totalBytesRef = useRef(0);
-  useEffect(() => {
-    if (status === 'sending' && progress > 0) {
-      // It's hard to get exact bytes seamlessly without ref from onLog.
-      // Re-implementing onLog inside useEffect above is better to close over totalBytesRef.
-      // But I separated them. Let's fix this by merging logic or using a ref that onLog writes to.
-    }
-  }, [status, progress]);
-
-  // Better: Re-define onLog to capture bytes
-  useEffect(() => {
-    const cleanup = window.api.onLog((log: string) => {
-      try {
-        const json = JSON.parse(log);
-        if (json.type === 'TRANSFER_UPDATE') {
-          if (json.status === 'progress') {
-            totalBytesRef.current = json.total;
-            if (json.total > 0) setProgress((json.current / json.total) * 100);
-          } else if (json.status === 'complete') {
-            setStatus('completed');
-            setProgress(100);
-            const duration = (Date.now() - startTime) / 1000;
-            setTransferStats((prev) => ({
-              ...prev,
-              filename: json.filename,
-              totalBytes: totalBytesRef.current,
-              timeTaken: duration,
-              throughput: duration > 0 ? totalBytesRef.current / 1024 / 1024 / duration : 0,
-              protocol,
-            }));
-          }
-        }
-      } catch (_e) {}
-    });
-    return cleanup;
-  }, [startTime, protocol]);
+  // We need transferStats to be state now
 
   const openScan = async () => {
     setIsScanOpen(true);
@@ -159,9 +130,16 @@ const TransmitterView: React.FC = () => {
   const sendFile = async () => {
     if (!isValid) return;
     setStatus('sending');
-    setStartTime(Date.now());
+    setTransferStats((prev) => ({ ...prev, startTime: Date.now() }));
     try {
-      await window.api.sendFile({ file, ip, port, protocol, sniff: true });
+      await window.api.sendFile({
+        file,
+        ip,
+        port,
+        protocol,
+        sniff: true,
+        delay: delay / 1000,
+      });
     } catch (e) {
       console.error(e);
       setStatus('idle');
@@ -188,9 +166,9 @@ const TransmitterView: React.FC = () => {
 
       {/* CONTENT SWITCHER */}
       {status === 'idle' && (
-        <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto pb-6 px-1">
           {/* FORM */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-2 gap-6 mb-6 mt-1">
             <div>
               <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
                 Destination IP
@@ -244,6 +222,30 @@ const TransmitterView: React.FC = () => {
             </div>
           </div>
 
+          <div className="mb-6">
+            <label
+              htmlFor="delay-slider"
+              className="block text-xs font-bold text-gray-500 mb-2 uppercase flex justify-between"
+            >
+              <span>Transmission Delay</span>
+              <span className="text-blue-400">{delay} ms</span>
+            </label>
+            <input
+              id="delay-slider"
+              type="range"
+              min="0"
+              max="1000"
+              step="10"
+              value={delay}
+              onChange={(e) => setDelay(Number(e.target.value))}
+              className="w-full h-2 bg-gray-900 rounded-lg appearance-none cursor-pointer border border-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:hover:scale-110"
+            />
+            <div className="flex justify-between text-xs text-gray-600 mt-1 font-mono">
+              <span>0ms (Fastest)</span>
+              <span>1000ms (Slow)</span>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -262,27 +264,27 @@ const TransmitterView: React.FC = () => {
               const p = window.api.getFilePath(f);
               if (p) setFile(p);
             }}
-            className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-8 transition-all group
+            className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all group min-h-[140px]
                         ${isDragging ? 'bg-blue-900/20 border-blue-500' : 'bg-gray-900/20 border-gray-700 hover:border-gray-500 hover:bg-gray-800/50'}
                     `}
           >
             {file ? (
               <div className="text-center">
-                <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400 group-hover:scale-110 transition-transform">
-                  <FileText size={32} />
+                <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-400 group-hover:scale-110 transition-transform">
+                  <FileText size={24} />
                 </div>
-                <p className="font-medium text-white break-all max-w-sm mx-auto">
+                <p className="font-medium text-white break-all max-w-sm mx-auto text-sm">
                   {file.split('/').pop()}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">{file}</p>
-                <p className="text-xs text-blue-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="text-[10px] text-gray-500 mt-1">{file}</p>
+                <p className="text-[10px] text-blue-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   Change File
                 </p>
               </div>
             ) : (
               <div className="text-center">
-                <p className="text-gray-400 mb-2">Drag & Drop file here</p>
-                <p className="text-xs text-gray-600">or click to browse</p>
+                <p className="text-gray-400 mb-1 text-sm">Drag & Drop file here</p>
+                <p className="text-[10px] text-gray-600">or click to browse</p>
               </div>
             )}
           </button>
@@ -346,7 +348,7 @@ const TransmitterView: React.FC = () => {
           <p className="mt-8 text-blue-300 animate-pulse font-medium tracking-wide">
             SENDING FILE...
           </p>
-          <p className="md:text-sm text-xs text-gray-500 mt-2">{file.split('/').pop()}</p>
+          <p className="md:text-sm text-xs text-gray-500 mt-2">{file?.split('/').pop()}</p>
         </div>
       )}
 

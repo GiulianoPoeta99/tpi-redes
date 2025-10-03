@@ -23,7 +23,7 @@ class PacketSniffer:
 
         filter_str = f"tcp port {self.port} or udp port {self.port}"
         logger.info(
-            f"Starting Sniffer on {self.interface or 'default'} with filter '{filter_str}'..."
+            f"Starting Sniffer on {self.interface or 'default'} with filter '{filter_str}'..."  # noqa: E501
         )
 
         self.sniffer = AsyncSniffer(

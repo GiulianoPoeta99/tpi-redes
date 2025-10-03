@@ -73,6 +73,7 @@ ipcMain.handle('send-file', async (_event, args) => {
     args.protocol,
   ];
   if (args.sniff) cmdArgs.push('--sniff');
+  if (args.delay) cmdArgs.push('--delay', args.delay.toString());
 
   return spawnPythonProcess(cmdArgs);
 });

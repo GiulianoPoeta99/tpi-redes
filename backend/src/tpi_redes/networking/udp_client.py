@@ -1,3 +1,4 @@
+import json
 import logging
 import socket
 import time
@@ -11,7 +12,7 @@ logger = logging.getLogger("tpi-redes")
 
 
 class UDPClient:
-    def send_file(self, file_path: Path, ip: str, port: int):
+    def send_file(self, file_path: Path, ip: str, port: int, delay: float = 0.0):
         """Send a file to a remote UDP server (Best Effort)."""
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
@@ -37,46 +38,95 @@ class UDPClient:
 
             # Send Header
             s.sendto(header, addr)
-            PacketLogger.log_packet(
-                local_ip,
-                ip,
-                "UDP",
-                f"{local_ip} -> {ip} Len={len(header)}",
-                len(header),
+            PacketLogger.emit_packet(
+                src_ip=local_ip,
+                src_port=local_port,
+                dst_ip=ip,
+                dst_port=port,
+                protocol="UDP",
+                flags="",
+                size=len(header),
+                info=f"Header: {filename} ({file_size} bytes)",
             )
             time.sleep(0.001)  # Small delay to help receiver process
 
             # Send Metadata
             metadata = filename.encode("utf-8") + file_hash.encode("utf-8")
             s.sendto(metadata, addr)
-            PacketLogger.log_packet(
-                local_ip,
-                ip,
-                "UDP",
-                f"{local_ip} -> {ip} Len={len(metadata)}",
-                len(metadata),
+            PacketLogger.emit_packet(
+                src_ip=local_ip,
+                src_port=local_port,
+                dst_ip=ip,
+                dst_port=port,
+                protocol="UDP",
+                flags="",
+                size=len(metadata),
+                info="Metadata: Filename and Hash",
             )
             time.sleep(0.001)
 
+            print(
+                json.dumps(
+                    {
+                        "type": "TRANSFER_UPDATE",
+                        "status": "start",
+                        "filename": filename,
+                        "total": file_size,
+                    }
+                ),
+                flush=True,
+            )
+
             # Send Content in Chunks
-            chunk_size = 1024  # Safe payload size for MTU 1500
             sent_bytes = 0
+            start_transfer = time.time()
+            last_stats_time = start_transfer
+            chunk_size = 4096
 
             with open(file_path, "rb") as f:
                 while chunk := f.read(chunk_size):
                     s.sendto(chunk, addr)
-                    chunk_len = len(chunk)
-                    sent_bytes += chunk_len
-                    PacketLogger.log_packet(
-                        local_ip,
-                        ip,
-                        "UDP",
-                        f"{local_ip} -> {ip} Len={chunk_len}",
-                        chunk_len,
+                    sent_bytes += len(chunk)
+
+                    if delay > 0:
+                        time.sleep(delay)
+
+                    PacketLogger.emit_packet(
+                        src_ip=local_ip,
+                        src_port=local_port,
+                        dst_ip=ip,
+                        dst_port=port,
+                        protocol="UDP",
+                        flags="",
+                        size=len(chunk),
+                        info=f"Chunk ({len(chunk)}B) - {sent_bytes}/{file_size}",
                     )
 
-                    # Simple flow control: sleep every N packets?
-                    # For now just a tiny sleep per packet is safer for localhost/LAN
-                    time.sleep(0.0005)
+                    # Progress Emission
+                    current_time = time.time()
+                    if current_time - last_stats_time >= 0.1:
+                        print(
+                            json.dumps(
+                                {
+                                    "type": "TRANSFER_UPDATE",
+                                    "status": "progress",
+                                    "filename": filename,
+                                    "current": sent_bytes,
+                                    "total": file_size,
+                                }
+                            ),
+                            flush=True,
+                        )
+                        last_stats_time = current_time
 
             logger.info(f"UDP Transfer finished. Sent {sent_bytes} bytes.")
+            print(
+                json.dumps(
+                    {
+                        "type": "TRANSFER_UPDATE",
+                        "status": "complete",
+                        "filename": filename,
+                    }
+                ),
+                flush=True,
+            )

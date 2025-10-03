@@ -25,17 +25,19 @@ const Dashboard: React.FC = () => {
   // Listen for stats and logs globally
   useEffect(() => {
     // Stats Listener
-    const cleanupStats = window.api.onStatsUpdate((newStats: any) => {
-      setStats((prev) => {
-        const updated = {
-          ...prev,
-          totalSent: newStats.total_sent || prev.totalSent,
-          bytesSent: newStats.bytes_sent || prev.bytesSent,
-        };
-        StorageService.saveStats(updated);
-        return updated;
-      });
-    });
+    const cleanupStats = window.api.onStatsUpdate(
+      (newStats: { total_sent?: number; bytes_sent?: number }) => {
+        setStats((prev) => {
+          const updated = {
+            ...prev,
+            totalSent: newStats.total_sent || prev.totalSent,
+            bytesSent: newStats.bytes_sent || prev.bytesSent,
+          };
+          StorageService.saveStats(updated);
+          return updated;
+        });
+      },
+    );
 
     // Global Log Listener for Toasts & Sniffer
     // We filter specific events that deserve a global toast
@@ -104,7 +106,7 @@ const Dashboard: React.FC = () => {
                 <button
                   type="button"
                   key={m}
-                  onClick={() => handleModeSwitch(m as any)}
+                  onClick={() => handleModeSwitch(m as 'receiver' | 'transmitter' | 'mitm')}
                   className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                     mode === m
                       ? 'bg-gray-700 text-white shadow-lg'
