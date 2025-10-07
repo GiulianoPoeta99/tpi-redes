@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
 
-const TransmitterView: React.FC = () => {
+const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) => {
   // Config State
   const [ip, setIp] = useState('');
   const [port, setPort] = useState(8080);
@@ -37,6 +37,10 @@ const TransmitterView: React.FC = () => {
   const totalBytesRef = useRef(0);
 
   const isValid = ip && port && file;
+
+  useEffect(() => {
+    setBusy(status === 'sending');
+  }, [status, setBusy]);
 
   useEffect(() => {
     const cleanup = window.api.onLog((log: string) => {

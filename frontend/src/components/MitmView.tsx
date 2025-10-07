@@ -1,9 +1,9 @@
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Simplified MITM View for now - reusing existing proxy logic triggers would be ideal
 // But for Phase 12 we just want the layout.
-const MitmView: React.FC = () => {
+const MitmView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) => {
   const [config, setConfig] = useState({
     listenPort: 8081,
     targetIp: '127.0.0.1',
@@ -11,6 +11,10 @@ const MitmView: React.FC = () => {
     corruption: 0.0,
   });
   const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    setBusy(isRunning);
+  }, [isRunning, setBusy]);
 
   const toggleMitm = async () => {
     if (isRunning) {

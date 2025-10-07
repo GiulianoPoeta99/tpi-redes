@@ -15,6 +15,7 @@ const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<AppStats>(StorageService.loadStats());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
+  const [isBusy, setIsBusy] = useState(false);
 
   const addToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -67,6 +68,10 @@ const Dashboard: React.FC = () => {
 
   // Switching modes should hard-kill previous process to free ports
   const handleModeSwitch = async (newMode: 'receiver' | 'transmitter' | 'mitm') => {
+    if (isBusy) {
+      addToast('info', 'Stop current operation before switching.');
+      return;
+    }
     if (mode === newMode) return;
 
     // Clear Logs on mode switch (Optional, but cleaner)
@@ -106,14 +111,18 @@ const Dashboard: React.FC = () => {
                 <button
                   type="button"
                   key={m}
+                  disabled={isBusy}
                   onClick={() => handleModeSwitch(m as 'receiver' | 'transmitter' | 'mitm')}
                   className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                     mode === m
                       ? 'bg-gray-700 text-white shadow-lg'
-                      : 'text-gray-400 hover:text-white'
+                      : isBusy
+                        ? 'text-gray-600 cursor-not-allowed'
+                        : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   {m.charAt(0).toUpperCase() + m.slice(1)}
+                  {isBusy && mode === m && <span className="ml-2 text-xs">🔒</span>}
                 </button>
               ))}
             </div>
@@ -128,9 +137,9 @@ const Dashboard: React.FC = () => {
             {/* Primary Mode View (Occupies majority of left side) */}
             <div className="flex-[3] bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden">
               <div className="h-full overflow-auto">
-                {mode === 'receiver' && <ReceiverView />}
-                {mode === 'transmitter' && <TransmitterView />}
-                {mode === 'mitm' && <MitmView />}
+                {mode === 'receiver' && <ReceiverView setBusy={setIsBusy} />}
+                {mode === 'transmitter' && <TransmitterView setBusy={setIsBusy} />}
+                {mode === 'mitm' && <MitmView setBusy={setIsBusy} />}
               </div>
             </div>
 

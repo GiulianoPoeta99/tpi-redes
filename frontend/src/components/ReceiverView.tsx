@@ -2,7 +2,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import SlidingWindow from './SlidingWindow';
 
-const ReceiverView: React.FC = () => {
+const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) => {
   const [port, setPort] = useState(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [isConnected, setIsConnected] = useState(false);
@@ -25,6 +25,7 @@ const ReceiverView: React.FC = () => {
         const json = JSON.parse(log);
         if (json.type === 'SERVER_READY') {
           setIsConnected(true);
+          setBusy(true);
           // Toast handled by Dashboard
         } else if (json.type === 'TRANSFER_UPDATE') {
           if (json.status === 'start') setTransferActive(true);
@@ -36,6 +37,7 @@ const ReceiverView: React.FC = () => {
         } else if (json.type === 'ERROR') {
           setIsConnected(false);
           setTransferActive(false);
+          setBusy(false);
           // Toast handled by Dashboard
         }
       } catch (_e) {
@@ -44,13 +46,23 @@ const ReceiverView: React.FC = () => {
     });
 
     return cleanup;
-  }, []);
+  }, [setBusy]);
 
-  const startServer = async () => {
-    try {
-      await window.api.startServer({ port, protocol, saveDir: './received_files', sniff: true });
-    } catch (e) {
-      console.error(e);
+  const toggleServer = async () => {
+    if (isConnected) {
+      try {
+        await window.api.stopProcess();
+        setIsConnected(false);
+        setBusy(false);
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      try {
+        await window.api.startServer({ port, protocol, saveDir: './received_files', sniff: true });
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
 
@@ -88,11 +100,10 @@ const ReceiverView: React.FC = () => {
         </div>
         <button
           type="button"
-          onClick={startServer}
-          disabled={isConnected}
-          className={`flex-1 py-2.5 rounded-lg font-bold text-sm shadow-lg transition-all ${isConnected ? 'bg-green-600 cursor-default' : 'bg-blue-600 hover:bg-blue-500 hover:-translate-y-0.5'}`}
+          onClick={toggleServer}
+          className={`flex-1 py-2.5 rounded-lg font-bold text-sm shadow-lg transition-all ${isConnected ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500 hover:-translate-y-0.5'}`}
         >
-          {isConnected ? 'SERVER RUNNING' : 'START SERVER'}
+          {isConnected ? 'STOP SERVER' : 'START SERVER'}
         </button>
       </div>
 
