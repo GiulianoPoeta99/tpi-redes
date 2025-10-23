@@ -150,6 +150,16 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
     }
   };
 
+  const cancelSend = async () => {
+    try {
+      await window.api.stopProcess();
+      setStatus('idle');
+    } catch (e) {
+      console.error(e);
+      setStatus('idle');
+    }
+  };
+
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -353,6 +363,13 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
             SENDING FILE...
           </p>
           <p className="md:text-sm text-xs text-gray-500 mt-2">{file?.split('/').pop()}</p>
+          <button
+            type="button"
+            onClick={cancelSend}
+            className="mt-8 px-6 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/50 rounded-lg font-bold transition-all text-sm uppercase tracking-wide hover:scale-105"
+          >
+            Cancel Transfer
+          </button>
         </div>
       )}
 
