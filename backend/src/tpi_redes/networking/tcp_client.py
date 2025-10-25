@@ -75,6 +75,7 @@ class TCPClient:
 
             start_transfer = time.time()
             last_stats_time = start_transfer
+            last_reported_bytes = 0
 
             # Track sequence number roughly
             current_seq = 1 + len(header) + len(metadata)
@@ -111,11 +112,15 @@ class TCPClient:
                             (bytes_sent / elapsed) / (1024 * 1024) if elapsed > 0 else 0
                         )  # MB/s
 
+                        delta_bytes = bytes_sent - last_reported_bytes
+                        last_reported_bytes = bytes_sent
+
                         stats_event = {
                             "type": "STATS",
                             "rtt": 0.0,
                             "throughput": round(throughput, 2),
                             "progress": round((bytes_sent / total_bytes) * 100, 1),
+                            "delta_bytes": delta_bytes,
                         }
                         print(json.dumps(stats_event), flush=True)
 

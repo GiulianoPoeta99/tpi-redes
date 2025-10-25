@@ -27,12 +27,17 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     // Stats Listener
     const cleanupStats = window.api.onStatsUpdate(
-      (newStats: { total_sent?: number; bytes_sent?: number }) => {
+      (newStats: { total_sent?: number; bytes_sent?: number; delta_bytes?: number }) => {
         setStats((prev) => {
+          let newBytes = prev.bytesSent;
+          if (newStats.delta_bytes) {
+            newBytes += newStats.delta_bytes;
+          }
+
           const updated = {
             ...prev,
             totalSent: newStats.total_sent || prev.totalSent,
-            bytesSent: newStats.bytes_sent || prev.bytesSent,
+            bytesSent: newBytes,
           };
           StorageService.saveStats(updated);
           return updated;
@@ -53,6 +58,11 @@ const Dashboard: React.FC = () => {
           addToast('success', `Server listening on port ${json.port}`);
         } else if (json.type === 'TRANSFER_UPDATE' && json.status === 'complete') {
           addToast('success', `Transfer Complete: ${json.filename}`);
+          setStats((prev) => {
+            const updated = { ...prev, totalSent: prev.totalSent + 1 };
+            StorageService.saveStats(updated);
+            return updated;
+          });
         }
       } catch (_e) {
         // Ignore non-json logs for toasts

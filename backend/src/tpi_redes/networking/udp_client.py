@@ -81,6 +81,7 @@ class UDPClient:
             sent_bytes = 0
             start_transfer = time.time()
             last_stats_time = start_transfer
+            last_reported_bytes = 0
             chunk_size = 4096
 
             with open(file_path, "rb") as f:
@@ -105,6 +106,28 @@ class UDPClient:
                     # Progress Emission
                     current_time = time.time()
                     if current_time - last_stats_time >= 0.1:
+                        elapsed = current_time - start_transfer
+                        throughput = (
+                            (sent_bytes / elapsed) / (1024 * 1024) if elapsed > 0 else 0
+                        )
+
+                        delta_bytes = sent_bytes - last_reported_bytes
+                        last_reported_bytes = sent_bytes
+
+                        print(
+                            json.dumps(
+                                {
+                                    "type": "STATS",
+                                    "rtt": 0.0,
+                                    "throughput": round(throughput, 2),
+                                    "progress": round((sent_bytes / file_size) * 100, 1),
+                                    "delta_bytes": delta_bytes,
+                                }
+                            ),
+                            flush=True,
+                        )
+
+
                         print(
                             json.dumps(
                                 {
