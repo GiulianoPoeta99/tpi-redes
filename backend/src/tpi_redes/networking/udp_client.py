@@ -120,13 +120,14 @@ class UDPClient:
                                     "type": "STATS",
                                     "rtt": 0.0,
                                     "throughput": round(throughput, 2),
-                                    "progress": round((sent_bytes / file_size) * 100, 1),
+                                    "progress": round(
+                                        (sent_bytes / file_size) * 100, 1
+                                    ),
                                     "delta_bytes": delta_bytes,
                                 }
                             ),
                             flush=True,
                         )
-
 
                         print(
                             json.dumps(

@@ -1,11 +1,16 @@
-import { Check, FileText, List, Plus, Search, X } from 'lucide-react';
+import { Check, Clock, FileText, HardDrive, List, Plus, Search, X, Zap } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
 
-const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) => {
+interface TransmitterViewProps {
+  setBusy: (busy: boolean) => void;
+  addToast: (type: 'success' | 'error' | 'info', message: string) => void;
+}
+
+const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) => {
   // Config State
   const [ip, setIp] = useState('');
   const [port, setPort] = useState(8080);
@@ -33,7 +38,7 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Transfer Stats (Last completed file)
+  // Stats
   const [transferStats, setTransferStats] = useState({
     filename: '',
     totalBytes: 0,
@@ -44,6 +49,12 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
     protocol: 'TCP',
   });
   const totalBytesRef = useRef(0);
+
+  // Batch Stats Tracking
+  const batchStatsRef = useRef({
+    startTime: 0,
+    totalBytes: 0,
+  });
 
   const isValid = ip && port && files.length > 0;
 
@@ -74,43 +85,44 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
             }
           } else if (json.status === 'complete') {
             // Calculate final stats for this file
+            const now = Date.now();
+
+            // Accumulate Batch Stats
+            batchStatsRef.current.totalBytes += totalBytesRef.current;
+
             setTransferStats((prev) => {
-              const now = Date.now();
-              const duration = (now - prev.startTime) / 1000;
+              const fileDuration = (now - prev.startTime) / 1000;
               const bytes = totalBytesRef.current;
               return {
                 ...prev,
                 filename: json.filename || prev.filename,
                 totalBytes: bytes,
                 endTime: now,
-                timeTaken: duration,
-                throughput: duration > 0 ? bytes / duration : 0, // B/s
+                timeTaken: fileDuration,
+                throughput: fileDuration > 0 ? bytes / fileDuration : 0,
                 protocol: protocol.toUpperCase(),
               };
             });
 
-            // If batch active, we don't set 'completed' yet unless it's the last one
-            // Actually we DO set it to trigger the useEffect loop
             setStatus('completed');
             setProgress(100);
           }
         } else if (json.type === 'ERROR') {
-          // If error in batch, stop everything? Or continue?
-          // Stopping is safer.
           setStatus('idle');
           setIsBatchActive(false);
+          addToast('error', json.message || 'Transfer failed');
         }
       } catch (_e) {
         // Ignore
       }
     });
     return cleanup;
-  }, [protocol]);
+  }, [protocol, addToast]);
 
   const sendSingleFile = useCallback(
     async (filePath: string) => {
-      setStatus('sending'); // Resets status from 'completed' -> 'sending'
-      setTransferStats((prev) => ({ ...prev, startTime: Date.now() }));
+      setStatus('sending');
+      setTransferStats((prev) => ({ ...prev, startTime: Date.now() })); // Update start time for individual file
       try {
         await window.api.sendFile({
           file: filePath,
@@ -124,37 +136,38 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
         console.error(e);
         setStatus('idle');
         setIsBatchActive(false);
+        addToast('error', 'Failed to start transfer');
       }
     },
-    [ip, port, protocol, delay],
+    [ip, port, protocol, delay, addToast],
   );
 
   // Batch Loop Logic
   useEffect(() => {
     if (isBatchActive && status === 'completed') {
       if (currentFileIndex < files.length - 1) {
-        // Process next file
         const nextIndex = currentFileIndex + 1;
-        setCurrentFileIndex(nextIndex); // Update UI
-        setStatus('sending'); // Prevent race condition double-trigger
-        setProgress(0); // Reset visual progress
+        setCurrentFileIndex(nextIndex);
+        setStatus('sending');
+        setProgress(0);
 
-        // Non-blocking timeout to allow render cycle updates
         setTimeout(() => {
           sendSingleFile(files[nextIndex]);
         }, 500);
       } else {
         // Batch finished
         setIsBatchActive(false);
-        // Leave status as completed to show Success screen
+        addToast('info', `Batch Complete! ${files.length} files sent.`);
       }
     }
-  }, [status, isBatchActive, currentFileIndex, files, sendSingleFile]);
+  }, [status, isBatchActive, currentFileIndex, files, sendSingleFile, addToast]);
 
   const startBatch = () => {
     if (!isValid) return;
     setIsBatchActive(true);
     setCurrentFileIndex(0);
+    // Reset Batch Stats
+    batchStatsRef.current = { startTime: Date.now(), totalBytes: 0 };
     sendSingleFile(files[0]);
   };
 
@@ -163,6 +176,7 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
       await window.api.stopProcess();
       setStatus('idle');
       setIsBatchActive(false);
+      addToast('info', 'Transfer cancelled');
     } catch (e) {
       console.error(e);
       setStatus('idle');
@@ -191,7 +205,6 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
   };
 
   const addFiles = (newFiles: string[]) => {
-    // Prevent duplicates? logic:
     const unique = newFiles.filter((f) => !files.includes(f));
     setFiles((prev) => [...prev, ...unique]);
   };
@@ -203,29 +216,40 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
         .filter(Boolean) as string[];
       addFiles(paths);
     }
-    // fileInputRef.current.value = ""; // Reset to allow re-selecting same file
   };
 
   const resetForm = () => {
     setStatus('idle');
     setProgress(0);
     setCurrentFileIndex(0);
-    // Don't clear files? consistent with "send another"
+  };
+
+  // Helper to format bytes
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  // Outer circle for batch
   const outerRadius = 80;
   const outerCircumference = 2 * Math.PI * outerRadius;
-  // If we are sending file 0, complete 0. If sending 1 (so 0 done), complete 1.
-  // We can refine batch percent:
-  // (currentFileIndex + progress/100) / files.length * 100
   const smoothBatchPercent = ((currentFileIndex + progress / 100) / files.length) * 100;
   const outerStrokeDashoffset =
     outerCircumference - (smoothBatchPercent / 100) * outerCircumference;
+
+  // Final Batch Stats
+  const finalBatchDuration =
+    status === 'completed' && !isBatchActive && transferStats.endTime > 0
+      ? (transferStats.endTime - batchStatsRef.current.startTime) / 1000
+      : 0;
+  const finalAvgSpeed =
+    finalBatchDuration > 0 ? batchStatsRef.current.totalBytes / finalBatchDuration : 0;
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
@@ -535,7 +559,37 @@ const TransmitterView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBu
             <Check size={48} className="text-white box-content" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Batch Complete!</h2>
-          <p className="text-gray-400 mb-8">All {files.length} files transferred successfully.</p>
+          <p className="text-gray-400 mb-6">All {files.length} files transferred successfully.</p>
+
+          {/* Detailed Batch Stats */}
+          <div className="bg-gray-800/80 p-6 rounded-xl border border-gray-700 mb-8 w-full max-w-md backdrop-blur-sm shadow-lg">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-gray-900/50 rounded-lg">
+                <p className="text-xs text-gray-500 uppercase font-bold mb-1 flex items-center gap-1">
+                  <HardDrive size={12} /> Total Size
+                </p>
+                <p className="text-lg font-mono text-blue-300 font-bold">
+                  {formatBytes(batchStatsRef.current.totalBytes)}
+                </p>
+              </div>
+              <div className="p-3 bg-gray-900/50 rounded-lg">
+                <p className="text-xs text-gray-500 uppercase font-bold mb-1 flex items-center gap-1">
+                  <Clock size={12} /> Duration
+                </p>
+                <p className="text-lg font-mono text-yellow-300 font-bold">
+                  {finalBatchDuration.toFixed(2)}s
+                </p>
+              </div>
+              <div className="p-3 bg-gray-900/50 rounded-lg col-span-2">
+                <p className="text-xs text-gray-500 uppercase font-bold mb-1 flex items-center gap-1">
+                  <Zap size={12} /> Avg Speed
+                </p>
+                <p className="text-lg font-mono text-purple-300 font-bold">
+                  {formatBytes(finalAvgSpeed)}/s
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="flex gap-4">
             <button

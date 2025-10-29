@@ -1,6 +1,7 @@
+from unittest.mock import MagicMock, call, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, call
-from pathlib import Path
+
 from tpi_redes.networking.tcp_client import TCPClient
 from tpi_redes.networking.udp_client import UDPClient
 
@@ -22,7 +23,8 @@ def mock_file(tmp_path):
 
 
 @patch("time.sleep")
-def test_tcp_client_delay(mock_sleep, mock_socket, mock_file):
+@pytest.mark.usefixtures("mock_socket")
+def test_tcp_client_delay(mock_sleep, mock_file):
     client = TCPClient()
     delay = 0.5
     client.send_file(mock_file, "127.0.0.1", 8080, delay=delay)
@@ -34,7 +36,8 @@ def test_tcp_client_delay(mock_sleep, mock_socket, mock_file):
 
 
 @patch("time.sleep")
-def test_udp_client_delay(mock_sleep, mock_socket, mock_file):
+@pytest.mark.usefixtures("mock_socket")
+def test_udp_client_delay(mock_sleep, mock_file):
     client = UDPClient()
     delay = 0.5
     client.send_file(mock_file, "127.0.0.1", 8080, delay=delay)

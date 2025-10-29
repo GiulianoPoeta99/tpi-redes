@@ -19,7 +19,10 @@ const Dashboard: React.FC = () => {
 
   const addToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
-    setToasts((prev) => [...prev, { id, type, message }]);
+    setToasts((prev) => {
+      const newToasts = [...prev, { id, type, message }];
+      return newToasts.slice(-3); // Keep only last 3
+    });
   }, []);
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
@@ -148,7 +151,9 @@ const Dashboard: React.FC = () => {
             <div className="flex-[3] bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden">
               <div className="h-full overflow-auto">
                 {mode === 'receiver' && <ReceiverView setBusy={setIsBusy} />}
-                {mode === 'transmitter' && <TransmitterView setBusy={setIsBusy} />}
+                {mode === 'transmitter' && (
+                  <TransmitterView setBusy={setIsBusy} addToast={addToast} />
+                )}
                 {mode === 'mitm' && <MitmView setBusy={setIsBusy} />}
               </div>
             </div>
