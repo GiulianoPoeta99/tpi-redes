@@ -17,13 +17,16 @@ const Dashboard: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [isBusy, setIsBusy] = useState(false);
 
-  const addToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setToasts((prev) => {
-      const newToasts = [...prev, { id, type, message }];
-      return newToasts.slice(-3); // Keep only last 3
-    });
-  }, []);
+  const addToast = useCallback(
+    (type: 'success' | 'error' | 'info', title: string, description?: string) => {
+      const id = Math.random().toString(36).substr(2, 9);
+      setToasts((prev) => {
+        const newToasts = [{ id, type, title, description }, ...prev];
+        return newToasts.slice(0, 3); // Keep only first 3 (newest)
+      });
+    },
+    [],
+  );
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   // Listen for stats and logs globally
@@ -56,11 +59,11 @@ const Dashboard: React.FC = () => {
       try {
         const json = JSON.parse(log);
         if (json.type === 'ERROR') {
-          addToast('error', json.message);
+          addToast('error', 'Error', json.message);
         } else if (json.type === 'SERVER_READY') {
-          addToast('success', `Server listening on port ${json.port}`);
+          addToast('success', 'Server Started', `Listening on port ${json.port}`);
         } else if (json.type === 'TRANSFER_UPDATE' && json.status === 'complete') {
-          addToast('success', `Transfer Complete: ${json.filename}`);
+          addToast('success', 'Transfer Complete', json.filename);
           setStats((prev) => {
             const updated = { ...prev, totalSent: prev.totalSent + 1 };
             StorageService.saveStats(updated);
@@ -82,7 +85,7 @@ const Dashboard: React.FC = () => {
   // Switching modes should hard-kill previous process to free ports
   const handleModeSwitch = async (newMode: 'receiver' | 'transmitter' | 'mitm') => {
     if (isBusy) {
-      addToast('info', 'Stop current operation before switching.');
+      addToast('info', 'Action Required', 'Stop current operation before switching.');
       return;
     }
     if (mode === newMode) return;

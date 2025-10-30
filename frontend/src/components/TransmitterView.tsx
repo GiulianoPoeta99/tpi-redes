@@ -7,7 +7,7 @@ import StatsModal from './StatsModal';
 
 interface TransmitterViewProps {
   setBusy: (busy: boolean) => void;
-  addToast: (type: 'success' | 'error' | 'info', message: string) => void;
+  addToast: (type: 'success' | 'error' | 'info', title: string, description?: string) => void;
 }
 
 const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) => {
@@ -50,17 +50,28 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
   });
   const totalBytesRef = useRef(0);
 
+  // Session Stats
+  const [sessionHistory, setSessionHistory] = useState<
+    {
+      timestamp: number;
+      filename: string;
+      throughput: number;
+      size: number;
+    }[]
+  >([]);
+
   // Batch Stats Tracking
   const batchStatsRef = useRef({
     startTime: 0,
     totalBytes: 0,
   });
+  const startTimeRef = useRef(0);
 
   const isValid = ip && port && files.length > 0;
 
   useEffect(() => {
-    setBusy(status === 'sending');
-  }, [status, setBusy]);
+    setBusy(status === 'sending' || isBatchActive);
+  }, [status, isBatchActive, setBusy]);
 
   // Handle Python Events
   useEffect(() => {
@@ -69,11 +80,12 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         const json = JSON.parse(log);
         if (json.type === 'TRANSFER_UPDATE') {
           if (json.status === 'start') {
+            startTimeRef.current = Date.now();
             setStatus('sending');
             setProgress(0);
             setTransferStats((prev) => ({
               ...prev,
-              startTime: Date.now(),
+              startTime: startTimeRef.current,
               totalBytes: 0,
               timeTaken: 0,
               throughput: 0,
@@ -86,20 +98,33 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
           } else if (json.status === 'complete') {
             // Calculate final stats for this file
             const now = Date.now();
+            const bytes = totalBytesRef.current;
+            // Use ref for accurate duration
+            const duration = (now - startTimeRef.current) / 1000;
+            const throughput = duration > 0 ? bytes / duration : 0;
+
+            // Update Session History
+            setSessionHistory((prev) => [
+              ...prev,
+              {
+                timestamp: now,
+                filename: json.filename || 'unknown',
+                throughput,
+                size: bytes,
+              },
+            ]);
 
             // Accumulate Batch Stats
-            batchStatsRef.current.totalBytes += totalBytesRef.current;
+            batchStatsRef.current.totalBytes += bytes;
 
             setTransferStats((prev) => {
-              const fileDuration = (now - prev.startTime) / 1000;
-              const bytes = totalBytesRef.current;
               return {
                 ...prev,
                 filename: json.filename || prev.filename,
                 totalBytes: bytes,
                 endTime: now,
-                timeTaken: fileDuration,
-                throughput: fileDuration > 0 ? bytes / fileDuration : 0,
+                timeTaken: duration,
+                throughput: throughput,
                 protocol: protocol.toUpperCase(),
               };
             });
@@ -110,7 +135,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         } else if (json.type === 'ERROR') {
           setStatus('idle');
           setIsBatchActive(false);
-          addToast('error', json.message || 'Transfer failed');
+          addToast('error', 'Transfer Error', json.message || 'Transfer failed');
         }
       } catch (_e) {
         // Ignore
@@ -122,7 +147,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
   const sendSingleFile = useCallback(
     async (filePath: string) => {
       setStatus('sending');
-      setTransferStats((prev) => ({ ...prev, startTime: Date.now() })); // Update start time for individual file
       try {
         await window.api.sendFile({
           file: filePath,
@@ -136,7 +160,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         console.error(e);
         setStatus('idle');
         setIsBatchActive(false);
-        addToast('error', 'Failed to start transfer');
+        addToast('error', 'Transfer Error', 'Failed to start transfer');
       }
     },
     [ip, port, protocol, delay, addToast],
@@ -157,7 +181,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
       } else {
         // Batch finished
         setIsBatchActive(false);
-        addToast('info', `Batch Complete! ${files.length} files sent.`);
+        addToast('info', 'Batch Complete', `${files.length} files sent.`);
       }
     }
   }, [status, isBatchActive, currentFileIndex, files, sendSingleFile, addToast]);
@@ -176,7 +200,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
       await window.api.stopProcess();
       setStatus('idle');
       setIsBatchActive(false);
-      addToast('info', 'Transfer cancelled');
+      addToast('info', 'Cancelled', 'Transfer cancelled');
     } catch (e) {
       console.error(e);
       setStatus('idle');
@@ -253,7 +277,12 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
-      <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} stats={transferStats} />
+      <StatsModal
+        isOpen={showStats}
+        onClose={() => setShowStats(false)}
+        stats={transferStats}
+        history={sessionHistory}
+      />
       <FilesQueueModal
         isOpen={isQueueOpen}
         onClose={() => setIsQueueOpen(false)}
@@ -459,7 +488,8 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         </div>
       )}
 
-      {status === 'sending' && (
+      {/* SHOW SENDING UI if actually sending OR if waiting for next batch file */}
+      {(status === 'sending' || (isBatchActive && status === 'completed')) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-sm z-10 animate-in fade-in zoom-in duration-300">
           <div className="relative w-64 h-64 flex items-center justify-center">
             {/* Outer Circle (Batch) */}
