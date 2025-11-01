@@ -57,6 +57,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
       filename: string;
       throughput: number;
       size: number;
+      duration: number;
     }[]
   >([]);
 
@@ -111,6 +112,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
                 filename: json.filename || 'unknown',
                 throughput,
                 size: bytes,
+                duration,
               },
             ]);
 
@@ -594,37 +596,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
             <Check size={48} className="text-white box-content" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Batch Complete!</h2>
-          <p className="text-gray-400 mb-6">All {files.length} files transferred successfully.</p>
-
-          {/* Detailed Batch Stats */}
-          <div className="bg-gray-800/80 p-6 rounded-xl border border-gray-700 mb-8 w-full max-w-md backdrop-blur-sm shadow-lg">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-gray-900/50 rounded-lg">
-                <p className="text-xs text-gray-500 uppercase font-bold mb-1 flex items-center gap-1">
-                  <HardDrive size={12} /> Total Size
-                </p>
-                <p className="text-lg font-mono text-blue-300 font-bold">
-                  {formatBytes(batchStatsRef.current.totalBytes)}
-                </p>
-              </div>
-              <div className="p-3 bg-gray-900/50 rounded-lg">
-                <p className="text-xs text-gray-500 uppercase font-bold mb-1 flex items-center gap-1">
-                  <Clock size={12} /> Duration
-                </p>
-                <p className="text-lg font-mono text-yellow-300 font-bold">
-                  {finalBatchDuration.toFixed(2)}s
-                </p>
-              </div>
-              <div className="p-3 bg-gray-900/50 rounded-lg col-span-2">
-                <p className="text-xs text-gray-500 uppercase font-bold mb-1 flex items-center gap-1">
-                  <Zap size={12} /> Avg Speed
-                </p>
-                <p className="text-lg font-mono text-purple-300 font-bold">
-                  {formatBytes(finalAvgSpeed)}/s
-                </p>
-              </div>
-            </div>
-          </div>
+          <p className="text-gray-400 mb-8">All {files.length} files transferred successfully.</p>
 
           <div className="flex gap-4">
             <button

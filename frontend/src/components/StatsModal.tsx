@@ -1,4 +1,13 @@
-import { Activity, BarChart3, FileText, History, TrendingUp, X } from 'lucide-react';
+import {
+  Activity,
+  BarChart3,
+  Clock,
+  Database,
+  FileText,
+  History,
+  TrendingUp,
+  X,
+} from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 
@@ -8,29 +17,33 @@ interface StatsModalProps {
   stats: {
     filename: string;
     totalBytes: number;
-    timeTaken: number; // in seconds
-    throughput: number; // MB/s
+    timeTaken: number;
+    throughput: number;
     protocol: string;
   };
   history: {
     timestamp: number;
     filename: string;
-    throughput: number; // B/s
+    throughput: number;
     size: number;
+    duration?: number;
   }[];
 }
 
 const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history }) => {
-  const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
-
   if (!isOpen) return null;
 
-  const totalBytesSession = history.reduce((acc, curr) => acc + curr.size, 0);
-  const totalFilesSession = history.length;
-  // Use last 15 items for chart
-  const recentHistory = history.slice(-15);
-  const maxThroughput = Math.max(...recentHistory.map((h) => h.throughput), 1);
+  // --- Derived Stats ---
+  const totalFiles = history.length;
+  const totalBytes = history.reduce((acc, h) => acc + h.size, 0);
+  const maxThroughput = Math.max(...history.map((h) => h.throughput), 1);
+  const avgThroughput =
+    totalFiles > 0 ? history.reduce((acc, h) => acc + h.throughput, 0) / totalFiles : 0;
 
+  // Best effort total active time (sum of durations).
+  const totalDuration = history.reduce((acc, h) => acc + (h.duration || 0), 0);
+
+  // --- Formatters ---
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -39,183 +52,362 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
     return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
+  const formatSpeed = (bytesPerSec: number) => {
+    return `${(bytesPerSec / 1024 / 1024).toFixed(2)} MB/s`;
+  };
+
+  // --- Chart Logic (SVG) ---
+  // We want a line/area chart.
+  // X Axis: Index 0 to history.length - 1
+  // Y Axis: Throughput 0 to maxThroughput
+  const chartHeight = 350;
+  const chartWidth = 800; // flexible via viewBox
+  const padding = 20;
+
+  const getX = (i: number) => {
+    if (history.length <= 1) return padding; // Handle single or no data points
+    return (i / (history.length - 1)) * (chartWidth - padding * 2) + padding;
+  };
+
+  const getY = (throughput: number) => {
+    return chartHeight - (throughput / maxThroughput) * (chartHeight - padding * 2) - padding;
+  };
+
+  const getPoints = () => {
+    if (history.length < 2) return '';
+    return history.map((h, i) => `${getX(i)},${getY(h.throughput)}`).join(' ');
+  };
+
+  const points = getPoints();
+  const areaPath = points
+    ? `${points} ${chartWidth - padding},${chartHeight - padding} ${padding},${chartHeight - padding}`
+    : '';
+
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-lg relative transform transition-all scale-100 flex flex-col max-h-[90vh] overflow-hidden">
-        {/* Header Section */}
-        <div className="p-6 pb-2">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl w-full max-w-7xl h-[90vh] overflow-hidden flex flex-col">
+        {/* HEADER */}
+        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/50 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
+              <Activity size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-tight">Transfer Analytics</h2>
+              <p className="text-xs text-gray-400">Real-time session performance metrics</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors bg-gray-700/50 hover:bg-gray-700 p-1 rounded-lg z-10"
+            className="p-2 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
-
-          <h3 className="text-xl font-bold text-white flex items-center gap-3 flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
-              <TrendingUp size={20} />
-            </div>
-            <div>
-              Transfer Statistics
-              <span className="block text-xs font-normal text-gray-400 mt-0.5">
-                detailed performance metrics
-              </span>
-            </div>
-          </h3>
-
-          {/* Tabs */}
-          <div className="flex p-1 bg-gray-900/50 rounded-lg mt-6 border border-gray-700/50">
-            <button
-              type="button"
-              onClick={() => setActiveTab('current')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === 'current'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-              }`}
-            >
-              <FileText size={16} /> Last Transfer
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('history')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === 'history'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-              }`}
-            >
-              <BarChart3 size={16} /> Session History
-            </button>
-          </div>
         </div>
 
-        {/* Content Area */}
-        <div className="p-6 pt-4 overflow-y-auto space-y-6 overflow-x-hidden custom-scrollbar flex-1">
-          {activeTab === 'current' ? (
-            <div className="animate-in slide-in-from-left fade-in duration-300">
-              <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">
-                <Activity size={14} /> Detail View
-              </div>
-              <div className="bg-gray-900/50 rounded-xl p-5 space-y-4 border border-gray-700/50 shadow-inner">
-                <StatRow label="File Name" value={stats.filename} truncate />
-                <StatRow label="Protocol Used" value={stats.protocol.toUpperCase()} />
-                <div className="h-px bg-gray-700/50 my-2" />
-                <StatRow
-                  label="File Size"
-                  value={`${(stats.totalBytes / 1024 / 1024).toFixed(2)} MB`}
-                />
-                <StatRow label="Duration" value={`${stats.timeTaken.toFixed(2)}s`} />
-                <StatRow
-                  label="Avg Throughput"
-                  value={`${stats.throughput.toFixed(2)} MB/s`}
-                  highlight
-                />
-              </div>
-
-              <div className="mt-4 p-4 bg-blue-900/10 rounded-xl border border-blue-500/20 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
-                  <FileText size={16} />
-                </div>
-                <p className="text-xs text-blue-200 leading-relaxed">
-                  This transfer completed successfully using the{' '}
-                  <strong>{stats.protocol.toUpperCase()}</strong> protocol.
-                </p>
-              </div>
+        {/* MAIN CONTENT GRID */}
+        <div className="flex-1 overflow-hidden p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* LEFT COL: Summary Cards & Chart (Span 3 for width) */}
+          <div className="lg:col-span-3 flex flex-col gap-4 h-full">
+            {/* KPI Cards (Compact Row) */}
+            <div className="grid grid-cols-4 gap-4 shrink-0">
+              <KpiCard
+                icon={<FileText size={16} />}
+                label="Files Sent"
+                value={totalFiles}
+                color="text-blue-400"
+                bg="bg-blue-500/10"
+              />
+              <KpiCard
+                icon={<Database size={16} />}
+                label="Total Data"
+                value={formatBytes(totalBytes)}
+                color="text-purple-400"
+                bg="bg-purple-500/10"
+              />
+              <KpiCard
+                icon={<Clock size={16} />}
+                label="Active Time"
+                value={`${totalDuration.toFixed(1)}s`}
+                color="text-yellow-400"
+                bg="bg-yellow-500/10"
+              />
+              <KpiCard
+                icon={<TrendingUp size={16} />}
+                label="Avg Speed"
+                value={formatSpeed(avgThroughput)}
+                color="text-green-400"
+                bg="bg-green-500/10"
+              />
             </div>
-          ) : (
-            <div className="animate-in slide-in-from-right fade-in duration-300">
-              <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">
-                <History size={14} /> Global Overview
-              </div>
-              <div className="bg-gray-900/50 rounded-xl p-5 border border-gray-700/50 shadow-inner">
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="text-center p-4 bg-gray-800/50 rounded-xl border border-gray-700/30">
-                    <div className="text-3xl font-bold text-white mb-1">{totalFilesSession}</div>
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                      Files Sent
-                    </div>
-                  </div>
-                  <div className="text-center p-4 bg-gray-800/50 rounded-xl border border-gray-700/30">
-                    <div className="text-3xl font-bold text-blue-400 mb-1">
-                      {formatBytes(totalBytesSession)}
-                    </div>
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                      Total Data
-                    </div>
-                  </div>
-                </div>
 
-                {/* Chart */}
-                <div className="mb-2 flex justify-between items-end">
-                  <span className="text-xs font-semibold text-gray-500">
-                    Throughput Trend (Last 15)
-                  </span>
-                </div>
-                <div className="h-40 flex items-end gap-1 px-1 bg-gray-900/30 rounded-lg p-2 border border-gray-800">
-                  {recentHistory.map((h, i) => {
-                    const heightPercent = Math.max((h.throughput / maxThroughput) * 100, 5); // Min 5% height
-                    return (
-                      <div
-                        key={`${h.timestamp}-${i}`}
-                        className="flex-1 bg-gradient-to-t from-blue-600/20 to-blue-500/50 hover:to-blue-400 transition-all rounded-t-sm relative group cursor-help"
-                        style={{ height: `${heightPercent}%` }}
+            {/* CHART SECTION (Expanded) */}
+            <div className="bg-gray-800/40 rounded-2xl p-4 border border-gray-700/50 flex-1 flex flex-col min-h-0">
+              <div className="flex justify-between items-end mb-2 shrink-0">
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <BarChart3 size={16} className="text-gray-400" />
+                  Throughput History
+                </h3>
+                <span className="text-xs font-mono text-gray-500">
+                  Peak: {formatSpeed(maxThroughput)}
+                </span>
+              </div>
+
+              {/* Force Chart to Fill Remaining Space */}
+              <div className="relative flex-1 w-full bg-gray-900/50 rounded-xl border border-gray-800 overflow-hidden group min-h-0">
+                {history.length > 1 ? (
+                  <div className="relative w-full h-full">
+                    <svg
+                      viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                      className="w-full h-full"
+                      preserveAspectRatio="none"
+                    >
+                      {/* Grid Lines */}
+                      <line
+                        x1={padding}
+                        y1={padding}
+                        x2={chartWidth - padding}
+                        y2={padding}
+                        stroke="#374151"
+                        strokeDasharray="4"
+                      />
+                      <line
+                        x1={padding}
+                        y1={chartHeight / 2}
+                        x2={chartWidth - padding}
+                        y2={chartHeight / 2}
+                        stroke="#374151"
+                        strokeDasharray="4"
+                      />
+                      <line
+                        x1={padding}
+                        y1={chartHeight - padding}
+                        x2={chartWidth - padding}
+                        y2={chartHeight - padding}
+                        stroke="#374151"
+                        strokeDasharray="4"
+                      />
+
+                      {/* AXIS LABELS */}
+                      <text
+                        x={padding - 5}
+                        y={padding + 5}
+                        fill="#6B7280"
+                        fontSize="10"
+                        textAnchor="end"
                       >
-                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 text-[10px] text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap z-20 pointer-events-none transform transition-all shadow-xl">
-                          <div className="text-xs font-bold text-blue-300 mb-0.5">
-                            {(h.throughput / 1024 / 1024).toFixed(1)} MB/s
-                          </div>
-                          <div className="text-gray-400 opacity-80">{h.filename}</div>
-                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 bg-gray-900 border-b border-r border-gray-700 transform rotate-45"></div>
+                        {formatSpeed(maxThroughput)}
+                      </text>
+                      <text
+                        x={padding - 5}
+                        y={chartHeight - padding}
+                        fill="#6B7280"
+                        fontSize="10"
+                        textAnchor="end"
+                      >
+                        0 MB/s
+                      </text>
+
+                      {/* AREA */}
+                      <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <polygon points={areaPath} fill="url(#chartGradient)" />
+
+                      {/* LINE */}
+                      <polyline
+                        points={points}
+                        fill="none"
+                        stroke="#3B82F6"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+
+                      {/* Hover Line */}
+                      {hoveredIndex !== null && (
+                        <line
+                          x1={getX(hoveredIndex)}
+                          y1={padding}
+                          x2={getX(hoveredIndex)}
+                          y2={chartHeight - padding}
+                          stroke="#60A5FA"
+                          strokeWidth="1"
+                          strokeDasharray="3"
+                        />
+                      )}
+
+                      {/* Hit Targets */}
+                      {history.map((_, i) => (
+                        <rect
+                          key={i}
+                          x={getX(i) - chartWidth / history.length / 2}
+                          y={0}
+                          width={chartWidth / history.length}
+                          height={chartHeight}
+                          fill="transparent"
+                          onMouseEnter={() => setHoveredIndex(i)}
+                          onMouseLeave={() => setHoveredIndex(null)}
+                          className="cursor-crosshair"
+                        />
+                      ))}
+
+                      {/* Data Points */}
+                      {history.map((h, i) => (
+                        <circle
+                          key={i}
+                          cx={getX(i)}
+                          cy={getY(h.throughput)}
+                          r={hoveredIndex === i ? 4 : 2}
+                          fill={hoveredIndex === i ? '#60A5FA' : '#3B82F6'}
+                          className="transition-all duration-200"
+                        />
+                      ))}
+                    </svg>
+
+                    {/* TOOLTIP */}
+                    {hoveredIndex !== null && history[hoveredIndex] && (
+                      <div
+                        className="absolute pointer-events-none z-10 bg-gray-900/95 border border-gray-700 p-3 rounded-lg shadow-xl backdrop-blur-sm text-xs w-48 transition-all left-0"
+                        style={{
+                          top: '10%',
+                          left: `clamp(10px, ${(getX(hoveredIndex) / chartWidth) * 100}%, calc(100% - 200px))`,
+                        }}
+                      >
+                        <p className="font-bold text-white truncate mb-1">
+                          {history[hoveredIndex].filename}
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-gray-400">
+                          <span>Speed:</span>
+                          <span className="text-right text-blue-400 font-mono">
+                            {formatSpeed(history[hoveredIndex].throughput)}
+                          </span>
+                          <span>Size:</span>
+                          <span className="text-right text-gray-300 font-mono">
+                            {formatBytes(history[hoveredIndex].size)}
+                          </span>
+                          <span>Time:</span>
+                          <span className="text-right text-gray-500 font-mono">
+                            {new Date(history[hoveredIndex].timestamp).toLocaleTimeString()}
+                          </span>
                         </div>
                       </div>
-                    );
-                  })}
-                  {recentHistory.length === 0 && (
-                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-600 italic">
-                      No session history available yet
-                    </div>
-                  )}
+                    )}
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm italic">
+                    Not enough data points to display chart
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* LAST TRANSFER HIGHLIGHT (Slim Horizontal Bar) */}
+            <div className="bg-gradient-to-r from-gray-800 to-gray-800/60 rounded-xl p-3 border border-gray-700/50 relative overflow-hidden group shrink-0">
+              <div className="flex items-center justify-between relative z-10 gap-4">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="p-2 bg-gray-900/50 rounded-lg text-gray-400 shrink-0">
+                    <FileText size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-500 uppercase font-bold">Latest Transfer</p>
+                    <p className="text-sm font-bold text-white truncate" title={stats.filename}>
+                      {stats.filename || 'Waiting for transfer...'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 shrink-0">
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase">Protocol</p>
+                    <p className="text-sm font-bold text-blue-400">
+                      {stats.protocol.toUpperCase()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase">Time</p>
+                    <p className="text-sm font-mono text-white">{stats.timeTaken.toFixed(2)}s</p>
+                  </div>
+                  <div className="bg-gray-900/50 px-3 py-1 rounded-lg border border-gray-700">
+                    <p className="text-[10px] text-gray-500 uppercase">Speed</p>
+                    <p className="text-sm font-mono text-green-400">
+                      {stats.throughput.toFixed(2)} MB/s
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="p-6 pt-0 mt-2 flex justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors shadow-lg hover:shadow-gray-700/20 border border-gray-600"
-          >
-            Close Dashboard
-          </button>
+          {/* RIGHT COL: Recent History List (Span 1) */}
+          <div className="lg:col-span-1 bg-gray-800/40 rounded-2xl border border-gray-700/50 flex flex-col overflow-hidden h-full">
+            <div className="p-3 border-b border-gray-700/50 bg-gray-800/60 backdrop-blur-sm shrink-0">
+              <h3 className="font-semibold text-white text-sm flex items-center gap-2">
+                <History size={16} className="text-gray-400" />
+                Recent
+              </h3>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
+              {[...history].reverse().map((h, i) => (
+                <div
+                  key={`${h.timestamp}-${i}`}
+                  className="p-2 bg-gray-900/50 rounded-lg hover:bg-800 transition-colors border border-gray-800 hover:border-gray-700 group"
+                >
+                  <div className="flex justify-between items-start mb-0.5">
+                    <span
+                      className="font-medium text-gray-300 text-xs truncate max-w-[120px]"
+                      title={h.filename}
+                    >
+                      {h.filename}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-mono">
+                      {new Date(h.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-500">{formatBytes(h.size)}</span>
+                    <span className="font-mono text-blue-400">{formatSpeed(h.throughput)}</span>
+                  </div>
+                </div>
+              ))}
+              {history.length === 0 && (
+                <div className="text-center py-10 text-gray-600 text-xs">No history.</div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const StatRow: React.FC<{
+const KpiCard = ({
+  icon,
+  label,
+  value,
+  color,
+  bg,
+}: {
+  icon: React.ReactNode;
   label: string;
   value: string | number;
-  truncate?: boolean;
-  highlight?: boolean;
-}> = ({ label, value, truncate, highlight }) => (
-  <div className="flex justify-between items-center group">
-    <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">
-      {label}
-    </span>
-    <span
-      className={`font-mono text-sm ${
-        highlight ? 'text-green-400 font-bold' : 'text-gray-200'
-      } ${truncate ? 'truncate max-w-[200px]' : ''}`}
-      title={truncate ? String(value) : undefined}
-    >
-      {value}
-    </span>
+  color: string;
+  bg: string;
+}) => (
+  <div className="bg-gray-800/40 rounded-xl p-3 border border-gray-700/50 flex flex-col items-center justify-center text-center hover:bg-gray-800/60 transition-colors">
+    <div className={`p-1.5 rounded-lg ${bg} ${color} mb-1`}>{icon}</div>
+    <div className="text-xl font-bold text-white mb-0">{value}</div>
+    <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">{label}</div>
   </div>
 );
 
