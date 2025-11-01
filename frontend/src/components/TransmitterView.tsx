@@ -402,14 +402,19 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
             onClick={() => files.length === 0 && fileInputRef.current?.click()}
             onDragOver={(e) => {
               e.preventDefault();
+              e.stopPropagation();
+              e.dataTransfer.dropEffect = 'copy';
               setIsDragging(true);
             }}
             onDragLeave={(e) => {
               e.preventDefault();
+              e.stopPropagation();
+              if (e.currentTarget.contains(e.relatedTarget as Node)) return;
               setIsDragging(false);
             }}
             onDrop={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               setIsDragging(false);
               const paths = Array.from(e.dataTransfer.files)
                 .map((f) => window.api.getFilePath(f))
