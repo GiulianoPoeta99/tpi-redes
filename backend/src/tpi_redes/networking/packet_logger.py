@@ -1,11 +1,17 @@
 import json
 import logging
 import time
+from typing import Any, Dict, List
 
 logger = logging.getLogger("tpi-redes")
 
 
 class PacketLogger:
+    _buffer: List[Dict[str, Any]] = []
+    _last_flush_time = 0.0
+    BUFFER_SIZE_LIMIT = 100  # Max events before forced flush
+    FLUSH_INTERVAL = 0.05  # 50ms
+
     @staticmethod
     def log_packet(
         src: str,
@@ -17,7 +23,7 @@ class PacketLogger:
         seq: int = 0,
         ack: int = 0,
     ):
-        """Emit a JSON packet event compatible with the Frontend Sniffer View."""
+        """Buffer a packet event and potentially flush."""
         packet_data = {
             "type": "PACKET_CAPTURE",
             "timestamp": time.time(),
@@ -30,11 +36,36 @@ class PacketLogger:
             "seq": seq,
             "ack": ack,
         }
-        # Print valid JSON to stdout for Electron to capture
-        print(json.dumps(packet_data), flush=True)
+        PacketLogger._buffer.append(packet_data)
+        PacketLogger._check_flush()
 
-        # Optional: Log to stderr for debug/CLI visibility
-        # logger.debug(f"PktLog: {protocol} {src}->{dst} : {info}")
+    @staticmethod
+    def log_progress(data: Dict[str, Any]):
+        """Buffer a progress event."""
+        PacketLogger._buffer.append(data)
+        PacketLogger._check_flush()
+
+    @staticmethod
+    def _check_flush():
+        now = time.time()
+        if (
+            len(PacketLogger._buffer) >= PacketLogger.BUFFER_SIZE_LIMIT
+            or (now - PacketLogger._last_flush_time) >= PacketLogger.FLUSH_INTERVAL
+        ):
+            PacketLogger.flush()
+
+    @staticmethod
+    def flush():
+        if not PacketLogger._buffer:
+            return
+
+        # Print JSON Array of events to stdout
+        try:
+            print(json.dumps(PacketLogger._buffer), flush=True)
+            PacketLogger._buffer.clear()
+            PacketLogger._last_flush_time = time.time()
+        except Exception as e:
+            logger.error(f"Failed to flush packet log: {e}")
 
     @staticmethod
     def emit_packet(

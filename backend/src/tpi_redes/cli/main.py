@@ -151,11 +151,9 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
 
 
 @cli.command()
-@click.option(
-    "--file", required=True, type=click.Path(exists=True), help="File to send"
-)
-@click.option("--ip", required=True, help="Destination IP")
-@click.option("--port", default=8080, help="Destination Port")
+@click.argument("files", nargs=-1, type=click.Path(exists=True, dir_okay=False))
+@click.option("--ip", prompt="Receiver IP", help="IP address of the receiver")
+@click.option("--port", default=8080, help="Port to connect to")
 @click.option(
     "--protocol",
     type=click.Choice(["tcp", "udp"]),
@@ -163,33 +161,45 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     help="Protocol to use",
 )
 @click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root)")
-@click.option("--delay", default=0.0, help="Delay between packets in seconds")
-def send_file(file: str, ip: str, port: int, protocol: str, sniff: bool, delay: float):
-    """Send a file to a remote peer."""
+@click.option("--delay", default=0.0, help="Delay between chunks in seconds")
+def send_file(
+    files: tuple[str], ip: str, port: int, protocol: str, sniff: bool, delay: float
+):
+    """Send one or more files to a remote server."""
+    if not files:
+        console.print("[bold red]Error:[/bold red] No files provided.")
+        return
+
     sniffer = None
-    if sniff:
-        from tpi_redes.networking.sniffer import PacketSniffer
+    from pathlib import Path
 
-        sniffer = PacketSniffer(interface=None, port=port)
-        sniffer.start()
-
-    logger.info(f"Sending {file} to {ip}:{port} via {protocol.upper()}...")
+    file_paths = [Path(f) for f in files]
 
     try:
-        if protocol == "tcp":
-            from pathlib import Path
+        # Start Sniffer if requested
+        if sniff:
+            from tpi_redes.networking.sniffer import PacketSniffer
 
+            # We need to sniff on the interface used to reach 'ip'.
+            sniffer = PacketSniffer(interface="any", port=port)  # Simplified
+            sniffer.start()
+
+        if protocol == "tcp":
             from tpi_redes.networking.tcp_client import TCPClient
 
             client = TCPClient()
-            client.send_file(Path(file), ip, port, delay=delay)
+            client.send_files(file_paths, ip, port, delay)
         else:
-            from pathlib import Path
-
             from tpi_redes.networking.udp_client import UDPClient
 
             client = UDPClient()
-            client.send_file(Path(file), ip, port, delay=delay)
+            client.send_files(file_paths, ip, port, delay)
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Transfer cancelled by user.[/yellow]")
+    except Exception as e:
+        # Let global handler catch it or re-raise
+        raise e
     finally:
         if sniffer:
             sniffer.stop()

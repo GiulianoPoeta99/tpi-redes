@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer, webUtils } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
   startServer: (config: any) => ipcRenderer.invoke('start-server', config),
-  sendFile: (config: any) => ipcRenderer.invoke('send-file', config),
+  sendFiles: (config: any) => ipcRenderer.invoke('send-files', config),
   onLog: (callback: (log: string) => void) => {
     const subscription = (_event: any, value: any) => callback(value);
     ipcRenderer.on('python-log', subscription);

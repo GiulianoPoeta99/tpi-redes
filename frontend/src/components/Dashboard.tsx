@@ -54,25 +54,37 @@ const Dashboard: React.FC = () => {
     // Global Log Listener for Toasts & Sniffer
     // We filter specific events that deserve a global toast
     const cleanupLog = window.api.onLog((log: string) => {
-      setLogs((prev) => [...prev, log]); // Update Sniffer Logs
-
       try {
-        const json = JSON.parse(log);
-        if (json.type === 'ERROR') {
-          addToast('error', 'Error', json.message);
-        } else if (json.type === 'SERVER_READY') {
-          addToast('success', 'Server Started', `Listening on port ${json.port}`);
-        } else if (json.type === 'TRANSFER_UPDATE' && json.status === 'complete') {
-          addToast('success', 'Transfer Complete', json.filename);
-          setStats((prev) => {
-            const updated = { ...prev, totalSent: prev.totalSent + 1 };
-            StorageService.saveStats(updated);
-            return updated;
-          });
+        const parsed = JSON.parse(log);
+        const events = Array.isArray(parsed) ? parsed : [parsed];
+
+        // Flatten batched events into individual log strings for SnifferLog
+        // Filter out high-frequency events that have their own UI components (PacketTable, StatsPanel)
+        const newLogLines = events
+          .filter((e: any) => !['PACKET_CAPTURE', 'STATS', 'WINDOW_UPDATE'].includes(e.type))
+          .map((e: any) => JSON.stringify(e));
+
+        if (newLogLines.length > 0) {
+          setLogs((prev) => [...prev, ...newLogLines]);
         }
+
+        events.forEach((json: any) => {
+          if (json.type === 'ERROR') {
+            addToast('error', 'Error', json.message);
+          } else if (json.type === 'SERVER_READY') {
+            addToast('success', 'Server Started', `Listening on port ${json.port}`);
+          } else if (json.type === 'TRANSFER_UPDATE' && json.status === 'complete') {
+            addToast('success', 'Transfer Complete', json.filename);
+            setStats((prev) => {
+              const updated = { ...prev, totalSent: prev.totalSent + 1 };
+              StorageService.saveStats(updated);
+              return updated;
+            });
+          }
+        });
       } catch (_e) {
-        // Ignore non-json logs for toasts
-        // Normal text logs are handled by setLogs above
+        // Fallback for non-JSON logs or parse errors
+        setLogs((prev) => [...prev, log]);
       }
     });
 

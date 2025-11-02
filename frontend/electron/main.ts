@@ -59,12 +59,11 @@ ipcMain.handle('start-server', async (_event, args) => {
   return spawnPythonProcess(cmdArgs);
 });
 
-ipcMain.handle('send-file', async (_event, args) => {
-  // args: { file, ip, port, protocol, sniff }
+ipcMain.handle('send-files', async (_event, args) => {
+  // args: { files: string[], ip, port, protocol, sniff, delay }
   const cmdArgs = [
     'send-file',
-    '--file',
-    args.file,
+    ...args.files,
     '--ip',
     args.ip,
     '--port',
@@ -210,24 +209,17 @@ function spawnPythonProcess(args: string[]) {
 
       try {
         const json = JSON.parse(line);
-        if (json.type === 'WINDOW_UPDATE') {
-          if (mainWindow) {
-            mainWindow.webContents.send('window-update', json);
+        const items = Array.isArray(json) ? json : [json];
+
+        items.forEach((item: any) => {
+          if (item.type === 'WINDOW_UPDATE') {
+            if (mainWindow) mainWindow.webContents.send('window-update', item);
+          } else if (item.type === 'STATS') {
+            if (mainWindow) mainWindow.webContents.send('stats-update', item);
+          } else if (item.type === 'PACKET_CAPTURE') {
+            if (mainWindow) mainWindow.webContents.send('packet-capture', item);
           }
-          return;
-        }
-        if (json.type === 'STATS') {
-          if (mainWindow) {
-            mainWindow.webContents.send('stats-update', json);
-          }
-          return;
-        }
-        if (json.type === 'PACKET_CAPTURE') {
-          if (mainWindow) {
-            mainWindow.webContents.send('packet-capture', json);
-          }
-          return;
-        }
+        });
       } catch (_e) {
         // Not JSON, treat as normal log
       }

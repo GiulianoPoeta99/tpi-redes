@@ -1,6 +1,6 @@
 import { Check, Clock, FileText, HardDrive, List, Plus, Search, X, Zap } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
@@ -67,6 +67,8 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
     totalBytes: 0,
   });
   const startTimeRef = useRef(0);
+  const currentFileIndexRef = useRef(0);
+  const totalBatchFilesRef = useRef(0);
 
   const isValid = ip && port && files.length > 0;
 
@@ -78,49 +80,56 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
   useEffect(() => {
     const cleanup = window.api.onLog((log: string) => {
       try {
-        const json = JSON.parse(log);
-        if (json.type === 'TRANSFER_UPDATE') {
-          if (json.status === 'start') {
-            startTimeRef.current = Date.now();
-            setStatus('sending');
-            setProgress(0);
-            setTransferStats((prev) => ({
-              ...prev,
-              startTime: startTimeRef.current,
-              totalBytes: 0,
-              timeTaken: 0,
-              throughput: 0,
-            }));
-          } else if (json.status === 'progress') {
-            if (json.total > 0) {
-              setProgress((json.current / json.total) * 100);
-              totalBytesRef.current = json.total;
-            }
-          } else if (json.status === 'complete') {
-            // Calculate final stats for this file
-            const now = Date.now();
-            const bytes = totalBytesRef.current;
-            // Use ref for accurate duration
-            const duration = (now - startTimeRef.current) / 1000;
-            const throughput = duration > 0 ? bytes / duration : 0;
+        const parsed = JSON.parse(log);
+        const events = Array.isArray(parsed) ? parsed : [parsed];
 
-            // Update Session History
-            setSessionHistory((prev) => [
-              ...prev,
-              {
-                timestamp: now,
-                filename: json.filename || 'unknown',
-                throughput,
-                size: bytes,
-                duration,
-              },
-            ]);
+        events.forEach((json) => {
+          if (json.type === 'TRANSFER_UPDATE') {
+            if (json.status === 'start') {
+              startTimeRef.current = Date.now();
+              setStatus('sending');
+              setProgress(0);
 
-            // Accumulate Batch Stats
-            batchStatsRef.current.totalBytes += bytes;
+              // Sync React State index for display
+              if (json.filename) {
+                // Find index by matching filename suffix
+                const idx = files.findIndex((f) => f.endsWith(json.filename));
+                if (idx !== -1) setCurrentFileIndex(idx);
+              }
 
-            setTransferStats((prev) => {
-              return {
+              setTransferStats((prev) => ({
+                ...prev,
+                startTime: startTimeRef.current,
+                totalBytes: 0,
+                timeTaken: 0,
+                throughput: 0,
+              }));
+            } else if (json.status === 'progress') {
+              if (json.total > 0) {
+                setProgress((json.current / json.total) * 100);
+                totalBytesRef.current = json.total;
+              }
+            } else if (json.status === 'complete') {
+              // Calculate final stats for this file
+              const now = Date.now();
+              const bytes = totalBytesRef.current;
+              const duration = (now - startTimeRef.current) / 1000;
+              const throughput = duration > 0 ? bytes / duration : 0;
+
+              setSessionHistory((prev) => [
+                ...prev,
+                {
+                  timestamp: now,
+                  filename: json.filename || 'unknown',
+                  throughput,
+                  size: bytes,
+                  duration,
+                },
+              ]);
+
+              batchStatsRef.current.totalBytes += bytes;
+
+              setTransferStats((prev) => ({
                 ...prev,
                 filename: json.filename || prev.filename,
                 totalBytes: bytes,
@@ -128,73 +137,62 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
                 timeTaken: duration,
                 throughput: throughput,
                 protocol: protocol.toUpperCase(),
-              };
-            });
+              }));
 
-            setStatus('completed');
-            setProgress(100);
+              // Ensure visual completion
+              setProgress(100);
+
+              // Advance Batch Ref
+              currentFileIndexRef.current += 1;
+
+              // Check if Batch Complete
+              if (currentFileIndexRef.current >= totalBatchFilesRef.current) {
+                setStatus('completed');
+                setProgress(100);
+                addToast('info', 'Batch Complete', `${totalBatchFilesRef.current} files sent.`);
+                setIsBatchActive(false);
+              } else {
+                // Remain in 'sending' state
+              }
+            }
+          } else if (json.type === 'ERROR') {
+            setStatus('idle');
+            setIsBatchActive(false);
+            addToast('error', 'Transfer Error', json.message || 'Transfer failed');
           }
-        } else if (json.type === 'ERROR') {
-          setStatus('idle');
-          setIsBatchActive(false);
-          addToast('error', 'Transfer Error', json.message || 'Transfer failed');
-        }
+        });
       } catch (_e) {
         // Ignore
       }
     });
     return cleanup;
-  }, [protocol, addToast]);
+  }, [protocol, addToast, files]);
 
-  const sendSingleFile = useCallback(
-    async (filePath: string) => {
-      setStatus('sending');
-      try {
-        await window.api.sendFile({
-          file: filePath,
-          ip,
-          port,
-          protocol,
-          sniff: true,
-          delay: delay / 1000,
-        });
-      } catch (e) {
-        console.error(e);
-        setStatus('idle');
-        setIsBatchActive(false);
-        addToast('error', 'Transfer Error', 'Failed to start transfer');
-      }
-    },
-    [ip, port, protocol, delay, addToast],
-  );
-
-  // Batch Loop Logic
-  useEffect(() => {
-    if (isBatchActive && status === 'completed') {
-      if (currentFileIndex < files.length - 1) {
-        const nextIndex = currentFileIndex + 1;
-        setCurrentFileIndex(nextIndex);
-        setStatus('sending');
-        setProgress(0);
-
-        setTimeout(() => {
-          sendSingleFile(files[nextIndex]);
-        }, 500);
-      } else {
-        // Batch finished
-        setIsBatchActive(false);
-        addToast('info', 'Batch Complete', `${files.length} files sent.`);
-      }
-    }
-  }, [status, isBatchActive, currentFileIndex, files, sendSingleFile, addToast]);
-
-  const startBatch = () => {
+  // Native Batch Start
+  const startBatch = async () => {
     if (!isValid) return;
     setIsBatchActive(true);
     setCurrentFileIndex(0);
-    // Reset Batch Stats
+    currentFileIndexRef.current = 0;
+    totalBatchFilesRef.current = files.length;
     batchStatsRef.current = { startTime: Date.now(), totalBytes: 0 };
-    sendSingleFile(files[0]);
+    
+    setStatus('sending');
+    try {
+        await window.api.sendFiles({
+            files,
+            ip,
+            port,
+            protocol,
+            sniff: true,
+            delay: delay / 1000,
+        });
+    } catch (e: any) {
+        console.error(e);
+        setStatus('idle');
+        setIsBatchActive(false);
+        addToast('error', 'Transfer Error', 'Failed to start batch transfer');
+    }
   };
 
   const cancelSend = async () => {

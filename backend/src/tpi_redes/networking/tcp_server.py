@@ -34,83 +34,84 @@ class TCPServer(BaseServer):
     def handle_client(self, conn: Any, addr: Any):
         """Handle a single client connection."""
         try:
-            # 1. Receive Header
-            header_data = self._recv_exact(conn, ProtocolHandler.HEADER_SIZE)
-            if not header_data:
-                return
+            while True:
+                # 1. Receive Header
+                header_data = self._recv_exact(conn, ProtocolHandler.HEADER_SIZE)
+                if not header_data:
+                    break
 
-            header = ProtocolHandler.unpack_header(header_data)
+                header = ProtocolHandler.unpack_header(header_data)
 
-            # 2. Receive Metadata
-            filename_bytes = self._recv_exact(conn, header.name_len)
-            filename = filename_bytes.decode("utf-8")
+                # 2. Receive Metadata
+                filename_bytes = self._recv_exact(conn, header.name_len)
+                filename = filename_bytes.decode("utf-8")
 
-            hash_bytes = self._recv_exact(conn, header.hash_len)
-            file_hash = hash_bytes.decode("utf-8")
-            logger.debug(f"Expected Hash: {file_hash}")
+                hash_bytes = self._recv_exact(conn, header.hash_len)
+                file_hash = hash_bytes.decode("utf-8")
+                logger.debug(f"Expected Hash: {file_hash}")
 
-            logger.info(f"Receiving '{filename}' ({header.file_size} bytes)...")
-            print(
-                json.dumps(
-                    {
-                        "type": "TRANSFER_UPDATE",
-                        "status": "start",
-                        "filename": filename,
-                        "total": header.file_size,
-                    }
-                ),
-                flush=True,
-            )
+                logger.info(f"Receiving '{filename}' ({header.file_size} bytes)...")
+                print(
+                    json.dumps(
+                        {
+                            "type": "TRANSFER_UPDATE",
+                            "status": "start",
+                            "filename": filename,
+                            "total": header.file_size,
+                        }
+                    ),
+                    flush=True,
+                )
 
-            # 3. Receive Content & Save
-            save_path = Path(self.save_dir) / filename
-            save_path.parent.mkdir(parents=True, exist_ok=True)
+                # 3. Receive Content & Save
+                save_path = Path(self.save_dir) / filename
+                save_path.parent.mkdir(parents=True, exist_ok=True)
 
-            received_bytes = 0
-            with open(save_path, "wb") as f:
-                while received_bytes < header.file_size:
-                    chunk_size = min(4096, header.file_size - received_bytes)
-                    chunk = self._recv_exact(conn, chunk_size)
-                    if not chunk:
-                        break
-                    f.write(chunk)
-                    received_bytes += len(chunk)
+                received_bytes = 0
+                with open(save_path, "wb") as f:
+                    while received_bytes < header.file_size:
+                        chunk_size = min(4096, header.file_size - received_bytes)
+                        chunk = self._recv_exact(conn, chunk_size)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        received_bytes += len(chunk)
 
-                    # Emit progress (optional: throttle this if too frequent)
-                    # For now only start/end to keep it simple, or every 1MB?
-                    # Let's emit every chunk for local smoothing, UI handles throttling
-                    # Actually, emitting every 4KB is too much for stdout -> IPC
-                    # Let's emit every ~100KB or 10%
-                    if (
-                        received_bytes % (1024 * 100) < 4096
-                        or received_bytes == header.file_size
-                    ):
-                        print(
-                            json.dumps(
-                                {
-                                    "type": "TRANSFER_UPDATE",
-                                    "status": "progress",
-                                    "filename": filename,
-                                    "current": received_bytes,
-                                    "total": header.file_size,
-                                }
-                            ),
-                            flush=True,
-                        )
+                        # Emit progress (optional: throttle this if too frequent)
+                        # For now only start/end to keep it simple, or every 1MB?
+                        # Let's emit every chunk for local smoothing, UI handles throttling
+                        # Actually, emitting every 4KB is too much for stdout -> IPC
+                        # Let's emit every ~100KB or 10%
+                        if (
+                            received_bytes % (1024 * 100) < 4096
+                            or received_bytes == header.file_size
+                        ):
+                            print(
+                                json.dumps(
+                                    {
+                                        "type": "TRANSFER_UPDATE",
+                                        "status": "progress",
+                                        "filename": filename,
+                                        "current": received_bytes,
+                                        "total": header.file_size,
+                                    }
+                                ),
+                                flush=True,
+                            )
 
-            logger.info(f"File '{filename}' received successfully.")
-            print(
-                json.dumps(
-                    {
-                        "type": "TRANSFER_UPDATE",
-                        "status": "complete",
-                        "filename": filename,
-                    }
-                ),
-                flush=True,
-            )
+                logger.info(f"File '{filename}' received successfully.")
+                print(
+                    json.dumps(
+                        {
+                            "type": "TRANSFER_UPDATE",
+                            "status": "complete",
+                            "filename": filename,
+                        }
+                    ),
+                    flush=True,
+                )
 
-            # TODO: Verify Hash
+                # TODO: Verify Hash
 
         except Exception as e:
             logger.error(f"Error handling client {addr}: {e}")

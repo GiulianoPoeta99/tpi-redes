@@ -22,24 +22,28 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
 
     const cleanup = window.api.onLog((log: string) => {
       try {
-        const json = JSON.parse(log);
-        if (json.type === 'SERVER_READY') {
-          setIsConnected(true);
-          setBusy(true);
-          // Toast handled by Dashboard
-        } else if (json.type === 'TRANSFER_UPDATE') {
-          if (json.status === 'start') setTransferActive(true);
-          if (json.status === 'complete') {
+        const parsed = JSON.parse(log);
+        const events = Array.isArray(parsed) ? parsed : [parsed];
+
+        events.forEach((json: any) => {
+          if (json.type === 'SERVER_READY') {
+            setIsConnected(true);
+            setBusy(true);
+            // Toast handled by Dashboard
+          } else if (json.type === 'TRANSFER_UPDATE') {
+            if (json.status === 'start') setTransferActive(true);
+            if (json.status === 'complete') {
+              setTransferActive(false);
+              setLastFile(json.filename || 'Unknown File');
+              // Toast handled by Dashboard
+            }
+          } else if (json.type === 'ERROR') {
+            setIsConnected(false);
             setTransferActive(false);
-            setLastFile(json.filename || 'Unknown File');
+            setBusy(false);
             // Toast handled by Dashboard
           }
-        } else if (json.type === 'ERROR') {
-          setIsConnected(false);
-          setTransferActive(false);
-          setBusy(false);
-          // Toast handled by Dashboard
-        }
+        });
       } catch (_e) {
         /* ignore */
       }

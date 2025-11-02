@@ -3,7 +3,7 @@
 interface Window {
   api: {
     startServer: (args: any) => Promise<any>;
-    sendFile: (args: any) => Promise<any>;
+    sendFiles: (args: any) => Promise<any>;
     scanNetwork: () => Promise<any[]>;
     stopProcess: () => Promise<boolean>;
     getFilePath: (file: File) => string;

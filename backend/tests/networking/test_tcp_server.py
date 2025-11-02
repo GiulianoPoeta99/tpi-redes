@@ -8,7 +8,7 @@ class TestTCPServer:
         assert server.port == 9999
         assert server.save_dir == "/tmp"
 
-    def test_handle_client_receive_file(self, tmp_path):
+    def test_handle_client_receive_multiple_files(self, tmp_path):
         # Setup
         save_dir = tmp_path / "received"
         save_dir.mkdir()
@@ -30,22 +30,44 @@ class TestTCPServer:
             def close(self):
                 self.closed = True
 
-        # Prepare data: Header + Content
+            def settimeout(self, t):
+                pass
+
+        # Prepare data: File 1 + File 2
         from tpi_redes.networking.protocol import ProtocolHandler
 
-        filename = "test_file.txt"
-        content = b"Hello TCP World!"
-        file_hash = "dummy_hash"
+        # File 1
+        f1_name = "file1.txt"
+        f1_content = b"Content 1"
+        f1_hash = "hash1"
+        h1 = ProtocolHandler.pack_header(
+            b"F", f1_name, len(f1_content), f1_hash
+        )
+        payload1 = h1 + f1_name.encode() + f1_hash.encode() + f1_content
 
-        header = ProtocolHandler.pack_header(b"F", filename, len(content), file_hash)
-        stream_data = header + filename.encode() + file_hash.encode() + content
+        # File 2
+        f2_name = "file2.txt"
+        f2_content = b"Content 2"
+        f2_hash = "hash2"
+        h2 = ProtocolHandler.pack_header(
+            b"F", f2_name, len(f2_content), f2_hash
+        )
+        payload2 = h2 + f2_name.encode() + f2_hash.encode() + f2_content
+
+        # Combined Stream
+        stream_data = payload1 + payload2
 
         mock_sock = MockSocket(stream_data)
 
         # Execute
         server.handle_client(mock_sock, ("127.0.0.1", 12345))
 
-        # Verify
-        saved_file = save_dir / filename
-        assert saved_file.exists()
-        assert saved_file.read_bytes() == content
+        # Verify File 1
+        saved_f1 = save_dir / f1_name
+        assert saved_f1.exists()
+        assert saved_f1.read_bytes() == f1_content
+
+        # Verify File 2
+        saved_f2 = save_dir / f2_name
+        assert saved_f2.exists()
+        assert saved_f2.read_bytes() == f2_content
