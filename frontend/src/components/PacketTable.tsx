@@ -1,5 +1,6 @@
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { TableVirtuoso } from 'react-virtuoso';
 
 interface Packet {
   type: string;
@@ -16,7 +17,6 @@ interface Packet {
 
 const PacketTable: React.FC = () => {
   const [packets, setPackets] = useState<Packet[]>([]);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
@@ -26,13 +26,6 @@ const PacketTable: React.FC = () => {
       }
     });
   }, [paused]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Manual scroll logic
-  useEffect(() => {
-    if (!paused && bottomRef.current) {
-      bottomRef.current.scrollIntoView?.({ behavior: 'smooth' });
-    }
-  }, [packets, paused]);
 
   const getRowClass = (pkt: Packet) => {
     if (pkt.protocol === 'TCP') {
@@ -104,37 +97,56 @@ const PacketTable: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-800 text-gray-400 sticky top-0">
-            <tr>
-              <th className="p-2 w-12 border-b border-gray-700">No.</th>
-              <th className="p-2 w-24 border-b border-gray-700">Time</th>
-              <th className="p-2 w-32 border-b border-gray-700">Source</th>
-              <th className="p-2 w-32 border-b border-gray-700">Destination</th>
-              <th className="p-2 w-16 border-b border-gray-700">Proto</th>
-              <th className="p-2 w-16 border-b border-gray-700">Len</th>
-              <th className="p-2 border-b border-gray-700">Info</th>
+      <div className="flex-1 overflow-hidden bg-gray-900/50">
+        <TableVirtuoso
+          data={packets}
+          followOutput={paused ? false : 'auto'}
+          fixedHeaderContent={() => (
+            <tr className="bg-gray-800 text-gray-400 text-left">
+              <th className="p-2 w-12 border-b border-gray-700 bg-gray-800">No.</th>
+              <th className="p-2 w-24 border-b border-gray-700 bg-gray-800">Time</th>
+              <th className="p-2 w-32 border-b border-gray-700 bg-gray-800">Source</th>
+              <th className="p-2 w-32 border-b border-gray-700 bg-gray-800">Destination</th>
+              <th className="p-2 w-16 border-b border-gray-700 bg-gray-800">Proto</th>
+              <th className="p-2 w-16 border-b border-gray-700 bg-gray-800">Len</th>
+              <th className="p-2 border-b border-gray-700 bg-gray-800">Info</th>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800">
-            {packets.map((pkt, idx) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: Rows are immutable for this view
-              <tr key={idx} className={`${getRowClass(pkt)} transition-colors`}>
-                <td className="p-1 px-2 text-gray-500">{idx + 1}</td>
-                <td className="p-1 px-2 text-gray-400">{formatTime(pkt.timestamp)}</td>
-                <td className="p-1 px-2 text-blue-300">{pkt.src}</td>
-                <td className="p-1 px-2 text-purple-300">{pkt.dst}</td>
-                <td className="p-1 px-2 font-bold text-gray-300">{pkt.protocol}</td>
-                <td className="p-1 px-2 text-gray-400">{pkt.length}</td>
-                <td className="p-1 px-2 text-gray-300 truncate max-w-md" title={pkt.info}>
-                  {pkt.info}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div ref={bottomRef}></div>
+          )}
+          itemContent={(index, pkt) => (
+            <>
+              <td className="p-1 px-2 text-gray-500">{index + 1}</td>
+              <td className="p-1 px-2 text-gray-400">{formatTime(pkt.timestamp)}</td>
+              <td className="p-1 px-2 text-blue-300">{pkt.src}</td>
+              <td className="p-1 px-2 text-purple-300">{pkt.dst}</td>
+              <td className="p-1 px-2 font-bold text-gray-300">{pkt.protocol}</td>
+              <td className="p-1 px-2 text-gray-400">{pkt.length}</td>
+              <td className="p-1 px-2 text-gray-300 truncate max-w-md" title={pkt.info}>
+                {pkt.info}
+              </td>
+            </>
+          )}
+          components={{
+            // biome-ignore lint/suspicious/noExplicitAny: Virtuoso types are complex
+            TableRow: (props: any) => {
+              const item = props?.item;
+              const className = item
+                ? `${getRowClass(item)} transition-colors`
+                : 'hover:bg-gray-800';
+              return <tr {...props} className={className} />;
+            },
+            Table: (props) => (
+              <table
+                {...props}
+                style={{
+                  ...props.style,
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  tableLayout: 'fixed',
+                }}
+              />
+            ),
+          }}
+        />
       </div>
     </div>
   );
