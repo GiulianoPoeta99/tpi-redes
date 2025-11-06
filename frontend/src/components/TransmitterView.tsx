@@ -84,7 +84,8 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         const parsed = JSON.parse(log);
         const events = Array.isArray(parsed) ? parsed : [parsed];
 
-        events.forEach((json) => {
+        // biome-ignore lint/suspicious/noExplicitAny: Log parsing
+        events.forEach((json: any) => {
           if (json.type === 'TRANSFER_UPDATE') {
             if (json.status === 'start') {
               startTimeRef.current = Date.now();
@@ -187,22 +188,23 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
     currentFileIndexRef.current = 0;
     totalBatchFilesRef.current = files.length;
     batchStatsRef.current = { startTime: Date.now(), totalBytes: 0 };
-    
+
     setStatus('sending');
     try {
-        await window.api.sendFiles({
-            files,
-            ip,
-            port,
-            protocol,
-            sniff: true,
-            delay: delay / 1000,
-        });
+      await window.api.sendFiles({
+        files,
+        ip,
+        port,
+        protocol,
+        sniff: true,
+        delay: delay / 1000,
+      });
+    // biome-ignore lint/suspicious/noExplicitAny: Error
     } catch (e: any) {
-        console.error(e);
-        setStatus('idle');
-        setIsBatchActive(false);
-        addToast('error', 'Transfer Error', 'Failed to start batch transfer');
+      console.error(e);
+      setStatus('idle');
+      setIsBatchActive(false);
+      addToast('error', 'Transfer Error', 'Failed to start batch transfer');
     }
   };
 
@@ -240,6 +242,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
     try {
       const peers = await window.api.scanNetwork();
       setDiscoveredPeers(peers || []);
+    // biome-ignore lint/suspicious/noExplicitAny: Error
     } catch (e: any) {
       setScanError(e.toString());
     } finally {
@@ -247,6 +250,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
     }
   };
 
+  // biome-ignore lint/suspicious/noExplicitAny: Peer object
   const handleSelectPeer = (peer: any) => {
     setIp(peer.ip);
     if (peer.port) setPort(peer.port);

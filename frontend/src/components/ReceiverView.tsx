@@ -36,7 +36,7 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
             if (json.status === 'complete') {
               setTransferActive(false);
               setLastFile(json.filename || 'Unknown File');
-              
+
               StorageService.addHistoryItem({
                 id: Date.now().toString() + Math.random(),
                 timestamp: Date.now(),
@@ -46,7 +46,7 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
                 status: 'success',
                 protocol: protocol.toUpperCase(),
               });
-              
+
               // Toast handled by Dashboard
             }
           } else if (json.type === 'ERROR') {
@@ -62,7 +62,7 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
     });
 
     return cleanup;
-  }, [setBusy]);
+  }, [setBusy, protocol]);
 
   const toggleServer = async () => {
     if (isConnected) {

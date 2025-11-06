@@ -79,7 +79,8 @@ class TCPServer(BaseServer):
 
                         # Emit progress (optional: throttle this if too frequent)
                         # For now only start/end to keep it simple, or every 1MB?
-                        # Let's emit every chunk for local smoothing, UI handles throttling
+                        # Let's emit every chunk for local smoothing,
+                        # UI handles throttling
                         # Actually, emitting every 4KB is too much for stdout -> IPC
                         # Let's emit every ~100KB or 10%
                         if (

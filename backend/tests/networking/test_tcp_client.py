@@ -41,7 +41,7 @@ class TestTCPClient:
 
         original_socket = socket.socket
 
-        def mock_socket_ctor(*args, **kwargs):
+        def mock_socket_ctor(*_args, **_kwargs):
             return MockSocket()
 
         socket.socket = mock_socket_ctor

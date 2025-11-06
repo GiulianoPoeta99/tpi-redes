@@ -40,18 +40,14 @@ class TestTCPServer:
         f1_name = "file1.txt"
         f1_content = b"Content 1"
         f1_hash = "hash1"
-        h1 = ProtocolHandler.pack_header(
-            b"F", f1_name, len(f1_content), f1_hash
-        )
+        h1 = ProtocolHandler.pack_header(b"F", f1_name, len(f1_content), f1_hash)
         payload1 = h1 + f1_name.encode() + f1_hash.encode() + f1_content
 
         # File 2
         f2_name = "file2.txt"
         f2_content = b"Content 2"
         f2_hash = "hash2"
-        h2 = ProtocolHandler.pack_header(
-            b"F", f2_name, len(f2_content), f2_hash
-        )
+        h2 = ProtocolHandler.pack_header(b"F", f2_name, len(f2_content), f2_hash)
         payload2 = h2 + f2_name.encode() + f2_hash.encode() + f2_content
 
         # Combined Stream

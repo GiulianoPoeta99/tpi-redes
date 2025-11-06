@@ -1,13 +1,13 @@
 import json
 import logging
 import time
-from typing import Any, Dict, List
+from typing import Any, ClassVar
 
 logger = logging.getLogger("tpi-redes")
 
 
 class PacketLogger:
-    _buffer: List[Dict[str, Any]] = []
+    _buffer: ClassVar[list[dict[str, Any]]] = []
     _last_flush_time = 0.0
     BUFFER_SIZE_LIMIT = 100  # Max events before forced flush
     FLUSH_INTERVAL = 0.05  # 50ms
@@ -40,7 +40,7 @@ class PacketLogger:
         PacketLogger._check_flush()
 
     @staticmethod
-    def log_progress(data: Dict[str, Any]):
+    def log_progress(data: dict[str, Any]):
         """Buffer a progress event."""
         PacketLogger._buffer.append(data)
         PacketLogger._check_flush()

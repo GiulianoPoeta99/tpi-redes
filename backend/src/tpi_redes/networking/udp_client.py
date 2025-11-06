@@ -1,4 +1,8 @@
-from typing import List
+import json
+import logging
+import socket
+import time
+from pathlib import Path
 
 from tpi_redes.transfer.integrity import IntegrityVerifier
 
@@ -8,21 +12,21 @@ logger = logging.getLogger("tpi-redes")
 
 
 class UDPClient:
-    def send_files(self, files: List[Path], ip: str, port: int, delay: float = 0.0):
+    def send_files(self, files: list[Path], ip: str, port: int, delay: float = 0.0):
         """Send multiple files to a remote UDP server (Best Effort)."""
-        
+
         valid_files = [f for f in files if f.exists()]
         if not valid_files:
             raise FileNotFoundError("No valid files to send")
 
         from tpi_redes.networking.packet_logger import PacketLogger
-        
+
         logger.info(f"Sending {len(valid_files)} files to {ip}:{port} via UDP...")
 
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             addr = (ip, port)
             local_ip, local_port = s.getsockname()
-            
+
             for file_path in valid_files:
                 # 1. Calculate Hash & Prepare Metadata
                 logger.info(f"Calculating hash for {file_path}...")
@@ -33,11 +37,13 @@ class UDPClient:
                 filename = file_path.name
 
                 # 2. Pack Header
-                header = ProtocolHandler.pack_header(b"F", filename, file_size, file_hash)
+                header = ProtocolHandler.pack_header(
+                    b"F", filename, file_size, file_hash
+                )
 
                 # 3. Send Datagrams
                 logger.info(f"Processing {filename}...")
-                
+
                 # Send Header
                 s.sendto(header, addr)
                 PacketLogger.emit_packet(
@@ -83,7 +89,6 @@ class UDPClient:
                 sent_bytes = 0
                 start_transfer = time.time()
                 last_stats_time = start_transfer
-                last_reported_bytes = 0
                 chunk_size = 4096
 
                 with open(file_path, "rb") as f:
@@ -108,7 +113,8 @@ class UDPClient:
                         # Progress Emission (throttled)
                         current_time = time.time()
                         if current_time - last_stats_time >= 0.1:
-                            # Not sending throughput stats for UDP in loop to avoid noise, 
+                            # Not sending throughput stats for UDP in loop
+                            # to avoid noise,
                             # or just minimal updates. Keeping minimal.
                             print(
                                 json.dumps(
@@ -135,4 +141,3 @@ class UDPClient:
                     ),
                     flush=True,
                 )
-

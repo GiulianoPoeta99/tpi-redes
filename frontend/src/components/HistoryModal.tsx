@@ -24,7 +24,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i];
   };
 
   const formatDate = (ts: number) => {
@@ -71,7 +71,6 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
           ) : (
             <div className="space-y-2">
               {history.map((item) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: ID is usually timestamp based
                 <div
                   key={item.id}
                   className="bg-gray-800/50 border border-gray-700 p-3 rounded-lg flex items-center justify-between hover:bg-gray-700/50 transition-colors"
@@ -84,11 +83,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
                           : 'bg-purple-900/30 text-purple-400'
                       }`}
                     >
-                      {item.direction === 'sent' ? (
-                        <ArrowUp size={16} />
-                      ) : (
-                        <ArrowDown size={16} />
-                      )}
+                      {item.direction === 'sent' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">

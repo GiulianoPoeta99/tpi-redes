@@ -64,13 +64,16 @@ const Dashboard: React.FC = () => {
         // Flatten batched events into individual log strings for SnifferLog
         // Filter out high-frequency events that have their own UI components (PacketTable, StatsPanel)
         const newLogLines = events
+          // biome-ignore lint/suspicious/noExplicitAny: Log Events are dynamic
           .filter((e: any) => !['PACKET_CAPTURE', 'STATS', 'WINDOW_UPDATE'].includes(e.type))
+          // biome-ignore lint/suspicious/noExplicitAny: Log Events are dynamic
           .map((e: any) => JSON.stringify(e));
 
         if (newLogLines.length > 0) {
           setLogs((prev) => [...prev, ...newLogLines]);
         }
 
+        // biome-ignore lint/suspicious/noExplicitAny: Log Events are dynamic
         events.forEach((json: any) => {
           if (json.type === 'ERROR') {
             addToast('error', 'Error', json.message);

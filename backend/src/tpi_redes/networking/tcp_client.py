@@ -1,17 +1,17 @@
-import json
 import logging
 import socket
 import time
 from pathlib import Path
-from typing import List
 
 from tpi_redes.transfer.integrity import IntegrityVerifier
+
 from .protocol import ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
 
+
 class TCPClient:
-    def send_files(self, files: List[Path], ip: str, port: int, delay: float = 0.0):
+    def send_files(self, files: list[Path], ip: str, port: int, delay: float = 0.0):
         """Send multiple files to a remote TCP server over a single connection."""
 
         # Filter existing files
@@ -89,7 +89,8 @@ class TCPClient:
                             local_ip,
                             ip,
                             "TCP",
-                            f"{local_port}->{port} [PSH,ACK] Sq={current_seq} Ln={chunk_len}",
+                            f"{local_port}->{port} [PSH,ACK] "
+                            f"Sq={current_seq} Ln={chunk_len}",
                             chunk_len,
                             "PA",
                         )
