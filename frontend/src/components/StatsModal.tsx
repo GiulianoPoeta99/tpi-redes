@@ -31,6 +31,8 @@ interface StatsModalProps {
 }
 
 const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   if (!isOpen) return null;
 
   // --- Derived Stats ---
@@ -82,8 +84,6 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
   const areaPath = points
     ? `${points} ${chartWidth - padding},${chartHeight - padding} ${padding},${chartHeight - padding}`
     : '';
-
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
@@ -164,7 +164,10 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
                       viewBox={`0 0 ${chartWidth} ${chartHeight}`}
                       className="w-full h-full"
                       preserveAspectRatio="none"
+                      role="img"
+                      aria-label="Throughput Chart"
                     >
+                      <title>Throughput History Chart</title>
                       {/* Grid Lines */}
                       <line
                         x1={padding}
@@ -243,10 +246,10 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
                         />
                       )}
 
-                      {/* Hit Targets */}
-                      {history.map((_, i) => (
+                      {history.map((h, i) => (
+                        // biome-ignore lint/a11y/noStaticElementInteractions: Chart tooltip trigger
                         <rect
-                          key={i}
+                          key={`${h.timestamp}-${i}`}
                           x={getX(i) - chartWidth / history.length / 2}
                           y={0}
                           width={chartWidth / history.length}
@@ -261,7 +264,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
                       {/* Data Points */}
                       {history.map((h, i) => (
                         <circle
-                          key={i}
+                          key={`${h.timestamp}-${i}`}
                           cx={getX(i)}
                           cy={getY(h.throughput)}
                           r={hoveredIndex === i ? 4 : 2}

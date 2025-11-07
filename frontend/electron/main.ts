@@ -73,6 +73,7 @@ ipcMain.handle('send-files', async (_event, args) => {
   ];
   if (args.sniff) cmdArgs.push('--sniff');
   if (args.delay) cmdArgs.push('--delay', args.delay.toString());
+  if (args.chunkSize) cmdArgs.push('--chunk-size', args.chunkSize.toString());
 
   return spawnPythonProcess(cmdArgs);
 });

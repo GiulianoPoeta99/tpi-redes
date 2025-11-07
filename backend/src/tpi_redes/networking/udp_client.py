@@ -12,7 +12,14 @@ logger = logging.getLogger("tpi-redes")
 
 
 class UDPClient:
-    def send_files(self, files: list[Path], ip: str, port: int, delay: float = 0.0):
+    def send_files(
+        self,
+        files: list[Path],
+        ip: str,
+        port: int,
+        delay: float = 0.0,
+        chunk_size: int = 4096,
+    ):
         """Send multiple files to a remote UDP server (Best Effort)."""
 
         valid_files = [f for f in files if f.exists()]
@@ -89,7 +96,6 @@ class UDPClient:
                 sent_bytes = 0
                 start_transfer = time.time()
                 last_stats_time = start_transfer
-                chunk_size = 4096
 
                 with open(file_path, "rb") as f:
                     while chunk := f.read(chunk_size):

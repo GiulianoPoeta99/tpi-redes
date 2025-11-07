@@ -162,8 +162,15 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
 )
 @click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root)")
 @click.option("--delay", default=0.0, help="Delay between chunks in seconds")
+@click.option("--chunk-size", default=4096, help="Buffer size in bytes")
 def send_file(
-    files: tuple[str], ip: str, port: int, protocol: str, sniff: bool, delay: float
+    files: tuple[str],
+    ip: str,
+    port: int,
+    protocol: str,
+    sniff: bool,
+    delay: float,
+    chunk_size: int,
 ):
     """Send one or more files to a remote server."""
     if not files:
@@ -188,12 +195,12 @@ def send_file(
             from tpi_redes.networking.tcp_client import TCPClient
 
             client = TCPClient()
-            client.send_files(file_paths, ip, port, delay)
+            client.send_files(file_paths, ip, port, delay, chunk_size)
         else:
             from tpi_redes.networking.udp_client import UDPClient
 
             client = UDPClient()
-            client.send_files(file_paths, ip, port, delay)
+            client.send_files(file_paths, ip, port, delay, chunk_size)
 
     except KeyboardInterrupt:
         console.print("\n[yellow]Transfer cancelled by user.[/yellow]")

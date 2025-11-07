@@ -11,7 +11,14 @@ logger = logging.getLogger("tpi-redes")
 
 
 class TCPClient:
-    def send_files(self, files: list[Path], ip: str, port: int, delay: float = 0.0):
+    def send_files(
+        self,
+        files: list[Path],
+        ip: str,
+        port: int,
+        delay: float = 0.0,
+        chunk_size: int = 4096,
+    ):
         """Send multiple files to a remote TCP server over a single connection."""
 
         # Filter existing files
@@ -67,7 +74,6 @@ class TCPClient:
                     }
                 )
 
-                chunk_size = 4096
                 total_bytes = file_size
                 bytes_sent = 0
 

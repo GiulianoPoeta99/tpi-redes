@@ -1,4 +1,4 @@
-import { Check, Clock, FileText, HardDrive, List, Plus, Search, X, Zap } from 'lucide-react';
+import { Check, ChevronDown, FileText, List, Plus, Search, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { StorageService } from '../services/StorageService';
@@ -17,6 +17,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
   const [port, setPort] = useState(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [delay, setDelay] = useState(0);
+  const [chunkSize, setChunkSize] = useState(4096);
 
   // File State
   const [files, setFiles] = useState<string[]>([]);
@@ -198,8 +199,9 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         protocol,
         sniff: true,
         delay: delay / 1000,
+        chunkSize,
       });
-    // biome-ignore lint/suspicious/noExplicitAny: Error
+      // biome-ignore lint/suspicious/noExplicitAny: Error
     } catch (e: any) {
       console.error(e);
       setStatus('idle');
@@ -242,7 +244,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
     try {
       const peers = await window.api.scanNetwork();
       setDiscoveredPeers(peers || []);
-    // biome-ignore lint/suspicious/noExplicitAny: Error
+      // biome-ignore lint/suspicious/noExplicitAny: Error
     } catch (e: any) {
       setScanError(e.toString());
     } finally {
@@ -277,15 +279,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
     setCurrentFileIndex(0);
   };
 
-  // Helper to format bytes
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
-  };
-
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -295,14 +288,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
   const smoothBatchPercent = ((currentFileIndex + progress / 100) / files.length) * 100;
   const outerStrokeDashoffset =
     outerCircumference - (smoothBatchPercent / 100) * outerCircumference;
-
-  // Final Batch Stats
-  const finalBatchDuration =
-    status === 'completed' && !isBatchActive && transferStats.endTime > 0
-      ? (transferStats.endTime - batchStatsRef.current.startTime) / 1000
-      : 0;
-  const finalAvgSpeed =
-    finalBatchDuration > 0 ? batchStatsRef.current.totalBytes / finalBatchDuration : 0;
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
@@ -373,23 +358,49 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
             </div>
           </div>
 
-          <div className="mb-6">
-            <span className="block text-xs font-bold text-gray-500 mb-2 uppercase">Protocol</span>
-            <div className="flex bg-gray-900 p-1 rounded-lg w-1/2">
-              {['tcp', 'udp'].map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setProtocol(p as any)}
-                  className={`flex-1 py-1.5 text-sm rounded font-medium transition-all ${
-                    protocol === p
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'text-gray-400 hover:text-gray-200'
-                  }`}
-                >
-                  {p.toUpperCase()}
-                </button>
-              ))}
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <span className="block text-xs font-bold text-gray-500 mb-2 uppercase">Protocol</span>
+              <div className="flex bg-gray-900 p-1 rounded-lg">
+                {['tcp', 'udp'].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setProtocol(p as any)}
+                    className={`flex-1 py-1.5 text-sm rounded font-medium transition-all ${
+                      protocol === p
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'text-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    {p.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2 uppercase relative">
+                Chunk Size
+                <div className="relative mt-1">
+                  <select
+                    value={chunkSize}
+                    onChange={(e) => setChunkSize(Number(e.target.value))}
+                    className="w-full bg-gray-900 border border-gray-700 p-3 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer pr-10 hover:bg-gray-800"
+                  >
+                    <option value={1024}>1 KB</option>
+                    <option value={4096}>4 KB (Default)</option>
+                    <option value={8192}>8 KB</option>
+                    <option value={16384}>16 KB</option>
+                    <option value={32768}>32 KB</option>
+                    <option value={65536}>64 KB</option>
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  />
+                </div>
+              </label>
             </div>
           </div>
 
