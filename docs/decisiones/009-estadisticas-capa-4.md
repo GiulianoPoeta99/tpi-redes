@@ -22,3 +22,12 @@ Implementar cálculo de métricas en el cliente TCP y visualización en tiempo r
 
 ## Justificación
 Provee feedback inmediato sobre la "salud" de la conexión y la velocidad real de transferencia, diferenciando entre velocidad teórica y real.
+
+## Evolución: Dashboard de Estadísticas (Fase 2)
+Para la entrega final, se evolucionó el concepto de `StatsPanel` a un **Dashboard Completo** (`StatsModal.tsx`).
+
+### Características
+1.  **Historial de Sesión:** Lista de todas las transferencias realizadas durante la sesión actual con sus métricas individuales.
+2.  **Gráfico de Área:** Visualización de la velocidad de transferencia (Throughput) a lo largo del tiempo para cada archivo, permitiendo comparar el rendimiento visualmente.
+3.  **KPI Cards:** Tarjetas de impacto visual para métricas globales (Total Bytes, Tiempo Activo, Velocidad Promedio).
+4.  **Tooltips Interactivos:** Inspección detallada de cada punto del gráfico (Archivo, Velocidad, Tamaño).

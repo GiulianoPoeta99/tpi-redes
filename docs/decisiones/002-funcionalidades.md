@@ -46,3 +46,17 @@ Estas funcionalidades están orientadas a demostrar un dominio profundo de conce
     *   Botón "Escanear Red" que envía un broadcast UDP para encontrar otros nodos activos sin necesidad de ingresar IPs manualmente.
 6.  **Inspección de Flujo estilo Wireshark:**
     *   Interfaz dedicada para ver la secuencia completa de la conversación (Handshake SYN/ACK, Transferencia, FIN) de forma legible y estructurada.
+
+### Experiencia de Usuario (Premium)
+7.  **Transferencia de Múltiples Archivos (Batch):**
+    *   Soporte para seleccionar y enviar múltiples archivos secuencialmente.
+    *   Cola de archivos visual con estado por item.
+8.  **Historial de Transferencias Persistente:**
+    *   Registro local de archivos enviados y recibidos.
+    *   Persistencia entre sesiones.
+9.  **Panel de Estadísticas Avanzado:**
+    *   Dashboard dedicado con gráficos de throughput históricos.
+    *   Tarjetas de KPI (Bytes, Tiempo, Velocidad Promedio).
+10. **Configuración Avanzada de Transmisión:**
+    *   Selector de tamaño de chunk (Buffer Size) de 1KB a 64KB.
+    *   Slider de delay artificial para simular latencia.

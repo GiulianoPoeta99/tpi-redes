@@ -50,5 +50,23 @@ Una funcionalidad avanzada para probar la robustez del sistema. La aplicación p
 ### 4.7. Auto-Descubrimiento (UDP Broadcast)
 Para mejorar la usabilidad, se implementó un sistema de descubrimiento automático. Los nodos envían un mensaje de difusión (Broadcast) a toda la red local preguntando "¿Quién está activo?". Los servidores responden, permitiendo al cliente encontrarlos sin necesidad de conocer sus direcciones IP previamente.
 
-## 5. Conclusión
+## 6. Estado Actual del Proyecto (Fase Final)
+El proyecto ha completado todas las fases de desarrollo planificadas, incorporando mejoras significativas en la experiencia de usuario y capacidades de análisis.
+
+### 6.1. Panel de Control "Premium"
+Se rediseñó la interfaz del transmisor para soportar la carga de múltiples archivos mediante **Drag & Drop** y una gestión visual de la cola de envío. La interfaz ahora incluye controles finos para el tamaño del buffer (Chunk Size) y latencia simulada.
+
+![Transmitter View Screenshot](./screenshots/transmitter_view_final.png)
+*Figura 1: Vista del Transmisor con Transferencia por Lotes y Selector de Chunk Size.*
+
+### 6.2. Dashboard de Estadísticas
+Se implementó un Dashboard integral que reemplaza a los paneles simples. Este permite analizar el rendimiento histórico de la sesión, visualizando la velocidad de transferencia con gráficos interactivos y métricas clave.
+
+![Stats Dashboard Screenshot](./screenshots/stats_dashboard_final.png)
+*Figura 2: Dashboard de Estadísticas con Gráfico de Throughput.*
+
+### 6.3. Historial Persistente
+La aplicación ahora "recuerda" la actividad pasada. Un sistema de almacenamiento local guarda el registro de todas las operaciones (Enviado, Recibido, Cancelado), accesible desde un modal de historial dedicado.
+
+## 7. Conclusión
 El proyecto cumple con el objetivo de demostrar no solo la transmisión de datos, sino toda la complejidad subyacente de las redes modernas: desde el establecimiento de conexión hasta la seguridad e integridad de la información.

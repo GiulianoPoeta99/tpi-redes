@@ -14,7 +14,12 @@ A robust, educational File Transfer Application built to demonstrate Networking 
 - **Sliding Window Visualizer:** Real-time graph of TCP Flow Control (Window Size, ACKs).
 - **Layer 4 Statistics:** Live metrics for RTT (Round Trip Time) and Throughput.
 - **MITM Attack Simulation:** Proxy server to intercept traffic and simulate data corruption (Bit Flipping) to test integrity checks.
-- **Auto-Discovery:** UDP Broadcast to automatically find peers on the local network.
+### Premium Experience
+- **Batch Transfer:** Drag & Drop multiple files and send them sequentially.
+- **Configurable Chunk Size:** Optimize performance by selecting buffer size (1KB - 64KB).
+- **Latency Simulation:** Add artificial delay to test network conditions.
+- **Advanced Dashboard:** Visualize historical throughput with interactive charts and KPIs.
+- **Persistent History:** Keep track of all your transfers across sessions.
 
 ## 🛠️ Tech Stack
 - **Frontend:** React (Vite), TypeScript, Tailwind CSS, Electron.
