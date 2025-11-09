@@ -48,7 +48,7 @@ const PacketTable: React.FC = () => {
   return (
     <div className="flex flex-col h-full w-full bg-transparent overflow-hidden text-xs font-mono">
       <div className="flex justify-between items-center p-2 bg-gray-800 border-b border-gray-700">
-        <span className="font-semibold text-gray-300">Packet Capture</span>
+        <span className="font-semibold text-gray-300">Packet Capture ({packets.length})</span>
         <div className="flex gap-2">
           <button
             type="button"
@@ -105,8 +105,8 @@ const PacketTable: React.FC = () => {
             <tr className="bg-gray-800 text-gray-400 text-left">
               <th className="p-2 w-12 border-b border-gray-700 bg-gray-800">No.</th>
               <th className="p-2 w-24 border-b border-gray-700 bg-gray-800">Time</th>
-              <th className="p-2 w-32 border-b border-gray-700 bg-gray-800">Source</th>
-              <th className="p-2 w-32 border-b border-gray-700 bg-gray-800">Destination</th>
+              <th className="p-2 w-48 border-b border-gray-700 bg-gray-800">Source</th>
+              <th className="p-2 w-48 border-b border-gray-700 bg-gray-800">Destination</th>
               <th className="p-2 w-16 border-b border-gray-700 bg-gray-800">Proto</th>
               <th className="p-2 w-16 border-b border-gray-700 bg-gray-800">Len</th>
               <th className="p-2 border-b border-gray-700 bg-gray-800">Info</th>
@@ -116,8 +116,12 @@ const PacketTable: React.FC = () => {
             <>
               <td className="p-1 px-2 text-gray-500">{index + 1}</td>
               <td className="p-1 px-2 text-gray-400">{formatTime(pkt.timestamp)}</td>
-              <td className="p-1 px-2 text-blue-300">{pkt.src}</td>
-              <td className="p-1 px-2 text-purple-300">{pkt.dst}</td>
+              <td className="p-1 px-2 text-blue-300 truncate" title={pkt.src}>
+                {pkt.src}
+              </td>
+              <td className="p-1 px-2 text-purple-300 truncate" title={pkt.dst}>
+                {pkt.dst}
+              </td>
               <td className="p-1 px-2 font-bold text-gray-300">{pkt.protocol}</td>
               <td className="p-1 px-2 text-gray-400">{pkt.length}</td>
               <td className="p-1 px-2 text-gray-300 truncate max-w-md" title={pkt.info}>

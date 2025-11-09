@@ -38,4 +38,10 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener('packet-capture', subscription);
   },
   getFilePath: (file: File) => webUtils.getPathForFile(file),
+  // File System
+  getDownloadsDir: () => ipcRenderer.invoke('get-downloads-dir'),
+  listFiles: (path: string) => ipcRenderer.invoke('list-files', path),
+  openPath: (path: string) => ipcRenderer.invoke('open-path', path),
+  openFolder: (path: string) => ipcRenderer.invoke('open-folder', path),
+  verifyFile: (path: string) => ipcRenderer.invoke('verify-file', path),
 });

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .base import BaseServer
+from .packet_logger import PacketLogger
 from .protocol import Header, ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
@@ -36,6 +37,15 @@ class UDPServer(BaseServer):
             try:
                 while True:
                     data, addr = self.sock.recvfrom(65535)  # Max UDP size
+
+                    # App-Level Log
+                    local_ip, local_port = self.sock.getsockname()
+                    PacketLogger.emit_packet(
+                        addr[0], addr[1], local_ip, local_port, "UDP",
+                        f"UDP Datagram Len={len(data)}",
+                        size=len(data),
+                    )
+
                     self.process_datagram(data, addr)
             except KeyboardInterrupt:
                 logger.info("Server stopping...")
@@ -112,6 +122,12 @@ class UDPServer(BaseServer):
                 )
 
                 if session.received_bytes >= session.header.file_size:  # type: ignore
+                    # Save hash file for verification
+                    if session.file_hash and session.file_path:
+                        hash_path = Path(f"{session.file_path}.sha256")
+                        with open(hash_path, "w") as f:
+                            f.write(session.file_hash)
+
                     logger.info(f"[{addr}] Transfer complete: {session.filename}")
                     del self.sessions[addr]
 

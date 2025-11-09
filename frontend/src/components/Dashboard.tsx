@@ -1,10 +1,11 @@
-import { Clock } from 'lucide-react';
+import { Clock, Folder } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { AppStats } from '../services/StorageService';
 import { StorageService } from '../services/StorageService';
 import HistoryModal from './HistoryModal';
 import MitmView from './MitmView';
+import { ReceivedFilesModal } from './ReceivedFilesModal';
 import ReceiverView from './ReceiverView';
 import SnifferLog from './SnifferLog';
 import StatsPanel from './StatsPanel';
@@ -19,6 +20,7 @@ const Dashboard: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [isBusy, setIsBusy] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showFiles, setShowFiles] = useState(false);
 
   const addToast = useCallback(
     (type: 'success' | 'error' | 'info', title: string, description?: string) => {
@@ -126,6 +128,7 @@ const Dashboard: React.FC = () => {
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans relative">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
+      <ReceivedFilesModal isOpen={showFiles} onClose={() => setShowFiles(false)} />
       {/* Sidebar / Stats Area (Left or Right? User said "no side menu", but "stats in dashboard")
                 User said: "packt sniffer and statistics should be in the dashboard... not side menu"
                 Implying they should be visible widgets.
@@ -161,6 +164,15 @@ const Dashboard: React.FC = () => {
                 </button>
               ))}
             </div>
+
+            <button
+              onClick={() => setShowFiles(true)}
+              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full transition-colors"
+              title="Received Files Explorer"
+              type="button"
+            >
+              <Folder size={20} />
+            </button>
 
             <button
               type="button"

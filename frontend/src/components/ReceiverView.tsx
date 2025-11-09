@@ -85,42 +85,56 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
   return (
     <div className="h-full flex flex-col relative">
       {/* Control Bar */}
-      <div className="flex items-end gap-4 mb-8">
-        <div className="flex-1">
-          <span className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-            Protocol
-          </span>
-          <div className="flex bg-gray-900 rounded-lg p-1">
-            {['tcp', 'udp'].map((p) => (
-              <button
-                type="button"
-                key={p}
-                onClick={() => setProtocol(p as 'tcp' | 'udp')}
-                className={`flex-1 py-2 text-sm rounded ${protocol === p ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-white'}`}
-              >
-                {p.toUpperCase()}
-              </button>
-            ))}
+      <div className="mb-6 px-1">
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          <div>
+            <span className="block text-xs font-bold text-gray-500 mb-2 uppercase">Protocol</span>
+            <div className="flex bg-gray-900 p-1 rounded-lg">
+              {['tcp', 'udp'].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setProtocol(p as 'tcp' | 'udp')}
+                  className={`flex-1 py-1.5 text-sm rounded font-medium transition-all ${
+                    protocol === p
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  {p.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
+              Port
+              <input
+                type="number"
+                value={port}
+                onChange={(e) => setPort(Number(e.target.value))}
+                className="w-full bg-gray-900 border border-gray-700 p-3 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all mt-1"
+              />
+            </label>
           </div>
         </div>
-        <div className="flex-1">
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-            Port
-            <input
-              type="number"
-              value={port}
-              onChange={(e) => setPort(Number(e.target.value))}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 outline-none mt-1"
-            />
-          </label>
+
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={toggleServer}
+            className={`w-full py-4 font-bold rounded-xl shadow-xl transition-all
+                ${
+                  isConnected
+                    ? 'bg-red-600 hover:bg-red-500 text-white'
+                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.01] hover:shadow-blue-900/20 text-white'
+                }
+            `}
+          >
+            {isConnected ? 'STOP SERVER' : 'START SERVER'}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={toggleServer}
-          className={`flex-1 py-2.5 rounded-lg font-bold text-sm shadow-lg transition-all ${isConnected ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500 hover:-translate-y-0.5'}`}
-        >
-          {isConnected ? 'STOP SERVER' : 'START SERVER'}
-        </button>
       </div>
 
       {/* Main Visual / Status Area */}

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .base import BaseServer
+from .packet_logger import PacketLogger
 from .protocol import ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
@@ -24,6 +25,21 @@ class TCPServer(BaseServer):
                     conn, addr = s.accept()
                     with conn:
                         logger.info(f"Connected by {addr}")
+                        # App-Level Packet Log
+                        client_ip, client_port = addr
+                        local_ip, local_port = conn.getsockname()
+                        PacketLogger.emit_packet(
+                            client_ip,
+                            client_port,
+                            local_ip,
+                            local_port,
+                            "TCP",
+                            "Connection Established (App-Level)",
+                            flags="S",
+                            seq=0,
+                            ack=0,
+                        )
+                        PacketLogger.flush()
                         self.handle_client(conn, addr)
             except KeyboardInterrupt:
                 logger.info("Server stopping...")
@@ -77,6 +93,22 @@ class TCPServer(BaseServer):
                         f.write(chunk)
                         received_bytes += len(chunk)
 
+                        # App-Level Packet Log
+                        client_ip, client_port = addr
+                        local_ip, local_port = conn.getsockname()
+                        PacketLogger.emit_packet(
+                            client_ip,
+                            client_port,
+                            local_ip,
+                            local_port,
+                            "TCP",
+                            f"Data Segment (App-Level) Len={len(chunk)}",
+                            size=len(chunk),
+                            flags="PA",
+                            seq=received_bytes,
+                            ack=0,
+                        )
+
                         # Emit progress (optional: throttle this if too frequent)
                         # For now only start/end to keep it simple, or every 1MB?
                         # Let's emit every chunk for local smoothing,
@@ -99,6 +131,11 @@ class TCPServer(BaseServer):
                                 ),
                                 flush=True,
                             )
+
+                # Save hash file for verification
+                hash_path = Path(f"{save_path}.sha256")
+                with open(hash_path, "w") as f:
+                    f.write(file_hash)
 
                 logger.info(f"File '{filename}' received successfully.")
                 print(

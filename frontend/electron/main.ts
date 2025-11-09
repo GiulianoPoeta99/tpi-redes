@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 
 const require = createRequire(import.meta.url);
 
@@ -165,6 +167,73 @@ ipcMain.handle('get-local-ip', () => {
     }
   }
   return '127.0.0.1';
+});
+
+// File Explorer IPCs
+ipcMain.handle('get-downloads-dir', () => {
+  return path.resolve(__dirname, '../../backend/received_files');
+});
+
+ipcMain.handle('list-files', async (_event, dirPath) => {
+  try {
+    if (!fs.existsSync(dirPath)) return [];
+    const files = await fs.promises.readdir(dirPath);
+    const stats = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const fullPath = path.join(dirPath, file);
+          const stat = await fs.promises.stat(fullPath);
+          if (stat.isFile() && !file.endsWith('.sha256')) {
+            return {
+              name: file,
+              size: stat.size,
+              mtime: stat.mtimeMs,
+              path: fullPath,
+            };
+          }
+        } catch {
+          return null;
+        }
+        return null;
+      }),
+    );
+    return stats.filter(Boolean);
+  } catch (e) {
+    console.error('List files error:', e);
+    return [];
+  }
+});
+
+ipcMain.handle('open-path', async (_event, filePath) => {
+  await shell.openPath(filePath);
+});
+
+ipcMain.handle('open-folder', async (_event, filePath) => {
+  shell.showItemInFolder(filePath);
+});
+
+// biome-ignore lint/suspicious/noExplicitAny: error handling
+ipcMain.handle('verify-file', async (_event, filePath) => {
+  try {
+    const hashFile = `${filePath}.sha256`;
+    if (!fs.existsSync(hashFile)) return { valid: false, error: 'No .sha256 file found' };
+
+    const expectedHash = (await fs.promises.readFile(hashFile, 'utf8')).trim();
+
+    // Calculate actual hash
+    const fileBuffer = await fs.promises.readFile(filePath);
+    const hashSum = crypto.createHash('sha256');
+    hashSum.update(fileBuffer);
+    const actualHash = hashSum.digest('hex');
+
+    return {
+      valid: actualHash === expectedHash,
+      actual: actualHash,
+      expected: expectedHash,
+    };
+  } catch (e: any) {
+    return { valid: false, error: e.message };
+  }
 });
 
 function spawnPythonProcess(args: string[]) {

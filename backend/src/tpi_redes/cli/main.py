@@ -102,8 +102,8 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
         if sniff:
             from tpi_redes.networking.sniffer import PacketSniffer
 
-            # Use default interface if not specified (None lets Scapy choose)
-            sniffer = PacketSniffer(interface=None, port=port)
+            # Use "any" to capture all interfaces (Linux)
+            sniffer = PacketSniffer(interface="any", port=port)
             sniffer.start()
 
         # Start Discovery Service Listener

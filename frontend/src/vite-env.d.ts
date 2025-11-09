@@ -20,5 +20,14 @@ interface Window {
     // biome-ignore lint/suspicious/noExplicitAny: API signature
     onPacketCapture: (callback: (data: any) => void) => () => void;
     getLocalIp: () => Promise<string>;
+    getDownloadsDir: () => Promise<string>;
+    listFiles: (
+      path: string,
+    ) => Promise<{ name: string; size: number; mtime: number; path: string }[]>;
+    openPath: (path: string) => Promise<void>;
+    openFolder: (path: string) => Promise<void>;
+    verifyFile: (
+      path: string,
+    ) => Promise<{ valid: boolean; error?: string; actual?: string; expected?: string }>;
   };
 }
