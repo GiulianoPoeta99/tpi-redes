@@ -96,11 +96,29 @@ const Dashboard: React.FC = () => {
       }
     });
 
+    // Packet Listener for Real-time Stats
+    const cleanupPackets = window.api.onPacketCapture((packet) => {
+      setStats((prev) => {
+        const isRx = mode === 'receiver';
+        const isTx = mode === 'transmitter';
+
+        const updated = {
+          ...prev,
+          totalReceived: isRx ? prev.totalReceived + 1 : prev.totalReceived,
+          bytesReceived: isRx ? prev.bytesReceived + packet.length : prev.bytesReceived,
+          totalSent: isTx ? prev.totalSent + 1 : prev.totalSent,
+          bytesSent: isTx ? prev.bytesSent + packet.length : prev.bytesSent,
+        };
+        return updated;
+      });
+    });
+
     return () => {
       cleanupStats?.();
       cleanupLog?.();
+      cleanupPackets?.();
     };
-  }, [addToast]);
+  }, [addToast, mode]);
 
   // Switching modes should hard-kill previous process to free ports
   const handleModeSwitch = async (newMode: 'receiver' | 'transmitter' | 'mitm') => {

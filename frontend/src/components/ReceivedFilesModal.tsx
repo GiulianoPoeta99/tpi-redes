@@ -288,6 +288,7 @@ export const ReceivedFilesModal: React.FC<ReceivedFilesModalProps> = ({ isOpen, 
                                 ) : (
                                   <ShieldCheck size={14} />
                                 )}
+                                <span>Verify</span>
                               </button>
                             )}
 
