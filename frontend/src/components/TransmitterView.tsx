@@ -1,10 +1,14 @@
-import { Check, ChevronDown, FileText, List, Plus, Search, X } from 'lucide-react';
+import { Check, ChevronDown, FileText, List, Plus, Search, X, Send, Radio, Settings } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { StorageService } from '../services/StorageService';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
+import GradientCard from './common/GradientCard';
+import GlassCard from './common/GlassCard';
+import InputGroup from './common/InputGroup';
+import ProtocolToggle from './common/ProtocolToggle';
 
 interface TransmitterViewProps {
   setBusy: (busy: boolean) => void;
@@ -290,7 +294,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
     outerCircumference - (smoothBatchPercent / 100) * outerCircumference;
 
   return (
-    <div className="h-full flex flex-col relative overflow-hidden">
+    <div className="h-full flex flex-col gap-6 relative overflow-hidden">
       <StatsModal
         isOpen={showStats}
         onClose={() => setShowStats(false)}
@@ -320,216 +324,226 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         error={scanError}
       />
 
-      {/* CONTENT SWITCHER */}
+      {/* HEADER CARD */}
+      <GradientCard 
+        title="Transmitter Mode"
+        description="Send files to another node. Configure destination, protocol, and payload below."
+        icon={Send}
+        variant="blue"
+      >
+         <div className={`px-4 py-2 rounded-lg border flex items-center gap-2 ${status === 'sending' ? 'bg-blue-500/20 border-blue-500 text-blue-400 animate-pulse' : 'bg-gray-800 border-gray-700 text-gray-400'}`}>
+            <Radio size={18} />
+            <span className="font-mono font-bold text-sm">
+                {status === 'sending' ? 'TRANSMITTING' : 'IDLE'}
+            </span>
+         </div>
+      </GradientCard>
+
+      {/* MAIN LAYOUT */}
       {status === 'idle' && (
-        <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto pb-6 px-1">
-          {/* FORM */}
-          <div className="grid grid-cols-2 gap-6 mb-6 mt-1">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
-                Destination IP
-                <div className="flex gap-2 mt-1">
-                  <input
-                    value={ip}
-                    onChange={(e) => setIp(e.target.value)}
-                    className="flex-1 bg-gray-900 border border-gray-700 p-3 rounded-lg text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                    placeholder="e.g. 192.168.1.5"
-                  />
-                  <button
-                    type="button"
-                    onClick={openScan}
-                    className="bg-gray-800 hover:bg-gray-700 text-blue-400 p-3 rounded-lg border border-gray-700 transition-colors"
-                  >
-                    <Search size={20} />
-                  </button>
-                </div>
-              </label>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
-                Destination Port
-                <input
-                  type="number"
-                  value={port}
-                  onChange={(e) => setPort(Number(e.target.value))}
-                  className="w-full bg-gray-900 border border-gray-700 p-3 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all mt-1"
-                />
-              </label>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0 overflow-y-auto pb-2">
+            
+            {/* CONFIG COLUMN */}
+            <div className="flex flex-col gap-6">
+                <GlassCard title="Network Configuration" icon={Settings}>
+                     <div className="space-y-6">
+                        <InputGroup label="Target Config" indicatorColor="bg-blue-500">
+                             <div className="flex-1">
+                                <span className="text-xs text-gray-400 block mb-1">Destination IP</span>
+                                <div className="flex gap-2">
+                                  <input
+                                    value={ip}
+                                    onChange={(e) => setIp(e.target.value)}
+                                    className="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-600"
+                                    placeholder="e.g. 192.168.1.5"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={openScan}
+                                    className="bg-gray-700 hover:bg-gray-600 text-blue-400 p-2 rounded-lg border border-gray-600 transition-colors"
+                                    title="Scan Network"
+                                  >
+                                    <Search size={20} />
+                                  </button>
+                                </div>
+                             </div>
+                        </InputGroup>
 
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            <div>
-              <span className="block text-xs font-bold text-gray-500 mb-2 uppercase">Protocol</span>
-              <div className="flex bg-gray-900 p-1 rounded-lg">
-                {['tcp', 'udp'].map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setProtocol(p as any)}
-                    className={`flex-1 py-1.5 text-sm rounded font-medium transition-all ${
-                      protocol === p
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'text-gray-400 hover:text-gray-200'
-                    }`}
-                  >
-                    {p.toUpperCase()}
-                  </button>
-                ))}
-              </div>
+                        <InputGroup label="Port & Protocol">
+                             <div className="flex-1">
+                                <span className="text-xs text-gray-400 block mb-1">Port</span>
+                                <input
+                                  type="number"
+                                  value={port}
+                                  onChange={(e) => setPort(Number(e.target.value))}
+                                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                                />
+                             </div>
+                             <ProtocolToggle protocol={protocol} onChange={setProtocol} />
+                        </InputGroup>
+                     </div>
+                </GlassCard>
+
+                <GlassCard title="Advanced Options" icon={Settings} className="flex-1">
+                     <div className="space-y-6">
+                         <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+                             <div className="flex justify-between items-end mb-2">
+                                <label htmlFor="delay-slider" className="text-xs font-bold text-gray-500 uppercase">Transmission Delay</label>
+                                <span className="text-blue-400 font-mono font-bold text-sm">{delay} ms</span>
+                             </div>
+                             <input
+                               id="delay-slider"
+                               type="range"
+                               min="0"
+                               max="1000"
+                               step="10"
+                               value={delay}
+                               onChange={(e) => setDelay(Number(e.target.value))}
+                               className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                             />
+                         </div>
+
+                        <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+                            <label className="block text-xs font-bold text-gray-500 mb-2 uppercase relative">
+                                Chunk Size
+                                <div className="relative mt-2">
+                                <select
+                                    value={chunkSize}
+                                    onChange={(e) => setChunkSize(Number(e.target.value))}
+                                    className="w-full bg-gray-800 border border-gray-600 p-2 rounded-lg text-white appearance-none cursor-pointer pr-10 hover:bg-gray-700 focus:border-blue-500 outline-none"
+                                >
+                                    <option value={1024}>1 KB</option>
+                                    <option value={4096}>4 KB (Default)</option>
+                                    <option value={8192}>8 KB</option>
+                                    <option value={16384}>16 KB</option>
+                                    <option value={32768}>32 KB</option>
+                                    <option value={65536}>64 KB</option>
+                                </select>
+                                <ChevronDown
+                                    size={16}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                                />
+                                </div>
+                            </label>
+                        </div>
+                     </div>
+                </GlassCard>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-2 uppercase relative">
-                Chunk Size
-                <div className="relative mt-1">
-                  <select
-                    value={chunkSize}
-                    onChange={(e) => setChunkSize(Number(e.target.value))}
-                    className="w-full bg-gray-900 border border-gray-700 p-3 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer pr-10 hover:bg-gray-800"
-                  >
-                    <option value={1024}>1 KB</option>
-                    <option value={4096}>4 KB (Default)</option>
-                    <option value={8192}>8 KB</option>
-                    <option value={16384}>16 KB</option>
-                    <option value={32768}>32 KB</option>
-                    <option value={65536}>64 KB</option>
-                  </select>
-                  <ChevronDown
-                    size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  />
-                </div>
-              </label>
+            {/* PAYLOAD COLUMN */}
+            <div className="flex flex-col gap-6">
+                 <GlassCard title="Payload Configuration" icon={FileText} className="flex-1">
+                      {/* DROP ZONE */}
+                      {/* biome-ignore lint/a11y/useSemanticElements: Cannot use button because it contains nested buttons */}
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            if (files.length === 0) fileInputRef.current?.click();
+                        }
+                        }}
+                        onClick={() => files.length === 0 && fileInputRef.current?.click()}
+                        onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.dataTransfer.dropEffect = 'copy';
+                        setIsDragging(true);
+                        }}
+                        onDragLeave={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                        setIsDragging(false);
+                        }}
+                        onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsDragging(false);
+                        const paths = Array.from(e.dataTransfer.files)
+                            .map((f) => window.api.getFilePath(f))
+                            .filter(Boolean) as string[];
+                        addFiles(paths);
+                        }}
+                        className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all group min-h-[300px] relative cursor-pointer
+                                    ${isDragging ? 'bg-blue-900/20 border-blue-500' : 'bg-gray-900/20 border-gray-700 hover:border-blue-500/50 hover:bg-gray-800/50'}
+                                `}
+                      >
+                        {files.length > 0 ? (
+                        <div className="text-center w-full">
+                            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400 group-hover:scale-110 transition-transform">
+                                <FileText size={32} />
+                            </div>
+                            <p className="font-medium text-white text-xl mb-1">
+                                {files.length} {files.length === 1 ? 'file' : 'files'} selected
+                            </p>
+                            <p className="text-sm text-gray-500 mb-6">Ready to transmit</p>
+                            
+                            <div className="flex justify-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsQueueOpen(true);
+                                    }}
+                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-200 flex items-center gap-2 transition-colors border border-gray-700"
+                                >
+                                    <List size={16} /> View List
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                    e.stopPropagation();
+                                    fileInputRef.current?.click();
+                                    }}
+                                    className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-sm font-medium text-blue-300 flex items-center gap-2 transition-colors border border-blue-500/30"
+                                >
+                                    <Plus size={16} /> Add More
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFiles([]);
+                                    }}
+                                    className="px-4 py-2 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-sm font-medium text-red-300 flex items-center gap-2 transition-colors border border-red-500/30"
+                                >
+                                    <X size={16} /> Clear
+                                </button>
+                            </div>
+                        </div>
+                        ) : (
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
+                                <Plus size={32} />
+                            </div>
+                            <p className="text-gray-300 mb-1 text-lg font-medium">Drag & Drop files here</p>
+                            <p className="text-sm text-gray-500">or click to browse local storage</p>
+                        </div>
+                        )}
+                      </div>
+
+                      <div className="mt-6">
+                        <button
+                        type="button"
+                        onClick={startBatch}
+                        disabled={!isValid}
+                        className={`w-full py-4 font-bold rounded-xl shadow-xl transition-all flex items-center justify-center gap-2
+                                        ${
+                                        isValid
+                                            ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
+                                            : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                        }
+                                    `}
+                        >
+                           <Send size={20} />
+                           SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
+                        </button>
+                      </div>
+                 </GlassCard>
             </div>
-          </div>
 
-          <div className="mb-6">
-            <label
-              htmlFor="delay-slider"
-              className="block text-xs font-bold text-gray-500 mb-2 uppercase flex justify-between"
-            >
-              <span>Transmission Delay</span>
-              <span className="text-blue-400">{delay} ms</span>
-            </label>
-            <input
-              id="delay-slider"
-              type="range"
-              min="0"
-              max="1000"
-              step="10"
-              value={delay}
-              onChange={(e) => setDelay(Number(e.target.value))}
-              className="w-full h-2 bg-gray-900 rounded-lg appearance-none cursor-pointer border border-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:hover:scale-110"
-            />
-            <div className="flex justify-between text-xs text-gray-600 mt-1 font-mono">
-              <span>0ms (Fastest)</span>
-              <span>1000ms (Slow)</span>
-            </div>
-          </div>
-
-          {/* DROP ZONE */}
-          {/* biome-ignore lint/a11y/useSemanticElements: Cannot use button because it contains nested buttons */}
-          <div
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (files.length === 0) fileInputRef.current?.click();
-              }
-            }}
-            onClick={() => files.length === 0 && fileInputRef.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.dataTransfer.dropEffect = 'copy';
-              setIsDragging(true);
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-              setIsDragging(false);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsDragging(false);
-              const paths = Array.from(e.dataTransfer.files)
-                .map((f) => window.api.getFilePath(f))
-                .filter(Boolean) as string[];
-              addFiles(paths);
-            }}
-            className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all group min-h-[160px] relative cursor-pointer
-                        ${isDragging ? 'bg-blue-900/20 border-blue-500' : 'bg-gray-900/20 border-gray-700 hover:border-gray-500 hover:bg-gray-800/50'}
-                    `}
-          >
-            {files.length > 0 ? (
-              <div className="text-center w-full">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-400 group-hover:scale-110 transition-transform">
-                  <FileText size={24} />
-                </div>
-                <p className="font-medium text-white text-lg">
-                  {files.length} {files.length === 1 ? 'file' : 'files'} selected
-                </p>
-                <div className="flex justify-center gap-3 mt-4">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsQueueOpen(true);
-                    }}
-                    className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-md text-xs font-medium text-gray-200 flex items-center gap-2 transition-colors cursor-pointer border-none"
-                  >
-                    <List size={14} /> View List
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      fileInputRef.current?.click();
-                    }}
-                    className="px-3 py-1.5 bg-blue-900/30 hover:bg-blue-900/50 rounded-md text-xs font-medium text-blue-300 flex items-center gap-2 transition-colors cursor-pointer border-none"
-                  >
-                    <Plus size={14} /> Add More
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFiles([]);
-                    }}
-                    className="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/50 rounded-md text-xs font-medium text-red-300 flex items-center gap-2 transition-colors cursor-pointer border-none"
-                  >
-                    <X size={14} /> Clear
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-gray-400 mb-1 text-sm">Drag & Drop files here</p>
-                <p className="text-[10px] text-gray-600">or click to browse</p>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={startBatch}
-              disabled={!isValid}
-              className={`w-full py-4 font-bold rounded-xl shadow-xl transition-all
-                            ${
-                              isValid
-                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.01] hover:shadow-blue-900/20 text-white'
-                                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                            }
-                        `}
-            >
-              SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
-            </button>
-          </div>
         </div>
       )}
 

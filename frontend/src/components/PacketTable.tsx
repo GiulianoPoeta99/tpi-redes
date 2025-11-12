@@ -1,8 +1,7 @@
 import type React from 'react';
-import { useEffect, useState } from 'react';
 import { TableVirtuoso } from 'react-virtuoso';
 
-interface Packet {
+export interface Packet {
   type: string;
   timestamp: number;
   src: string;
@@ -15,18 +14,11 @@ interface Packet {
   ack: number;
 }
 
-const PacketTable: React.FC = () => {
-  const [packets, setPackets] = useState<Packet[]>([]);
-  const [paused, setPaused] = useState(false);
+interface PacketTableProps {
+  packets: Packet[];
+}
 
-  useEffect(() => {
-    window.api.onPacketCapture((packet) => {
-      if (!paused) {
-        setPackets((prev) => [...prev, packet]);
-      }
-    });
-  }, [paused]);
-
+const PacketTable: React.FC<PacketTableProps> = ({ packets }) => {
   const getRowClass = (pkt: Packet) => {
     if (pkt.protocol === 'TCP') {
       if (pkt.flags.includes('S')) return 'bg-green-900/30 text-green-200'; // SYN
@@ -47,60 +39,10 @@ const PacketTable: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full bg-transparent overflow-hidden text-xs font-mono">
-      <div className="flex justify-between items-center p-2 bg-gray-800 border-b border-gray-700">
-        <span className="font-semibold text-gray-300">Packet Capture ({packets.length})</span>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPackets([])}
-            className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
-            title="Clear"
-          >
-            <svg
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaused(!paused)}
-            className={`p-1 rounded ${paused ? 'bg-red-900/50 text-red-200' : 'hover:bg-gray-700 text-gray-400 hover:text-white'}`}
-            title={paused ? 'Resume Auto-Scroll' : 'Pause Auto-Scroll'}
-          >
-            <svg
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-
       <div className="flex-1 overflow-hidden bg-gray-900/50">
         <TableVirtuoso
           data={packets}
-          followOutput={paused ? false : 'auto'}
+          followOutput={'auto'}
           fixedHeaderContent={() => (
             <tr className="bg-gray-800 text-gray-400 text-left">
               <th className="p-2 w-12 border-b border-gray-700 bg-gray-800">No.</th>

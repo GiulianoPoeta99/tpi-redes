@@ -6,10 +6,10 @@ import {
   FileText,
   History,
   TrendingUp,
-  X,
 } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
+import BaseModal from './common/BaseModal';
 
 interface StatsModalProps {
   isOpen: boolean;
@@ -32,8 +32,6 @@ interface StatsModalProps {
 
 const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-  if (!isOpen) return null;
 
   // --- Derived Stats ---
   const totalFiles = history.length;
@@ -59,15 +57,12 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
   };
 
   // --- Chart Logic (SVG) ---
-  // We want a line/area chart.
-  // X Axis: Index 0 to history.length - 1
-  // Y Axis: Throughput 0 to maxThroughput
   const chartHeight = 350;
-  const chartWidth = 800; // flexible via viewBox
+  const chartWidth = 800;
   const padding = 20;
 
   const getX = (i: number) => {
-    if (history.length <= 1) return padding; // Handle single or no data points
+    if (history.length <= 1) return padding;
     return (i / (history.length - 1)) * (chartWidth - padding * 2) + padding;
   };
 
@@ -86,32 +81,18 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
     : '';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl w-full max-w-7xl h-[90vh] overflow-hidden flex flex-col">
-        {/* HEADER */}
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/50 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
-              <Activity size={20} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Transfer Analytics</h2>
-              <p className="text-xs text-gray-400">Real-time session performance metrics</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* MAIN CONTENT GRID */}
-        <div className="flex-1 overflow-hidden p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Transfer Analytics"
+      description="Real-time session performance metrics"
+      icon={Activity}
+      size="full"
+    >
+      <div className="flex flex-col h-full">
+        <div className="flex-1 overflow-hidden p-0 grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
           {/* LEFT COL: Summary Cards & Chart (Span 3 for width) */}
-          <div className="lg:col-span-3 flex flex-col gap-4 h-full">
+          <div className="lg:col-span-3 flex flex-col gap-4 h-full min-h-0">
             {/* KPI Cards (Compact Row) */}
             <div className="grid grid-cols-4 gap-4 shrink-0">
               <KpiCard
@@ -145,7 +126,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
             </div>
 
             {/* CHART SECTION (Expanded) */}
-            <div className="bg-gray-800/40 rounded-2xl p-4 border border-gray-700/50 flex-1 flex flex-col min-h-0">
+            <div className="bg-gray-800/40 rounded-2xl p-4 border border-gray-700/50 flex-1 flex flex-col min-h-0 relative">
               <div className="flex justify-between items-end mb-2 shrink-0">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                   <BarChart3 size={16} className="text-gray-400" />
@@ -390,7 +371,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
           </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 };
 

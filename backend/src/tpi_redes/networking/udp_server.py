@@ -41,7 +41,11 @@ class UDPServer(BaseServer):
                     # App-Level Log
                     local_ip, local_port = self.sock.getsockname()
                     PacketLogger.emit_packet(
-                        addr[0], addr[1], local_ip, local_port, "UDP",
+                        addr[0],
+                        addr[1],
+                        local_ip,
+                        local_port,
+                        "UDP",
                         f"UDP Datagram Len={len(data)}",
                         size=len(data),
                     )

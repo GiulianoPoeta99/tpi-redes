@@ -1,4 +1,6 @@
+import { Loader2, Monitor, Radio, Wifi } from 'lucide-react';
 import type React from 'react';
+import BaseModal from './common/BaseModal';
 
 interface Peer {
   ip: string;
@@ -23,79 +25,66 @@ const ScanModal: React.FC<ScanModalProps> = ({
   peers,
   error,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden relative animate-fade-in-up">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            {scanning ? <span className="animate-spin">⏳</span> : '📡'}
-            Discovering Peers
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            ✕
-          </button>
-        </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Discovering Peers"
+      description="Looking for devices broadcasting on port 37020 (UDP)"
+      icon={Radio}
+      size="sm"
+    >
+      <div className="min-h-[200px] flex flex-col">
+        {scanning && peers.length === 0 && (
+          <div className="flex flex-col items-center justify-center flex-1 py-8 text-gray-500 space-y-4">
+             <Loader2 size={32} className="text-blue-500 animate-spin" />
+            <p className="text-sm">Scanning local network...</p>
+          </div>
+        )}
 
-        {/* Content */}
-        <div className="p-4 min-h-[200px] max-h-[400px] overflow-y-auto">
-          {scanning && peers.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 text-gray-500 space-y-4">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm">Scanning local network (UDP Broadcast)...</p>
-            </div>
-          )}
+        {!scanning && peers.length === 0 && !error && (
+          <div className="text-center flex-1 flex flex-col items-center justify-center py-8 text-gray-500">
+            <Wifi size={48} className="mb-4 opacity-20" />
+            <p className="font-medium text-gray-300">No peers found</p>
+            <p className="text-xs mt-1 max-w-[200px]">Make sure receivers are running on the same network.</p>
+          </div>
+        )}
 
-          {!scanning && peers.length === 0 && !error && (
-            <div className="text-center py-10 text-gray-500">
-              <p className="text-4xl mb-2">🔭</p>
-              <p>No peers found.</p>
-              <p className="text-xs mt-2">Make sure receivers are running on the same network.</p>
-            </div>
-          )}
+        {error && (
+          <div className="bg-red-500/10 text-red-400 p-4 rounded-lg text-sm text-center border border-red-500/20 mb-4">
+            {error}
+          </div>
+        )}
 
-          {error && (
-            <div className="bg-red-900/20 text-red-400 p-4 rounded-lg text-sm text-center border border-red-500/20">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            {peers.map((peer, idx) => (
-              <button
-                type="button"
-                key={`${peer.ip}-${idx}`}
-                onClick={() => onSelect(peer)}
-                className="w-full text-left p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700 border border-gray-700 hover:border-blue-500 transition-all group"
-              >
-                <div className="flex justify-between items-center">
+        <div className="space-y-2">
+          {peers.map((peer, idx) => (
+            <button
+              type="button"
+              key={`${peer.ip}-${idx}`}
+              onClick={() => onSelect(peer)}
+              className="w-full text-left p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/80 border border-gray-700 hover:border-blue-500/50 transition-all group relative overflow-hidden"
+            >
+              <div className="flex justify-between items-center relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-700/50 rounded-lg text-blue-400">
+                    <Monitor size={18} />
+                  </div>
                   <div>
-                    <div className="font-mono font-bold text-blue-400 group-hover:text-blue-300">
+                    <div className="font-mono font-bold text-gray-200 group-hover:text-blue-400 transition-colors">
                       {peer.ip}
                     </div>
                     <div className="text-xs text-gray-500">Port: {peer.port}</div>
                   </div>
-                  <div className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs font-bold uppercase opacity-0 group-hover:opacity-100 transition-opacity">
-                    Select
-                  </div>
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 bg-gray-800/30 border-t border-gray-800 text-xs text-center text-gray-500">
-          Looking for devices broadcasting on port 37020 (UDP)
+                <div className="px-2 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                  Connect
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 };
 

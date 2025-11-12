@@ -3,6 +3,8 @@ import random
 import socket
 import threading
 
+from tpi_redes.networking.packet_logger import PacketLogger
+
 logger = logging.getLogger("tpi-redes")
 
 
@@ -71,9 +73,32 @@ class ProxyServer:
                     break
 
                 if corrupt and self.corruption_rate > 0:
+                    original_data = data
                     data = self.corrupt_data(data)
+                    info_tag = " [CORRUPTED]" if data != original_data else ""
+                else:
+                    info_tag = ""
 
                 destination.sendall(data)
+
+                # App-Level Log
+                try:
+                    src_ip, src_port = source.getpeername()
+                    dst_ip, dst_port = destination.getpeername()
+                    PacketLogger.emit_packet(
+                        src_ip,
+                        src_port,
+                        dst_ip,
+                        dst_port,
+                        "TCP",
+                        f"MITM Forward{info_tag} Len={len(data)}",
+                        size=len(data),
+                        flags="PA",
+                        seq=0,
+                        ack=0,
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
         finally:

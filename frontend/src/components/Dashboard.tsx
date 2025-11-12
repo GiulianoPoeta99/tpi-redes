@@ -205,39 +205,32 @@ const Dashboard: React.FC = () => {
 
         {/* Main Content Area - Grid Layout */}
         {/* Main Content Area - Split Layout */}
+        {/* Main Content Area - Split Layout */}
         <main className="flex-1 p-6 overflow-hidden flex gap-6">
-          {/* LEFT COLUMN: Modes + Stats */}
-          <div className="flex-1 flex flex-col gap-6 min-w-0">
-            {/* Primary Mode View (Occupies majority of left side) */}
-            <div className="flex-[3] bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden">
-              <div className="h-full overflow-auto">
+          {/* LEFT COLUMN: Modes (50%) */}
+          <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden flex flex-col">
+             <div className="h-full overflow-y-auto">
                 {mode === 'receiver' && <ReceiverView setBusy={setIsBusy} />}
                 {mode === 'transmitter' && (
                   <TransmitterView setBusy={setIsBusy} addToast={addToast} />
                 )}
                 {mode === 'mitm' && <MitmView setBusy={setIsBusy} />}
-              </div>
-            </div>
+             </div>
+          </div>
 
-            {/* Statistics Widget (Bottom of left side) */}
-            <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center">
+          {/* RIGHT COLUMN: Stats + Sniffer (50%) */}
+          <div className="flex-1 flex flex-col gap-6 min-w-0">
+            {/* Statistics Widget */}
+            <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center shrink-0">
               <h3 className="text-gray-400 text-sm font-semibold mb-2 uppercase tracking-wider">
                 Network Stats
               </h3>
               <StatsPanel stats={stats} />
             </div>
-          </div>
 
-          {/* RIGHT COLUMN: Packet Sniffer (Full Height) */}
-          <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col">
-            <div className="p-3 bg-gray-800/50 border-b border-gray-700 font-semibold text-sm text-gray-400 flex justify-between items-center">
-              <span>Packet Sniffer</span>
-              <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">
-                Live Capture
-              </span>
-            </div>
-            <div className="flex-1 overflow-auto p-0 relative">
-              <SnifferLog logs={logs} />
+            {/* Packet Sniffer */}
+            <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-0">
+               <SnifferLog logs={logs} />
             </div>
           </div>
         </main>
