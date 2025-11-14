@@ -62,11 +62,11 @@ const ScanModal: React.FC<ScanModalProps> = ({
               type="button"
               key={`${peer.ip}-${idx}`}
               onClick={() => onSelect(peer)}
-              className="w-full text-left p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/80 border border-gray-700 hover:border-blue-500/50 transition-all group relative overflow-hidden"
+              className="w-full text-left p-3 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-blue-500/50 transition-all group relative overflow-hidden"
             >
               <div className="flex justify-between items-center relative z-10">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-700/50 rounded-lg text-blue-400">
+                  <div className="p-2 bg-white/5 rounded-lg text-blue-400">
                     <Monitor size={18} />
                   </div>
                   <div>

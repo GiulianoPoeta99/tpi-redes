@@ -62,7 +62,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
           {history.map((item) => (
             <div
               key={item.id}
-              className="bg-gray-800/50 border border-gray-700/50 p-3 rounded-lg flex items-center justify-between hover:bg-gray-700/50 transition-colors"
+              className="bg-white/5 backdrop-blur-sm border border-white/10 p-3 rounded-lg flex items-center justify-between hover:bg-white/10 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div

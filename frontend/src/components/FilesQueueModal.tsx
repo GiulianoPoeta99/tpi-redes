@@ -25,7 +25,7 @@ const FilesQueueModal: React.FC<FilesQueueModalProps> = ({ isOpen, onClose, file
           files.map((file, i) => (
             <div
               key={file}
-              className="flex items-center justify-between p-3 rounded-lg bg-gray-800/30 border border-gray-700/50 hover:bg-gray-800 transition-colors group"
+              className="flex items-center justify-between p-3 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors group"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-gray-500 font-mono text-xs w-5 shrink-0 text-center">

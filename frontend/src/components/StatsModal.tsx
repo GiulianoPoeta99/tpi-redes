@@ -126,7 +126,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
             </div>
 
             {/* CHART SECTION (Expanded) */}
-            <div className="bg-gray-800/40 rounded-2xl p-4 border border-gray-700/50 flex-1 flex flex-col min-h-0 relative">
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 flex-1 flex flex-col min-h-0 relative">
               <div className="flex justify-between items-end mb-2 shrink-0">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                   <BarChart3 size={16} className="text-gray-400" />
@@ -138,7 +138,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
               </div>
 
               {/* Force Chart to Fill Remaining Space */}
-              <div className="relative flex-1 w-full bg-gray-900/50 rounded-xl border border-gray-800 overflow-hidden group min-h-0">
+              <div className="relative flex-1 w-full bg-black/20 rounded-xl border border-white/10 overflow-hidden group min-h-0">
                 {history.length > 1 ? (
                   <div className="relative w-full h-full">
                     <svg
@@ -258,7 +258,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
                     {/* TOOLTIP */}
                     {hoveredIndex !== null && history[hoveredIndex] && (
                       <div
-                        className="absolute pointer-events-none z-10 bg-gray-900/95 border border-gray-700 p-3 rounded-lg shadow-xl backdrop-blur-sm text-xs w-48 transition-all left-0"
+                        className="absolute pointer-events-none z-10 bg-gray-900/95 border border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-sm text-xs w-48 transition-all left-0"
                         style={{
                           top: '10%',
                           left: `clamp(10px, ${(getX(hoveredIndex) / chartWidth) * 100}%, calc(100% - 200px))`,
@@ -293,10 +293,10 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
             </div>
 
             {/* LAST TRANSFER HIGHLIGHT (Slim Horizontal Bar) */}
-            <div className="bg-gradient-to-r from-gray-800 to-gray-800/60 rounded-xl p-3 border border-gray-700/50 relative overflow-hidden group shrink-0">
+            <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10 relative overflow-hidden group shrink-0">
               <div className="flex items-center justify-between relative z-10 gap-4">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="p-2 bg-gray-900/50 rounded-lg text-gray-400 shrink-0">
+                  <div className="p-2 bg-black/20 rounded-lg text-gray-400 shrink-0">
                     <FileText size={16} />
                   </div>
                   <div className="min-w-0">
@@ -318,7 +318,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
                     <p className="text-[10px] text-gray-500 uppercase">Time</p>
                     <p className="text-sm font-mono text-white">{stats.timeTaken.toFixed(2)}s</p>
                   </div>
-                  <div className="bg-gray-900/50 px-3 py-1 rounded-lg border border-gray-700">
+                  <div className="bg-black/20 px-3 py-1 rounded-lg border border-white/10">
                     <p className="text-[10px] text-gray-500 uppercase">Speed</p>
                     <p className="text-sm font-mono text-green-400">
                       {stats.throughput.toFixed(2)} MB/s
@@ -330,8 +330,8 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
           </div>
 
           {/* RIGHT COL: Recent History List (Span 1) */}
-          <div className="lg:col-span-1 bg-gray-800/40 rounded-2xl border border-gray-700/50 flex flex-col overflow-hidden h-full">
-            <div className="p-3 border-b border-gray-700/50 bg-gray-800/60 backdrop-blur-sm shrink-0">
+          <div className="lg:col-span-1 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 flex flex-col overflow-hidden h-full">
+            <div className="p-3 border-b border-white/10 bg-white/5 backdrop-blur-sm shrink-0">
               <h3 className="font-semibold text-white text-sm flex items-center gap-2">
                 <History size={16} className="text-gray-400" />
                 Recent
@@ -341,7 +341,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
               {[...history].reverse().map((h, i) => (
                 <div
                   key={`${h.timestamp}-${i}`}
-                  className="p-2 bg-gray-900/50 rounded-lg hover:bg-800 transition-colors border border-gray-800 hover:border-gray-700 group"
+                  className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/5 hover:border-white/10 group"
                 >
                   <div className="flex justify-between items-start mb-0.5">
                     <span
@@ -388,7 +388,7 @@ const KpiCard = ({
   color: string;
   bg: string;
 }) => (
-  <div className="bg-gray-800/40 rounded-xl p-3 border border-gray-700/50 flex flex-col items-center justify-center text-center hover:bg-gray-800/60 transition-colors">
+  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10 flex flex-col items-center justify-center text-center hover:bg-white/10 transition-colors">
     <div className={`p-1.5 rounded-lg ${bg} ${color} mb-1`}>{icon}</div>
     <div className="text-xl font-bold text-white mb-0">{value}</div>
     <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">{label}</div>

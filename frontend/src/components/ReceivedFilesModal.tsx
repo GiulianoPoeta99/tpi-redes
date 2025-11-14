@@ -146,7 +146,7 @@ export const ReceivedFilesModal: React.FC<ReceivedFilesModalProps> = ({ isOpen, 
               return (
                 <tr
                   key={file.name}
-                  className="group border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+                  className="group border-b border-white/5 hover:bg-white/5 transition-colors"
                 >
                   <td className="py-3 pl-2 max-w-xs break-all">
                     <div className="flex items-center gap-3">
@@ -220,7 +220,7 @@ export const ReceivedFilesModal: React.FC<ReceivedFilesModalProps> = ({ isOpen, 
             return (
               <div
                 key={file.name}
-                className="group bg-gray-800/50 border border-gray-700/50 hover:border-blue-500/50 hover:bg-gray-800 rounded-xl p-4 flex flex-col transition-all hover:-translate-y-1 hover:shadow-xl relative"
+                className="group bg-white/5 backdrop-blur-sm border border-white/10 hover:border-blue-500/50 hover:bg-white/10 rounded-xl p-4 flex flex-col transition-all hover:-translate-y-1 hover:shadow-lg relative"
               >
                 <div className="flex-1 flex flex-col items-center text-center justify-center py-4">
                   <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
