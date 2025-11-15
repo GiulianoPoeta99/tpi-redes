@@ -155,14 +155,14 @@ const Dashboard: React.FC = () => {
 
       <div className="flex-1 flex flex-col h-full relative">
         {/* Top Navigation */}
-        <header className="bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between shadow-md z-10">
+        <header className="bg-white/5 border-b border-white/10 backdrop-blur-md p-4 flex items-center justify-between z-10 sticky top-0">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
               TPI Redes
             </h1>
 
             {/* Segmented Control */}
-            <div className="flex bg-gray-900 rounded-lg p-1 ml-8">
+            <div className="flex bg-black/20 border border-white/5 rounded-lg p-1 ml-8">
               {['receiver', 'transmitter', 'mitm'].map((m) => (
                 <button
                   type="button"
@@ -171,10 +171,10 @@ const Dashboard: React.FC = () => {
                   onClick={() => handleModeSwitch(m as 'receiver' | 'transmitter' | 'mitm')}
                   className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                     mode === m
-                      ? 'bg-gray-700 text-white shadow-lg'
+                      ? 'bg-white/10 text-white shadow-sm'
                       : isBusy
                         ? 'text-gray-600 cursor-not-allowed'
-                        : 'text-gray-400 hover:text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   {m.charAt(0).toUpperCase() + m.slice(1)}
@@ -185,7 +185,7 @@ const Dashboard: React.FC = () => {
 
             <button
               onClick={() => setShowFiles(true)}
-              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full transition-colors"
+              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
               title="Received Files Explorer"
               type="button"
             >
@@ -195,7 +195,7 @@ const Dashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowHistory(true)}
-              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full transition-colors"
+              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
               title="Transfer History"
             >
               <Clock size={20} />
