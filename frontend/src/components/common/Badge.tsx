@@ -16,12 +16,12 @@ const Badge: React.FC<BadgeProps> = ({
   icon,
 }) => {
   const variants = {
-    success: 'bg-green-500/10 text-green-400 border-green-500/20',
-    error: 'bg-red-500/10 text-red-400 border-red-500/20',
-    warning: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-    info: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    neutral: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
-    glass: 'bg-white/5 text-gray-300 border-white/10 backdrop-blur-sm',
+    success: 'bg-status-success-bg text-status-success-text border-status-success-border',
+    error: 'bg-status-error-bg text-status-error-text border-status-error-border',
+    warning: 'bg-status-warning-bg text-status-warning-text border-status-warning-border',
+    info: 'bg-status-info-bg text-status-info-text border-status-info-border',
+    neutral: 'bg-status-neutral-bg text-status-neutral-text border-status-neutral-border',
+    glass: 'bg-glass-surface text-gray-300 border-glass-border backdrop-blur-sm',
   };
 
   const sizes = {

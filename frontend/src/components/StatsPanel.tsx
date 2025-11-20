@@ -39,7 +39,7 @@ const StatCard: React.FC<{
 };
 
 const StatsPanel: React.FC<StatsPanelProps> = ({ stats }) => {
-  const formatBytes = (bytes: number) => (bytes / 1024 / 1024).toFixed(2) + ' MB';
+  const formatBytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-full">

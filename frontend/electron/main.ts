@@ -18,6 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
+// biome-ignore lint/suspicious/noExplicitAny: Python process
 let pythonProcess: any = null;
 
 const createWindow = () => {
@@ -231,6 +232,7 @@ ipcMain.handle('verify-file', async (_event, filePath) => {
       actual: actualHash,
       expected: expectedHash,
     };
+    // biome-ignore lint/suspicious/noExplicitAny: Error handling
   } catch (e: any) {
     return { valid: false, error: e.message };
   }
@@ -270,6 +272,7 @@ function spawnPythonProcess(args: string[]) {
     pythonProcess = null;
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: Stream data
   pythonProcess.stdout.on('data', (data: any) => {
     const str = data.toString();
     const lines = str.split('\n');
@@ -281,6 +284,7 @@ function spawnPythonProcess(args: string[]) {
         const json = JSON.parse(line);
         const items = Array.isArray(json) ? json : [json];
 
+        // biome-ignore lint/suspicious/noExplicitAny: Parsed JSON
         items.forEach((item: any) => {
           if (item.type === 'WINDOW_UPDATE') {
             if (mainWindow) mainWindow.webContents.send('window-update', item);
@@ -300,6 +304,7 @@ function spawnPythonProcess(args: string[]) {
     });
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: Stream data
   pythonProcess.stderr.on('data', (data: any) => {
     if (mainWindow) {
       mainWindow.webContents.send('python-log', data.toString());

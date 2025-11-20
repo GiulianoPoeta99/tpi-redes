@@ -19,10 +19,10 @@ const Section: React.FC<SectionProps> = ({
 }) => {
   return (
     <div
-      className={`bg-gray-800/40 border border-gray-700/50 rounded-2xl shadow-sm overflow-hidden flex flex-col ${className}`}
+      className={`bg-surface-panel/40 border border-gray-700/50 rounded-2xl shadow-sm overflow-hidden flex flex-col ${className}`}
     >
       {(title || description || headerContent) && (
-        <div className="px-6 py-4 border-b border-gray-700/50 bg-gray-800/30 backdrop-blur-sm flex items-center justify-between shrink-0">
+        <div className="px-6 py-4 border-b border-gray-700/50 bg-surface-panel/30 backdrop-blur-sm flex items-center justify-between shrink-0">
           <div>
             {title && <h3 className="font-semibold text-white">{title}</h3>}
             {description && <p className="text-sm text-gray-400">{description}</p>}

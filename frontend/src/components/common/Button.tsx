@@ -23,14 +23,14 @@ const Button: React.FC<ButtonProps> = ({
 
   const variants = {
     primary:
-      'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 border border-transparent focus:ring-blue-500',
+      'bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 border border-transparent focus:ring-blue-500',
     secondary:
-      'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 focus:ring-gray-500',
+      'bg-secondary hover:bg-secondary-hover text-secondary-foreground border border-gray-600 focus:ring-gray-500',
     danger:
-      'bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 focus:ring-red-500',
-    ghost: 'hover:bg-white/10 text-gray-400 hover:text-white',
+      'bg-status-error-bg hover:bg-status-error-bg/20 text-status-error-text border border-status-error-border focus:ring-red-500',
+    ghost: 'hover:bg-glass-surface text-gray-400 hover:text-white',
     glass:
-      'bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-sm shadow-sm',
+      'bg-glass-surface hover:bg-glass-hover text-white border border-glass-border backdrop-blur-sm shadow-sm',
   };
 
   const sizes = {

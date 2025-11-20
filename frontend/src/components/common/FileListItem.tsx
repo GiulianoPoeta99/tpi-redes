@@ -28,7 +28,7 @@ const FileListItem: React.FC<FileListItemProps> = ({
   action,
   icon,
   details,
-  iconClassName = 'bg-blue-500/10 text-blue-400',
+  iconClassName = 'bg-status-info-bg text-status-info-text',
 }) => {
   const formatSize = (s: number | string) => {
     if (typeof s === 'string') return s;
@@ -36,13 +36,13 @@ const FileListItem: React.FC<FileListItemProps> = ({
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(s) / Math.log(k));
-    return Number.parseFloat((s / k ** i).toFixed(2)) + ' ' + sizes[i];
+    return `${Number.parseFloat((s / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: List item
     <div
-      className={`group bg-white/5 backdrop-blur-sm border border-white/10 p-3 rounded-lg flex items-center justify-between hover:bg-white/10 transition-colors ${className}`}
+      className={`group bg-glass-surface backdrop-blur-sm border border-glass-border p-3 rounded-lg flex items-center justify-between hover:bg-glass-hover transition-colors ${className}`}
       onClick={onClick}
       onKeyDown={(e) => onClick && e.key === 'Enter' && onClick()}
       tabIndex={onClick ? 0 : undefined}
@@ -98,7 +98,7 @@ const FileListItem: React.FC<FileListItemProps> = ({
               e.stopPropagation();
               onRemove();
             }}
-            className="text-gray-400 hover:text-red-400 hover:bg-red-500/10"
+            className="text-gray-400 hover:text-status-error-text hover:bg-status-error-bg"
           >
             <Trash2 size={16} />
           </Button>
