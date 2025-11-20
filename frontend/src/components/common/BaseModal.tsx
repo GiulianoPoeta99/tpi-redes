@@ -1,6 +1,6 @@
-import type React from 'react';
-import { X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { X } from 'lucide-react';
+import type React from 'react';
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -37,17 +37,16 @@ const BaseModal: React.FC<BaseModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+      {/* Backdrop */}
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-default w-full h-full border-0 p-0"
         onClick={onClose}
-        onKeyDown={(e) => e.key === 'Escape' && onClose()}
-        role="button"
-        tabIndex={0}
         aria-label="Close modal"
       />
 
       {/* Modal Container */}
-      <div 
+      <div
         className={`relative w-full ${sizeClasses[size]} bg-gray-900/95 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
       >
         {/* Header */}
@@ -60,28 +59,24 @@ const BaseModal: React.FC<BaseModalProps> = ({
             )}
             <div>
               <h3 className="text-lg font-bold text-white leading-tight">{title}</h3>
-              {description && (
-                <p className="text-xs text-gray-400">{description}</p>
-              )}
+              {description && <p className="text-xs text-gray-400">{description}</p>}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-             {headerContent}
-             <button
-               onClick={onClose}
-               className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-               type="button"
-             >
-               <X size={20} />
-             </button>
+            {headerContent}
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              type="button"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-          {children}
-        </div>
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
       </div>
     </div>
   );

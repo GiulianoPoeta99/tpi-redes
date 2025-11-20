@@ -64,7 +64,7 @@ export const ReceivedFilesModal: React.FC<ReceivedFilesModalProps> = ({ isOpen, 
         ...prev,
         [file.name]: { valid: result.valid, error: result.error },
       }));
-    } catch (e: any) {
+    } catch {
       setVerificationResults((prev) => ({
         ...prev,
         [file.name]: { valid: false, error: 'Check failed' },
@@ -154,9 +154,7 @@ export const ReceivedFilesModal: React.FC<ReceivedFilesModalProps> = ({ isOpen, 
                       <span className="text-white font-medium">{file.name}</span>
                     </div>
                   </td>
-                  <td className="py-3 text-gray-400 font-mono">
-                    {formatSize(file.size)}
-                  </td>
+                  <td className="py-3 text-gray-400 font-mono">{formatSize(file.size)}</td>
                   <td className="py-3 text-gray-500">{formatDate(file.mtime)}</td>
                   <td className="py-3 pr-2 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -229,9 +227,7 @@ export const ReceivedFilesModal: React.FC<ReceivedFilesModalProps> = ({ isOpen, 
                   <h3 className="text-sm font-bold text-gray-200 line-clamp-2 break-all mb-1">
                     {file.name}
                   </h3>
-                  <p className="text-xs text-gray-500 font-mono">
-                    {formatSize(file.size)}
-                  </p>
+                  <p className="text-xs text-gray-500 font-mono">{formatSize(file.size)}</p>
                 </div>
 
                 <div className="pt-3 border-t border-gray-700/50 flex items-center justify-between gap-2">

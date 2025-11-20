@@ -1,4 +1,4 @@
-import { ArrowUpCircle, ArrowDownCircle, HardDrive, Activity } from 'lucide-react';
+import { Activity, ArrowDownCircle, ArrowUpCircle, HardDrive } from 'lucide-react';
 import type React from 'react';
 import type { AppStats } from '../services/StorageService';
 
@@ -20,17 +20,19 @@ const StatCard: React.FC<{
   };
 
   return (
-    <div className={`flex items-center gap-4 p-4 rounded-xl border ${colors[color]} relative overflow-hidden group transition-all hover:bg-opacity-20`}>
+    <div
+      className={`flex items-center gap-4 p-4 rounded-xl border ${colors[color]} relative overflow-hidden group transition-all hover:bg-opacity-20`}
+    >
       <div className={`p-3 rounded-lg bg-gray-900/50 ${colors[color].split(' ')[2]}`}>
         <Icon size={24} />
       </div>
       <div>
-        <p className={`text-[10px] font-bold uppercase tracking-wider opacity-70 ${colors[color].split(' ')[2]}`}>
+        <p
+          className={`text-[10px] font-bold uppercase tracking-wider opacity-70 ${colors[color].split(' ')[2]}`}
+        >
           {label}
         </p>
-        <p className="text-xl font-mono font-bold text-white tracking-tight">
-          {value}
-        </p>
+        <p className="text-xl font-mono font-bold text-white tracking-tight">{value}</p>
       </div>
     </div>
   );
@@ -41,30 +43,25 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats }) => {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-full">
-      <StatCard 
-        label="Packets Sent" 
-        value={stats.totalSent} 
-        icon={ArrowUpCircle} 
-        color="blue" 
+      <StatCard label="Packets Sent" value={stats.totalSent} icon={ArrowUpCircle} color="blue" />
+      <StatCard
+        label="Data Sent"
+        value={formatBytes(stats.bytesSent)}
+        icon={HardDrive}
+        color="cyan"
       />
-      <StatCard 
-        label="Data Sent" 
-        value={formatBytes(stats.bytesSent)} 
-        icon={HardDrive} 
-        color="cyan" 
+
+      <StatCard
+        label="Packets Recv"
+        value={stats.totalReceived}
+        icon={ArrowDownCircle}
+        color="purple"
       />
-      
-      <StatCard 
-        label="Packets Recv" 
-        value={stats.totalReceived} 
-        icon={ArrowDownCircle} 
-        color="purple" 
-      />
-      <StatCard 
-        label="Data Recv" 
-        value={formatBytes(stats.bytesReceived)} 
-        icon={Activity} 
-        color="pink" 
+      <StatCard
+        label="Data Recv"
+        value={formatBytes(stats.bytesReceived)}
+        icon={Activity}
+        color="pink"
       />
     </div>
   );

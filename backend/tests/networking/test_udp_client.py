@@ -42,7 +42,7 @@ class TestUDPClient:
             client = UDPClient()
             target_ip = "127.0.0.1"
             target_port = 9999
-            client.send_file(file_path, target_ip, target_port)
+            client.send_files([file_path], target_ip, target_port)
 
             # Verify sent packets
             # 1. Header

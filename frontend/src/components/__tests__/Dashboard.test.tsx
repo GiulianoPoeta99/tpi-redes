@@ -5,7 +5,7 @@ import Dashboard from '../Dashboard';
 // Mock window.api
 window.api = {
   startServer: vi.fn(),
-  sendFile: vi.fn(),
+  sendFiles: vi.fn(),
   onLog: vi.fn(),
   onWindowUpdate: vi.fn(),
   onStatsUpdate: vi.fn(),
@@ -14,7 +14,12 @@ window.api = {
   onPacketCapture: vi.fn(),
   stopProcess: vi.fn().mockResolvedValue(true),
   getLocalIp: vi.fn().mockResolvedValue('127.0.0.1'),
-  getFilePath: vi.fn().mockReturnValue('/mock/path'),
+  getFilePath: vi.fn(),
+  getDownloadsDir: vi.fn().mockResolvedValue('/tmp/downloads'),
+  listFiles: vi.fn().mockResolvedValue([]),
+  openPath: vi.fn(),
+  openFolder: vi.fn(),
+  verifyFile: vi.fn().mockResolvedValue({ valid: true }),
 };
 
 describe('Dashboard', () => {

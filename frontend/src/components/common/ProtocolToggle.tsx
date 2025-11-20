@@ -6,7 +6,11 @@ interface ProtocolToggleProps {
   disabled?: boolean;
 }
 
-const ProtocolToggle: React.FC<ProtocolToggleProps> = ({ protocol, onChange, disabled = false }) => {
+const ProtocolToggle: React.FC<ProtocolToggleProps> = ({
+  protocol,
+  onChange,
+  disabled = false,
+}) => {
   return (
     <div className="flex-1">
       <span className="text-xs text-gray-400 block mb-1">Protocol</span>

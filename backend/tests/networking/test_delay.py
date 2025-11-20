@@ -27,7 +27,7 @@ def mock_file(tmp_path):
 def test_tcp_client_delay(mock_sleep, mock_file):
     client = TCPClient()
     delay = 0.5
-    client.send_file(mock_file, "127.0.0.1", 8080, delay=delay)
+    client.send_files([mock_file], "127.0.0.1", 8080, delay=delay)
 
     # Needs to be called at least once per chunk
     # check calls to ensure sleep(0.5) happened
@@ -40,7 +40,7 @@ def test_tcp_client_delay(mock_sleep, mock_file):
 def test_udp_client_delay(mock_sleep, mock_file):
     client = UDPClient()
     delay = 0.5
-    client.send_file(mock_file, "127.0.0.1", 8080, delay=delay)
+    client.send_files([mock_file], "127.0.0.1", 8080, delay=delay)
 
     delay_calls = [c for c in mock_sleep.mock_calls if c == call(delay)]
     assert len(delay_calls) >= 2

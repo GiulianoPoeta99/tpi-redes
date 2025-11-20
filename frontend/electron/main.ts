@@ -306,7 +306,7 @@ function spawnPythonProcess(args: string[]) {
     }
   });
 
-  pythonProcess.on('close', (code: any) => {
+  pythonProcess.on('close', (code: number | null) => {
     if (mainWindow) {
       mainWindow.webContents.send('python-log', `Process exited with code ${code}`);
     }

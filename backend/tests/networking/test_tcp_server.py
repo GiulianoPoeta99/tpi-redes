@@ -33,6 +33,9 @@ class TestTCPServer:
             def settimeout(self, t):
                 pass
 
+            def getsockname(self):
+                return ("127.0.0.1", 12345)
+
         # Prepare data: File 1 + File 2
         from tpi_redes.networking.protocol import ProtocolHandler
 

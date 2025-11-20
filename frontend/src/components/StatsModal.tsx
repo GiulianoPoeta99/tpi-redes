@@ -1,12 +1,4 @@
-import {
-  Activity,
-  BarChart3,
-  Clock,
-  Database,
-  FileText,
-  History,
-  TrendingUp,
-} from 'lucide-react';
+import { Activity, BarChart3, Clock, Database, FileText, History, TrendingUp } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import BaseModal from './common/BaseModal';

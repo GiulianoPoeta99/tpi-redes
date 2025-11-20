@@ -219,13 +219,13 @@ const Dashboard: React.FC = () => {
         <main className="flex-1 p-6 overflow-hidden flex gap-6">
           {/* LEFT COLUMN: Modes (50%) */}
           <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden flex flex-col">
-             <div className="h-full overflow-y-auto">
-                {mode === 'receiver' && <ReceiverView setBusy={setIsBusy} />}
-                {mode === 'transmitter' && (
-                  <TransmitterView setBusy={setIsBusy} addToast={addToast} />
-                )}
-                {mode === 'mitm' && <MitmView setBusy={setIsBusy} />}
-             </div>
+            <div className="h-full overflow-y-auto">
+              {mode === 'receiver' && <ReceiverView setBusy={setIsBusy} />}
+              {mode === 'transmitter' && (
+                <TransmitterView setBusy={setIsBusy} addToast={addToast} />
+              )}
+              {mode === 'mitm' && <MitmView setBusy={setIsBusy} />}
+            </div>
           </div>
 
           {/* RIGHT COLUMN: Stats + Sniffer (50%) */}
@@ -240,7 +240,7 @@ const Dashboard: React.FC = () => {
 
             {/* Packet Sniffer */}
             <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-0">
-               <SnifferLog logs={logs} />
+              <SnifferLog logs={logs} />
             </div>
           </div>
         </main>
