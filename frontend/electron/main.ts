@@ -213,7 +213,6 @@ ipcMain.handle('open-folder', async (_event, filePath) => {
   shell.showItemInFolder(filePath);
 });
 
-// biome-ignore lint/suspicious/noExplicitAny: error handling
 ipcMain.handle('verify-file', async (_event, filePath) => {
   try {
     const hashFile = `${filePath}.sha256`;
