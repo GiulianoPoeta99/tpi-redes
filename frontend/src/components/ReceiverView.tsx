@@ -7,6 +7,7 @@ import EmptyState from './common/EmptyState';
 import FileListItem from './common/FileListItem';
 import GlassCard from './common/GlassCard';
 import GradientCard from './common/GradientCard';
+import InputGroup from './common/InputGroup';
 import ProtocolToggle from './common/ProtocolToggle';
 import SlidingWindow from './SlidingWindow';
 
@@ -113,51 +114,51 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
         {/* Config Panel - Stacked Top */}
         <div className="shrink-0">
           <GlassCard title="Listener Config" icon={Settings}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Row 1 Left: IP Display */}
-              <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl flex flex-col justify-center">
-                <span className="text-xs font-bold text-blue-400 uppercase block mb-1">
-                  My IP Address
-                </span>
-                <span className="text-xl font-mono text-white tracking-wider flex items-center gap-2">
-                  {localIp}
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                </span>
-              </div>
-
-              {/* Row 1 Right: Port Input */}
-              <div className="flex flex-col justify-end">
-                <span className="text-xs text-gray-400 block mb-1">Port</span>
-                <input
-                  type="number"
-                  disabled={isConnected}
-                  value={port}
-                  onChange={(e) => setPort(Number(e.target.value))}
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              {/* Row 2 Left: Protocol */}
-              <div className="flex flex-col justify-end">
-                <span className="text-xs text-gray-400 block mb-1">Protocol</span>
+            <div className="flex flex-col gap-6">
+              {/* Row 1: Port & Protocol Group */}
+              <InputGroup label="Port & Protocol">
+                <div className="flex-1">
+                  <span className="text-xs text-gray-400 block mb-1">Port</span>
+                  <input
+                    type="number"
+                    disabled={isConnected}
+                    value={port}
+                    onChange={(e) => setPort(Number(e.target.value))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
                 <ProtocolToggle protocol={protocol} onChange={setProtocol} disabled={isConnected} />
-              </div>
+              </InputGroup>
 
-              {/* Row 2 Right: Button */}
-              <div className="flex items-end">
-                <Button
-                  size="lg"
-                  variant={isConnected ? 'danger' : 'primary'}
-                  onClick={toggleServer}
-                  className={`w-full py-3 text-lg shadow-lg justify-center text-white ${
-                    !isConnected
-                      ? 'bg-green-600 hover:bg-green-500 ring-green-500 shadow-green-900/20'
-                      : 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
-                  }`}
-                  icon={<Power size={20} />}
-                >
-                  {isConnected ? 'STOP' : 'START'}
-                </Button>
+              {/* Row 2: IP & Button */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* IP Display */}
+                <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl flex flex-col justify-center">
+                  <span className="text-xs font-bold text-blue-400 uppercase block mb-1">
+                    My IP Address
+                  </span>
+                  <span className="text-xl font-mono text-white tracking-wider flex items-center gap-2">
+                    {localIp}
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  </span>
+                </div>
+
+                {/* Button */}
+                <div className="flex items-end">
+                  <Button
+                    size="lg"
+                    variant={isConnected ? 'danger' : 'primary'}
+                    onClick={toggleServer}
+                    className={`w-full py-3 text-lg shadow-lg justify-center text-white ${
+                      !isConnected
+                        ? 'bg-green-600 hover:bg-green-500 ring-green-500 shadow-green-900/20'
+                        : 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
+                    }`}
+                    icon={<Power size={20} />}
+                  >
+                    {isConnected ? 'STOP' : 'START'}
+                  </Button>
+                </div>
               </div>
             </div>
           </GlassCard>
