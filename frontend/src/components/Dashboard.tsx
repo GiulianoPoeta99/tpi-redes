@@ -21,6 +21,7 @@ const Dashboard: React.FC = () => {
   const [isBusy, setIsBusy] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showFiles, setShowFiles] = useState(false);
+  const [headerContent, setHeaderContent] = useState<React.ReactNode>(null);
 
   const addToast = useCallback(
     (type: 'success' | 'error' | 'info', title: string, description?: string) => {
@@ -156,7 +157,8 @@ const Dashboard: React.FC = () => {
       <div className="flex-1 flex flex-col h-full relative">
         {/* Top Navigation */}
         <header className="bg-white/5 border-b border-white/10 backdrop-blur-md p-4 flex items-center justify-between z-10 sticky top-0">
-          <div className="flex items-center gap-4">
+          {/* Left: Brand & Modes */}
+          <div className="flex items-center gap-8">
             <div className="flex items-center gap-3 group cursor-default">
               <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300 group-hover:scale-105">
                 <Network className="text-white" size={24} strokeWidth={2.5} />
@@ -172,7 +174,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Segmented Control */}
-            <div className="flex bg-black/20 border border-white/5 rounded-lg p-1 ml-8">
+            <div className="flex bg-black/20 border border-white/5 rounded-lg p-1">
               {['receiver', 'transmitter', 'mitm'].map((m) => (
                 <button
                   type="button"
@@ -193,38 +195,59 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
 
-            <button
-              onClick={() => setShowFiles(true)}
-              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-              title="Received Files Explorer"
-              type="button"
-            >
-              <Folder size={20} />
-            </button>
+            <div className="w-px h-8 bg-white/10"></div>
 
-            <button
-              type="button"
-              onClick={() => setShowHistory(true)}
-              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-              title="Transfer History"
-            >
-              <Clock size={20} />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowFiles(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all hover:border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] group active:scale-95"
+                type="button"
+              >
+                <div className="p-1.5 bg-blue-500/10 rounded-md group-hover:bg-blue-500/20 transition-colors">
+                  <Folder size={18} className="text-blue-400 group-hover:text-blue-300" />
+                </div>
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white">
+                  Files
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowHistory(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] group active:scale-95"
+              >
+                <div className="p-1.5 bg-purple-500/10 rounded-md group-hover:bg-purple-500/20 transition-colors">
+                  <Clock size={18} className="text-purple-400 group-hover:text-purple-300" />
+                </div>
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white">
+                  History
+                </span>
+              </button>
+            </div>
           </div>
+
+          {/* Right: Header Content & Actions */}
+          <div className="flex items-center gap-4">{headerContent}</div>
         </header>
 
         {/* Main Content Area - Grid Layout */}
-        {/* Main Content Area - Split Layout */}
-        {/* Main Content Area - Split Layout */}
         <main className="flex-1 p-6 overflow-hidden flex gap-6">
           {/* LEFT COLUMN: Modes (50%) */}
           <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden flex flex-col">
             <div className="h-full overflow-y-auto">
-              {mode === 'receiver' && <ReceiverView setBusy={setIsBusy} />}
-              {mode === 'transmitter' && (
-                <TransmitterView setBusy={setIsBusy} addToast={addToast} />
+              {mode === 'receiver' && (
+                <ReceiverView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />
               )}
-              {mode === 'mitm' && <MitmView setBusy={setIsBusy} />}
+              {mode === 'transmitter' && (
+                <TransmitterView
+                  setBusy={setIsBusy}
+                  addToast={addToast}
+                  setHeaderContent={setHeaderContent}
+                />
+              )}
+              {mode === 'mitm' && (
+                <MitmView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />
+              )}
             </div>
           </div>
 

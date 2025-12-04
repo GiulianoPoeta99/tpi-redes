@@ -15,7 +15,6 @@ import { useEffect, useRef, useState } from 'react';
 import { StorageService } from '../services/StorageService';
 import Button from './common/Button';
 import GlassCard from './common/GlassCard';
-import GradientCard from './common/GradientCard';
 import InputGroup from './common/InputGroup';
 import ProtocolToggle from './common/ProtocolToggle';
 import FilesQueueModal from './FilesQueueModal';
@@ -25,9 +24,14 @@ import StatsModal from './StatsModal';
 interface TransmitterViewProps {
   setBusy: (busy: boolean) => void;
   addToast: (type: 'success' | 'error' | 'info', title: string, description?: string) => void;
+  setHeaderContent: (content: React.ReactNode) => void;
 }
 
-const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) => {
+const TransmitterView: React.FC<TransmitterViewProps> = ({
+  setBusy,
+  addToast,
+  setHeaderContent,
+}) => {
   // Config State
   const [ip, setIp] = useState('');
   const [port, setPort] = useState(8080);
@@ -46,6 +50,34 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
   const [isBatchActive, setIsBatchActive] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Lift Header Content
+  useEffect(() => {
+    setHeaderContent(
+      <div className="min-w-[400px] bg-gradient-to-r from-blue-900/40 to-cyan-900/40 border border-blue-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <Send className="text-blue-500" size={20} />
+            Transmitter Mode
+          </h2>
+          <p className="text-blue-200/60 text-xs">Send Files to Node</p>
+        </div>
+        <div
+          className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
+            status === 'sending'
+              ? 'bg-blue-500/20 border-blue-500 text-blue-400 animate-pulse'
+              : 'bg-gray-800 border-gray-700 text-gray-400'
+          }`}
+        >
+          <Radio size={16} />
+          <span className="font-mono font-bold text-xs">
+            {status === 'sending' ? 'TRANSMITTING' : 'IDLE'}
+          </span>
+        </div>
+      </div>,
+    );
+    return () => setHeaderContent(null);
+  }, [status, setHeaderContent]);
 
   // Discovery
   const [isScanOpen, setIsScanOpen] = useState(false);
@@ -336,29 +368,12 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
         error={scanError}
       />
 
-      {/* HEADER CARD */}
-      <GradientCard
-        title="Transmitter Mode"
-        description="Send files to another node. Configure destination, protocol, and payload below."
-        icon={Send}
-        variant="blue"
-      >
-        <div
-          className={`px-4 py-2 rounded-lg border flex items-center gap-2 ${status === 'sending' ? 'bg-blue-500/20 border-blue-500 text-blue-400 animate-pulse' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
-        >
-          <Radio size={18} />
-          <span className="font-mono font-bold text-sm">
-            {status === 'sending' ? 'TRANSMITTING' : 'IDLE'}
-          </span>
-        </div>
-      </GradientCard>
-
       {/* MAIN LAYOUT */}
       {status === 'idle' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0 overflow-y-auto pb-2">
-          {/* CONFIG COLUMN */}
-          <div className="flex flex-col gap-6">
-            <GlassCard title="Network Configuration" icon={Settings}>
+        <div className="flex flex-col gap-6 flex-1 min-h-0 overflow-y-auto pb-2">
+          {/* TOP ROW: Config & Advanced */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 shrink-0">
+            <GlassCard title="Network Configuration" icon={Settings} className="h-full">
               <div className="space-y-6">
                 <InputGroup label="Target Config" indicatorColor="bg-blue-500">
                   <div className="flex-1">
@@ -397,7 +412,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
               </div>
             </GlassCard>
 
-            <GlassCard title="Advanced Options" icon={Settings} className="flex-1">
+            <GlassCard title="Advanced Options" icon={Settings} className="h-full">
               <div className="space-y-6">
                 <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
                   <div className="flex justify-between items-end mb-2">
@@ -448,114 +463,112 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
             </GlassCard>
           </div>
 
-          {/* PAYLOAD COLUMN */}
-          <div className="flex flex-col gap-6">
-            <GlassCard title="Payload Configuration" icon={FileText} className="flex-1">
-              {/* DROP ZONE */}
-              {/* biome-ignore lint/a11y/useSemanticElements: Cannot use button because it contains nested buttons */}
-              <div
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (files.length === 0) fileInputRef.current?.click();
-                  }
-                }}
-                onClick={() => files.length === 0 && fileInputRef.current?.click()}
-                onDragOver={(e) => {
+          {/* BOTTOM ROW: Payload */}
+          <GlassCard title="Payload Configuration" icon={FileText} className="flex-1 min-h-[350px]">
+            {/* DROP ZONE */}
+            {/* biome-ignore lint/a11y/useSemanticElements: Cannot use button because it contains nested buttons */}
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  e.stopPropagation();
-                  e.dataTransfer.dropEffect = 'copy';
-                  setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-                  setIsDragging(false);
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsDragging(false);
-                  const paths = Array.from(e.dataTransfer.files)
-                    .map((f) => window.api.getFilePath(f))
-                    .filter(Boolean) as string[];
-                  addFiles(paths);
-                }}
-                className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all group min-h-[300px] relative cursor-pointer
-                                    ${isDragging ? 'bg-blue-900/20 border-blue-500' : 'bg-gray-900/20 border-gray-700 hover:border-blue-500/50 hover:bg-gray-800/50'}
-                                `}
+                  if (files.length === 0) fileInputRef.current?.click();
+                }
+              }}
+              onClick={() => files.length === 0 && fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+                setIsDragging(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                setIsDragging(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(false);
+                const paths = Array.from(e.dataTransfer.files)
+                  .map((f) => window.api.getFilePath(f))
+                  .filter(Boolean) as string[];
+                addFiles(paths);
+              }}
+              className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all group min-h-[250px] relative cursor-pointer
+                                  ${isDragging ? 'bg-blue-900/20 border-blue-500' : 'bg-gray-900/20 border-gray-700 hover:border-blue-500/50 hover:bg-gray-800/50'}
+                              `}
+            >
+              {files.length > 0 ? (
+                <div className="text-center w-full">
+                  <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400 group-hover:scale-110 transition-transform">
+                    <FileText size={32} />
+                  </div>
+                  <p className="font-medium text-white text-xl mb-1">
+                    {files.length} {files.length === 1 ? 'file' : 'files'} selected
+                  </p>
+                  <p className="text-sm text-gray-500 mb-6">Ready to transmit</p>
+
+                  <div className="flex justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsQueueOpen(true);
+                      }}
+                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-200 flex items-center gap-2 transition-colors border border-gray-700"
+                    >
+                      <List size={16} /> View List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-sm font-medium text-blue-300 flex items-center gap-2 transition-colors border border-blue-500/30"
+                    >
+                      <Plus size={16} /> Add More
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFiles([]);
+                      }}
+                      className="px-4 py-2 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-sm font-medium text-red-300 flex items-center gap-2 transition-colors border border-red-500/30"
+                    >
+                      <X size={16} /> Clear
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
+                    <Plus size={32} />
+                  </div>
+                  <p className="text-gray-300 mb-1 text-lg font-medium">Drag & Drop files here</p>
+                  <p className="text-sm text-gray-500">or click to browse local storage</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Button
+                onClick={startBatch}
+                disabled={!isValid}
+                variant={isValid ? 'primary' : 'secondary'}
+                size="lg"
+                className={`w-full py-4 text-lg font-bold shadow-xl justify-center ${!isValid ? 'bg-gray-800 text-gray-500 opacity-100' : ''}`}
+                icon={<Send size={20} />}
               >
-                {files.length > 0 ? (
-                  <div className="text-center w-full">
-                    <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400 group-hover:scale-110 transition-transform">
-                      <FileText size={32} />
-                    </div>
-                    <p className="font-medium text-white text-xl mb-1">
-                      {files.length} {files.length === 1 ? 'file' : 'files'} selected
-                    </p>
-                    <p className="text-sm text-gray-500 mb-6">Ready to transmit</p>
-
-                    <div className="flex justify-center gap-3">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsQueueOpen(true);
-                        }}
-                        className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-200 flex items-center gap-2 transition-colors border border-gray-700"
-                      >
-                        <List size={16} /> View List
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fileInputRef.current?.click();
-                        }}
-                        className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-sm font-medium text-blue-300 flex items-center gap-2 transition-colors border border-blue-500/30"
-                      >
-                        <Plus size={16} /> Add More
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFiles([]);
-                        }}
-                        className="px-4 py-2 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-sm font-medium text-red-300 flex items-center gap-2 transition-colors border border-red-500/30"
-                      >
-                        <X size={16} /> Clear
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
-                      <Plus size={32} />
-                    </div>
-                    <p className="text-gray-300 mb-1 text-lg font-medium">Drag & Drop files here</p>
-                    <p className="text-sm text-gray-500">or click to browse local storage</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6">
-                <Button
-                  onClick={startBatch}
-                  disabled={!isValid}
-                  variant={isValid ? 'primary' : 'secondary'}
-                  size="lg"
-                  className={`w-full py-4 text-lg font-bold shadow-xl justify-center ${!isValid ? 'bg-gray-800 text-gray-500 opacity-100' : ''}`}
-                  icon={<Send size={20} />}
-                >
-                  SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
-                </Button>
-              </div>
-            </GlassCard>
-          </div>
+                SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
+              </Button>
+            </div>
+          </GlassCard>
         </div>
       )}
 

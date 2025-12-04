@@ -9,7 +9,10 @@ interface MitmConfig {
   corruption: number;
 }
 
-const MitmView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) => {
+const MitmView: React.FC<{
+  setBusy: (busy: boolean) => void;
+  setHeaderContent: (content: React.ReactNode) => void;
+}> = ({ setBusy, setHeaderContent }) => {
   const [config, setConfig] = useState<MitmConfig>({
     listenPort: 8081,
     targetIp: '127.0.0.1',
@@ -21,6 +24,32 @@ const MitmView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) =
   useEffect(() => {
     setBusy(isRunning);
   }, [isRunning, setBusy]);
+
+  // Lift Header Content
+  useEffect(() => {
+    setHeaderContent(
+      <div className="min-w-[400px] bg-gradient-to-r from-red-900/40 to-orange-900/40 border border-red-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <ShieldAlert className="text-red-500" size={20} />
+            MITM Proxy
+          </h2>
+          <p className="text-red-200/60 text-xs">Intercept & Manipulate</p>
+        </div>
+        <div
+          className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
+            isRunning
+              ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse'
+              : 'bg-gray-800 border-gray-700 text-gray-400'
+          }`}
+        >
+          <Activity size={16} />
+          <span className="font-mono font-bold text-xs">{isRunning ? 'ACTIVE' : 'IDLE'}</span>
+        </div>
+      </div>,
+    );
+    return () => setHeaderContent(null);
+  }, [isRunning, setHeaderContent]);
 
   const toggleMitm = async () => {
     if (isRunning) {
@@ -43,28 +72,6 @@ const MitmView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) =
 
   return (
     <div className="h-full flex flex-col gap-6">
-      {/* Header Card */}
-      <div className="bg-gradient-to-r from-red-900/40 to-orange-900/40 border border-red-500/30 p-6 rounded-2xl flex items-center justify-between shadow-lg">
-        <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-            <ShieldAlert className="text-red-500" size={28} />
-            MITM Proxy Mode
-          </h2>
-          <p className="text-red-200/60 mt-1 text-sm max-w-lg">
-            Intercept and manipulate traffic between a Client and Server. Acts as a transparent
-            proxy with active attack capabilities.
-          </p>
-        </div>
-        <div
-          className={`px-4 py-2 rounded-lg border flex items-center gap-2 ${isRunning ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
-        >
-          <Activity size={18} />
-          <span className="font-mono font-bold text-sm">
-            {isRunning ? 'ACTIVE INTERCEPTION' : 'IDLE'}
-          </span>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
         {/* Configuration Card */}
         <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl flex flex-col">

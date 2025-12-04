@@ -6,12 +6,14 @@ import Button from './common/Button';
 import EmptyState from './common/EmptyState';
 import FileListItem from './common/FileListItem';
 import GlassCard from './common/GlassCard';
-import GradientCard from './common/GradientCard';
 import InputGroup from './common/InputGroup';
 import ProtocolToggle from './common/ProtocolToggle';
 import SlidingWindow from './SlidingWindow';
 
-const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) => {
+const ReceiverView: React.FC<{
+  setBusy: (busy: boolean) => void;
+  setHeaderContent: (content: React.ReactNode) => void;
+}> = ({ setBusy, setHeaderContent }) => {
   const [port, setPort] = useState(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [isConnected, setIsConnected] = useState(false);
@@ -20,6 +22,34 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
   const [transferActive, setTransferActive] = useState(false);
   const [lastFile, setLastFile] = useState<string | null>(null);
   const [localIp, setLocalIp] = useState<string>('Loading...');
+
+  // Lift Header Content
+  useEffect(() => {
+    setHeaderContent(
+      <div className="min-w-[400px] bg-gradient-to-r from-blue-900/40 to-cyan-900/40 border border-blue-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <Download className="text-blue-500" size={20} />
+            Receiver Mode
+          </h2>
+          <p className="text-blue-200/60 text-xs">Listen for Incoming Files</p>
+        </div>
+        <div
+          className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
+            isConnected
+              ? 'bg-green-500/20 border-green-500 text-green-400 animate-pulse'
+              : 'bg-gray-800 border-gray-700 text-gray-400'
+          }`}
+        >
+          <Wifi size={16} />
+          <span className="font-mono font-bold text-xs">
+            {isConnected ? 'LISTENING' : 'OFFLINE'}
+          </span>
+        </div>
+      </div>,
+    );
+    return () => setHeaderContent(null);
+  }, [isConnected, setHeaderContent]);
 
   useEffect(() => {
     // Fetch local IP
@@ -92,23 +122,6 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
 
   return (
     <div className="h-full flex flex-col gap-6 relative overflow-hidden">
-      {/* Header */}
-      <GradientCard
-        title="Receiver Mode"
-        description="Listen for incoming file transfers. Configure port and wait for connections."
-        icon={Download}
-        variant="blue"
-      >
-        <div
-          className={`px-4 py-2 rounded-lg border flex items-center gap-2 ${isConnected ? 'bg-green-500/20 border-green-500 text-green-400 animate-pulse' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
-        >
-          <Wifi size={18} />
-          <span className="font-mono font-bold text-sm">
-            {isConnected ? 'LISTENING' : 'OFFLINE'}
-          </span>
-        </div>
-      </GradientCard>
-
       {/* Content Stack */}
       <div className="flex flex-col gap-6 flex-1 min-h-0">
         {/* Config Panel - Stacked Top */}
