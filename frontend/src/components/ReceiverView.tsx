@@ -146,7 +146,7 @@ const ReceiverView: React.FC<{
               {/* Row 2: IP & Button */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* IP Display */}
-                <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl flex flex-col justify-center">
+                <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl flex flex-col justify-center h-full min-h-[84px]">
                   <span className="text-xs font-bold text-blue-400 uppercase block mb-1">
                     My IP Address
                   </span>
@@ -157,17 +157,17 @@ const ReceiverView: React.FC<{
                 </div>
 
                 {/* Button */}
-                <div className="flex items-end">
+                <div className="h-full">
                   <Button
                     size="lg"
                     variant={isConnected ? 'danger' : 'primary'}
                     onClick={toggleServer}
-                    className={`w-full py-3 text-lg shadow-lg justify-center text-white ${
+                    className={`w-full h-full text-lg shadow-lg justify-center text-white ${
                       !isConnected
                         ? 'bg-green-600 hover:bg-green-500 ring-green-500 shadow-green-900/20'
                         : 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
                     }`}
-                    icon={<Power size={20} />}
+                    icon={<Power size={24} />}
                   >
                     {isConnected ? 'STOP' : 'START'}
                   </Button>

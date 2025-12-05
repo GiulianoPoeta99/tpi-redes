@@ -338,7 +338,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
     outerCircumference - (smoothBatchPercent / 100) * outerCircumference;
 
   return (
-    <div className="h-full flex flex-col gap-6 relative overflow-hidden">
+    <div className="h-full flex flex-col gap-4 relative overflow-hidden">
       <StatsModal
         isOpen={showStats}
         onClose={() => setShowStats(false)}
@@ -370,11 +370,11 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
 
       {/* MAIN LAYOUT */}
       {status === 'idle' && (
-        <div className="flex flex-col gap-6 flex-1 min-h-0 overflow-y-auto pb-2">
+        <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pb-2">
           {/* TOP ROW: Config & Advanced */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 shrink-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 shrink-0">
             <GlassCard title="Network Configuration" icon={Settings} className="h-full">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <InputGroup label="Target Config" indicatorColor="bg-blue-500">
                   <div className="flex-1">
                     <span className="text-xs text-gray-400 block mb-1">Destination IP</span>
@@ -413,8 +413,8 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
             </GlassCard>
 
             <GlassCard title="Advanced Options" icon={Settings} className="h-full">
-              <div className="space-y-6">
-                <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+              <div className="space-y-4">
+                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50">
                   <div className="flex justify-between items-end mb-2">
                     <label
                       htmlFor="delay-slider"
@@ -436,7 +436,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   />
                 </div>
 
-                <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50">
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase relative">
                     Chunk Size
                     <div className="relative mt-2">
@@ -464,7 +464,11 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
           </div>
 
           {/* BOTTOM ROW: Payload */}
-          <GlassCard title="Payload Configuration" icon={FileText} className="flex-1 min-h-[350px]">
+          <GlassCard
+            title="Payload Configuration"
+            icon={FileText}
+            className="flex-1 min-h-[220px] flex flex-col"
+          >
             {/* DROP ZONE */}
             {/* biome-ignore lint/a11y/useSemanticElements: Cannot use button because it contains nested buttons */}
             <div
@@ -498,19 +502,19 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   .filter(Boolean) as string[];
                 addFiles(paths);
               }}
-              className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all group min-h-[250px] relative cursor-pointer
+              className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-4 transition-all group min-h-[160px] relative cursor-pointer
                                   ${isDragging ? 'bg-blue-900/20 border-blue-500' : 'bg-gray-900/20 border-gray-700 hover:border-blue-500/50 hover:bg-gray-800/50'}
                               `}
             >
               {files.length > 0 ? (
                 <div className="text-center w-full">
-                  <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400 group-hover:scale-110 transition-transform">
-                    <FileText size={32} />
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mx-auto mb-2 text-blue-400 group-hover:scale-110 transition-transform">
+                    <FileText size={24} />
                   </div>
-                  <p className="font-medium text-white text-xl mb-1">
+                  <p className="font-medium text-white text-lg mb-1">
                     {files.length} {files.length === 1 ? 'file' : 'files'} selected
                   </p>
-                  <p className="text-sm text-gray-500 mb-6">Ready to transmit</p>
+                  <p className="text-xs text-gray-500 mb-4">Ready to transmit</p>
 
                   <div className="flex justify-center gap-3">
                     <button
@@ -519,9 +523,9 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                         e.stopPropagation();
                         setIsQueueOpen(true);
                       }}
-                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-200 flex items-center gap-2 transition-colors border border-gray-700"
+                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium text-gray-200 flex items-center gap-2 transition-colors border border-gray-700"
                     >
-                      <List size={16} /> View List
+                      <List size={14} /> View List
                     </button>
                     <button
                       type="button"
@@ -529,9 +533,9 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                         e.stopPropagation();
                         fileInputRef.current?.click();
                       }}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-sm font-medium text-blue-300 flex items-center gap-2 transition-colors border border-blue-500/30"
+                      className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-xs font-medium text-blue-300 flex items-center gap-2 transition-colors border border-blue-500/30"
                     >
-                      <Plus size={16} /> Add More
+                      <Plus size={14} /> Add More
                     </button>
                     <button
                       type="button"
@@ -539,30 +543,30 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                         e.stopPropagation();
                         setFiles([]);
                       }}
-                      className="px-4 py-2 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-sm font-medium text-red-300 flex items-center gap-2 transition-colors border border-red-500/30"
+                      className="px-3 py-1.5 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-xs font-medium text-red-300 flex items-center gap-2 transition-colors border border-red-500/30"
                     >
-                      <X size={16} /> Clear
+                      <X size={14} /> Clear
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
-                    <Plus size={32} />
+                  <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
+                    <Plus size={24} />
                   </div>
-                  <p className="text-gray-300 mb-1 text-lg font-medium">Drag & Drop files here</p>
-                  <p className="text-sm text-gray-500">or click to browse local storage</p>
+                  <p className="text-gray-300 mb-1 text-base font-medium">Drag & Drop files</p>
+                  <p className="text-xs text-gray-500">or click to browse</p>
                 </div>
               )}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-4">
               <Button
                 onClick={startBatch}
                 disabled={!isValid}
                 variant={isValid ? 'primary' : 'secondary'}
                 size="lg"
-                className={`w-full py-4 text-lg font-bold shadow-xl justify-center ${!isValid ? 'bg-gray-800 text-gray-500 opacity-100' : ''}`}
+                className={`w-full py-3 text-lg font-bold shadow-xl justify-center ${!isValid ? 'bg-gray-800 text-gray-500 opacity-100' : ''}`}
                 icon={<Send size={20} />}
               >
                 SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
