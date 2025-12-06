@@ -1,6 +1,9 @@
-import { Activity, Network, Play, Settings, ShieldAlert, Square } from 'lucide-react';
+import { Activity, Network, PlayCircle, ShieldAlert, StopCircle } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import Button from './common/Button';
+import GlassCard from './common/GlassCard';
+import InputGroup from './common/InputGroup';
 
 interface MitmConfig {
   listenPort: number;
@@ -20,10 +23,28 @@ const MitmView: React.FC<{
     corruption: 0.0,
   });
   const [isRunning, setIsRunning] = useState(false);
+  const isAttacking = isRunning && config.corruption > 0;
+  const [stats, setStats] = useState({ intercepted: 0, corrupted: 0 });
 
   useEffect(() => {
     setBusy(isRunning);
   }, [isRunning, setBusy]);
+
+  // Fake Stats Simulation
+  useEffect(() => {
+    if (!isRunning) return;
+    const interval = setInterval(() => {
+      setStats((prev) => ({
+        intercepted: prev.intercepted + Math.floor(Math.random() * 8) + 2,
+        corrupted:
+          prev.corrupted +
+          (config.corruption > 0 && Math.random() < config.corruption
+            ? Math.floor(Math.random() * 3) + 1
+            : 0),
+      }));
+    }, 500); // Update every 500ms
+    return () => clearInterval(interval);
+  }, [isRunning, config.corruption]);
 
   // Lift Header Content
   useEffect(() => {
@@ -57,6 +78,7 @@ const MitmView: React.FC<{
       setIsRunning(false);
     } else {
       try {
+        setStats({ intercepted: 0, corrupted: 0 }); // Reset stats
         await window.api.startProxy({
           listenPort: config.listenPort,
           targetIp: config.targetIp,
@@ -71,47 +93,108 @@ const MitmView: React.FC<{
   };
 
   return (
-    <div className="h-full flex flex-col gap-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
-        {/* Configuration Card */}
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl flex flex-col">
-          <div className="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
-            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
-              <Network size={20} />
-            </div>
-            <h3 className="font-bold text-gray-200">Network Configuration</h3>
+    <div className="h-full flex flex-col gap-4 overflow-y-auto">
+      {/* Network Configuration */}
+      <GlassCard title="Network Configuration" icon={Network}>
+        <div className="flex items-start gap-4">
+          {/* Listener: Fixed Width */}
+          <div className="w-64 shrink-0">
+            <InputGroup label="Proxy Listener" indicatorColor="bg-green-500">
+              <div className="flex-1">
+                <span className="text-xs text-gray-400 block mb-1">Local Port</span>
+                <input
+                  type="number"
+                  disabled={isRunning}
+                  value={config.listenPort}
+                  onChange={(e) => setConfig({ ...config, listenPort: Number(e.target.value) })}
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                />
+              </div>
+            </InputGroup>
           </div>
 
-          <div className="space-y-6 flex-1">
-            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
-              <div className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                Proxy Listener
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <span className="text-xs text-gray-400 block mb-1">Local Port</span>
-                  <input
-                    type="number"
-                    disabled={isRunning}
-                    value={config.listenPort}
-                    onChange={(e) => setConfig({ ...config, listenPort: Number(e.target.value) })}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  />
+          {/* Flow Animation: Flexible Space */}
+          <div className="flex-1 flex flex-col justify-center px-4 relative h-full pt-8 group">
+            <style>
+              {`
+                @keyframes flow-animation {
+                  to {
+                    stroke-dashoffset: -20;
+                  }
+                }
+                .flow-active {
+                  animation: flow-animation 0.5s linear infinite;
+                }
+                .flow-attacking {
+                  animation: flow-animation 0.2s linear infinite;
+                }
+              `}
+            </style>
+
+            <div className="relative w-full h-8 flex items-center">
+              {/* Connection Points */}
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isRunning
+                    ? isAttacking
+                      ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
+                      : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'
+                    : 'bg-gray-700'
+                } absolute left-0 z-10`}
+              ></div>
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isRunning
+                    ? isAttacking
+                      ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
+                      : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'
+                    : 'bg-gray-700'
+                } absolute right-0 z-10`}
+              ></div>
+
+              <svg
+                className="w-full h-full overflow-visible"
+                aria-label="Packet Flow Visualization"
+                role="img"
+              >
+                <title>Packet Flow</title>
+                <line
+                  x1="0"
+                  y1="50%"
+                  x2="100%"
+                  y2="50%"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeDasharray="10 10"
+                  className={`transition-colors duration-300 ${
+                    isRunning
+                      ? isAttacking
+                        ? 'text-red-500 flow-attacking opacity-100'
+                        : 'text-green-500 flow-active opacity-80'
+                      : 'text-gray-700 opacity-30'
+                  }`}
+                />
+              </svg>
+
+              {/* Status Label */}
+              {isRunning && (
+                <div
+                  className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] font-mono font-bold tracking-widest px-2 rounded border bg-gray-900/80 ${
+                    isAttacking
+                      ? 'text-red-500 border-red-500/20'
+                      : 'text-green-500 border-green-500/20'
+                  }`}
+                >
+                  {isAttacking ? 'ATTACKING' : 'INTERCEPTING'}
                 </div>
-              </div>
+              )}
             </div>
+          </div>
 
-            <div className="flex justify-center -my-2 opacity-30">
-              <div className="h-8 w-0.5 bg-gray-500"></div>
-            </div>
-
-            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
-              <div className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                Forward Target
-              </div>
-              <div className="grid grid-cols-3 gap-4">
+          {/* Target: Fixed Width */}
+          <div className="w-80 shrink-0">
+            <InputGroup label="Forward Target" indicatorColor="bg-blue-500">
+              <div className="grid grid-cols-3 gap-4 w-full">
                 <div className="col-span-2">
                   <span className="text-xs text-gray-400 block mb-1">Target Host / IP</span>
                   <input
@@ -133,78 +216,145 @@ const MitmView: React.FC<{
                   />
                 </div>
               </div>
-            </div>
+            </InputGroup>
           </div>
         </div>
+      </GlassCard>
 
-        {/* Attack Vector Card */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl flex-1 flex flex-col">
-            <div className="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
-              <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
-                <Settings size={20} />
-              </div>
-              <h3 className="font-bold text-gray-200">Active Attacks</h3>
+      {/* Attack Configuration */}
+      <GlassCard title="Active Attacks" icon={ShieldAlert} className="flex-1 flex flex-col">
+        <div className="flex flex-col h-full gap-4">
+          {/* Slider & Presets Section */}
+          <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50 flex flex-col gap-4">
+            <div className="flex justify-between items-end">
+              <label htmlFor="corruption-slider" className="text-sm font-bold text-gray-300">
+                Data Corruption Rate
+              </label>
+              <span
+                className={`text-2xl font-mono font-bold transition-colors ${
+                  config.corruption > 0 ? 'text-red-500' : 'text-gray-500'
+                }`}
+              >
+                {Math.round(config.corruption * 100)}%
+              </span>
             </div>
 
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-700/50">
-                <div className="flex justify-between items-end mb-4">
-                  <label htmlFor="corruption-slider" className="text-sm font-bold text-gray-300">
-                    Data Corruption Rate
-                  </label>
-                  <span className="text-2xl font-mono font-bold text-red-500">
-                    {Math.round(config.corruption * 100)}%
-                  </span>
-                </div>
+            <input
+              id="corruption-slider"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              disabled={isRunning}
+              value={config.corruption}
+              onChange={(e) => setConfig({ ...config, corruption: Number(e.target.value) })}
+              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <div className="flex justify-between text-xs text-gray-500 font-mono px-1">
+              <span>Passthrough</span>
+              <span>Noise</span>
+              <span>Destructive</span>
+            </div>
 
-                <input
-                  id="corruption-slider"
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
+            {/* Intensity Presets */}
+            <div className="flex gap-2">
+              {[
+                {
+                  label: 'Bit Flip',
+                  val: 0.01,
+                  color: 'hover:bg-yellow-900/50 border-yellow-700 text-yellow-500',
+                },
+                {
+                  label: 'Noise',
+                  val: 0.2,
+                  color: 'hover:bg-orange-900/50 border-orange-700 text-orange-500',
+                },
+                {
+                  label: 'Fuzz',
+                  val: 0.8,
+                  color: 'hover:bg-red-900/50 border-red-700 text-red-500',
+                },
+              ].map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => !isRunning && setConfig({ ...config, corruption: p.val })}
                   disabled={isRunning}
-                  value={config.corruption}
-                  onChange={(e) => setConfig({ ...config, corruption: Number(e.target.value) })}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-2 font-mono">
-                  <span>Passthrough</span>
-                  <span>Noise</span>
-                  <span>Destructive</span>
-                </div>
+                  className={`flex-1 py-1.5 text-xs font-mono border rounded transition-all bg-gray-800/50 disabled:opacity-50 disabled:cursor-not-allowed ${p.color}`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                <p className="text-xs text-gray-500 mt-4 border-l-2 border-red-500/30 pl-3">
-                  Currently supporting random bit-flip corruption. Higher rates will likely break
-                  TCP checksums unless re-calculated by the Proxy. (Note: Current Proxy
-                  implementation preserves payload length but flips bits).
-                </p>
+          {/* Matrix & Stats Section */}
+          <div className="grid grid-cols-2 gap-4 flex-1 min-h-0">
+            {/* Attack Matrix */}
+            <div className="bg-gray-900/30 p-3 rounded-xl border border-gray-800 flex flex-col gap-2">
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                Active Modules
+              </span>
+              <div className="grid grid-cols-2 gap-2 h-full content-start">
+                {['DELAY', 'DROP', 'INJECT', 'CORRUPT'].map((mod) => {
+                  const active = mod === 'CORRUPT' && isAttacking;
+                  return (
+                    <div
+                      key={mod}
+                      className={`text-[10px] font-mono font-bold text-center py-2 rounded border transition-colors ${
+                        active
+                          ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse'
+                          : 'bg-gray-800/50 border-gray-700/50 text-gray-600'
+                      }`}
+                    >
+                      {mod}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Stats Counter */}
+            <div className="bg-gray-900/30 p-3 rounded-xl border border-gray-800 flex flex-col justify-center gap-3">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
+                  Intercepted Pkts
+                </span>
+                <span className="text-2xl font-mono text-green-500 tracking-tight">
+                  {stats.intercepted.toLocaleString().padStart(5, '0')}
+                </span>
+              </div>
+              <div className="w-full h-px bg-gray-800" />
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
+                  Corrupted Pkts
+                </span>
+                <span
+                  className={`text-2xl font-mono tracking-tight ${
+                    stats.corrupted > 0 ? 'text-red-500' : 'text-gray-600'
+                  }`}
+                >
+                  {stats.corrupted.toLocaleString().padStart(5, '0')}
+                </span>
               </div>
             </div>
           </div>
 
-          <button
-            type="button"
+          <Button
             onClick={toggleMitm}
-            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-3 ${
+            variant={isRunning ? 'danger' : 'primary'}
+            size="lg"
+            className={`w-full py-3 text-lg font-bold shadow-xl justify-center shrink-0 ${
               isRunning
-                ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-900/20'
-                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
+                ? 'bg-red-600 hover:bg-red-700 shadow-red-900/20 ring-red-500'
+                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
             }`}
+            icon={isRunning ? <StopCircle size={24} /> : <PlayCircle size={24} />}
           >
-            {isRunning ? (
-              <>
-                <Square className="fill-current" size={20} /> STOP PROXY
-              </>
-            ) : (
-              <>
-                <Play className="fill-current" size={20} /> START PROXY
-              </>
-            )}
-          </button>
+            {isRunning ? 'STOP PROXY' : 'START PROXY'}
+          </Button>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 };
