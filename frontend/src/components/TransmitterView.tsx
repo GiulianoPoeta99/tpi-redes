@@ -566,7 +566,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                 disabled={!isValid}
                 variant={isValid ? 'primary' : 'secondary'}
                 size="lg"
-                className={`w-full py-3 text-lg font-bold shadow-xl justify-center ${!isValid ? 'bg-gray-800 text-gray-500 opacity-100' : ''}`}
+                className="w-full py-3 text-lg font-bold shadow-xl justify-center"
                 icon={<Send size={20} />}
               >
                 SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}

@@ -9,36 +9,30 @@ interface PeerListItemProps {
   className?: string;
 }
 
-const PeerListItem: React.FC<PeerListItemProps> = ({
-  ip,
-  port,
-  hostname,
-  onSelect,
-  className = '',
-}) => {
+const PeerListItem: React.FC<PeerListItemProps> = ({ ip, port, hostname, onSelect }) => {
   return (
     <button
       type="button"
+      className="w-full group bg-gray-800/40 backdrop-blur-sm border border-white/5 p-3 rounded-lg flex items-center justify-between hover:bg-gray-800/70 hover:border-white/10 transition-all outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer text-left"
       onClick={onSelect}
-      className={`w-full text-left p-3 rounded-lg bg-glass-surface backdrop-blur-sm border border-glass-border hover:bg-glass-hover hover:border-primary/50 transition-all group relative overflow-hidden ${className}`}
     >
-      <div className="flex justify-between items-center relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-glass-surface rounded-lg text-status-info-text group-hover:bg-status-info-bg transition-colors">
-            <Monitor size={18} />
-          </div>
-          <div>
-            <div className="font-mono font-bold text-gray-200 group-hover:text-status-info-text transition-colors">
-              {ip}
-            </div>
-            <div className="text-xs text-gray-500 font-mono">
-              Port: {port} {hostname && `• ${hostname}`}
-            </div>
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 shrink-0 group-hover:bg-blue-500/20 transition-colors">
+          <Monitor size={18} />
+        </div>
+        <div>
+          <p className="font-medium text-gray-200 group-hover:text-white transition-colors">
+            {hostname || 'Unknown Host'}
+          </p>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span className="font-mono">{ip}</span>
+            <span>•</span>
+            <span>Port {port}</span>
           </div>
         </div>
-        <div className="px-2 py-1 bg-status-info-bg text-status-info-text text-[10px] font-bold uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity">
-          Connect
-        </div>
+      </div>
+      <div className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0 font-bold text-xs uppercase">
+        Connect &rarr;
       </div>
     </button>
   );
