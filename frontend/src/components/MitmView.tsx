@@ -288,49 +288,33 @@ const MitmView: React.FC<{
             </div>
           </div>
 
-          {/* Matrix & Stats Section */}
-          <div className="grid grid-cols-2 gap-4 flex-1 min-h-0">
-            {/* Attack Matrix */}
-            <div className="bg-gray-900/30 p-3 rounded-xl border border-gray-800 flex flex-col gap-2">
-              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-                Active Modules
+          {/* Stats & Mode Info */}
+          <div className="bg-gray-900/30 p-4 rounded-xl border border-gray-800 flex flex-col gap-3 flex-1 min-h-0">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                Operational Mode
               </span>
-              <div className="grid grid-cols-2 gap-2 h-full content-start">
-                {['DELAY', 'DROP', 'INJECT', 'CORRUPT'].map((mod) => {
-                  const active = mod === 'CORRUPT' && isAttacking;
-                  return (
-                    <div
-                      key={mod}
-                      className={`text-[10px] font-mono font-bold text-center py-2 rounded border transition-colors ${
-                        active
-                          ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse'
-                          : 'bg-gray-800/50 border-gray-700/50 text-gray-600'
-                      }`}
-                    >
-                      {mod}
-                    </div>
-                  );
-                })}
-              </div>
+              <span className="text-[10px] font-mono font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                DATA CORRUPTION ONLY
+              </span>
             </div>
 
-            {/* Stats Counter */}
-            <div className="bg-gray-900/30 p-3 rounded-xl border border-gray-800 flex flex-col justify-center gap-3">
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
-                  Intercepted Pkts
+            <div className="grid grid-cols-2 gap-4 flex-1 items-center">
+              <div className="flex flex-col items-center justify-center">
+                <span className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">
+                  Intercepted
                 </span>
-                <span className="text-2xl font-mono text-green-500 tracking-tight">
+                <span className="text-3xl font-mono text-green-500 tracking-tight">
                   {stats.intercepted.toLocaleString().padStart(5, '0')}
                 </span>
               </div>
-              <div className="w-full h-px bg-gray-800" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
-                  Corrupted Pkts
+
+              <div className="flex flex-col items-center justify-center border-l border-gray-800">
+                <span className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">
+                  Corrupted
                 </span>
                 <span
-                  className={`text-2xl font-mono tracking-tight ${
+                  className={`text-3xl font-mono tracking-tight ${
                     stats.corrupted > 0 ? 'text-red-500' : 'text-gray-600'
                   }`}
                 >
