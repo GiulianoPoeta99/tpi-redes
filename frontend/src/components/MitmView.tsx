@@ -1,9 +1,10 @@
-import { Activity, Network, PlayCircle, ShieldAlert, StopCircle } from 'lucide-react';
+import { Activity, Network, PlayCircle, ShieldAlert, StopCircle, Search } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import Button from './common/Button';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
+import ScanModal from './ScanModal';
 
 interface MitmConfig {
   listenPort: number;
@@ -26,9 +27,42 @@ const MitmView: React.FC<{
   const isAttacking = isRunning && config.corruption > 0;
   const [stats, setStats] = useState({ intercepted: 0, corrupted: 0 });
 
+  // Discovery
+  const [isScanOpen, setIsScanOpen] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  // biome-ignore lint/suspicious/noExplicitAny: Discovery peer type
+  const [discoveredPeers, setDiscoveredPeers] = useState<any[]>([]);
+  const [scanError, setScanError] = useState<string>();
+
   useEffect(() => {
     setBusy(isRunning);
   }, [isRunning, setBusy]);
+
+  const openScan = async () => {
+    setIsScanOpen(true);
+    setIsScanning(true);
+    setScanError(undefined);
+    setDiscoveredPeers([]);
+    try {
+      const peers = await window.api.scanNetwork();
+      setDiscoveredPeers(peers || []);
+      // biome-ignore lint/suspicious/noExplicitAny: Error
+    } catch (e: any) {
+      setScanError(e.toString());
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  // biome-ignore lint/suspicious/noExplicitAny: Peer object
+  const handleSelectPeer = (peer: any) => {
+    setConfig((prev) => ({
+      ...prev,
+      targetIp: peer.ip,
+      targetPort: peer.port || prev.targetPort,
+    }));
+    setIsScanOpen(false);
+  };
 
   // Fake Stats Simulation
   useEffect(() => {
@@ -94,6 +128,14 @@ const MitmView: React.FC<{
 
   return (
     <div className="h-full flex flex-col gap-4 overflow-y-auto">
+      <ScanModal
+        isOpen={isScanOpen}
+        onClose={() => setIsScanOpen(false)}
+        onSelect={handleSelectPeer}
+        scanning={isScanning}
+        peers={discoveredPeers}
+        error={scanError}
+      />
       {/* Network Configuration */}
       <GlassCard title="Network Configuration" icon={Network}>
         <div className="flex items-start gap-4">
@@ -194,8 +236,8 @@ const MitmView: React.FC<{
           {/* Target: Fixed Width */}
           <div className="w-80 shrink-0">
             <InputGroup label="Forward Target" indicatorColor="bg-blue-500">
-              <div className="grid grid-cols-3 gap-4 w-full">
-                <div className="col-span-2">
+              <div className="flex gap-2 w-full items-end">
+                <div className="flex-1">
                   <span className="text-xs text-gray-400 block mb-1">Target Host / IP</span>
                   <input
                     type="text"
@@ -205,7 +247,7 @@ const MitmView: React.FC<{
                     className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   />
                 </div>
-                <div>
+                <div className="w-20">
                   <span className="text-xs text-gray-400 block mb-1">Port</span>
                   <input
                     type="number"
@@ -215,6 +257,15 @@ const MitmView: React.FC<{
                     className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   />
                 </div>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={openScan}
+                  disabled={isRunning}
+                  className="text-blue-400 border-gray-600 shrink-0 h-[42px] w-[42px]"
+                  title="Scan Network"
+                  icon={<Search size={18} />}
+                />
               </div>
             </InputGroup>
           </div>
