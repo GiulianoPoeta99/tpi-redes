@@ -1,5 +1,6 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { StorageService } from '../services/StorageService';
 import SlidingWindow from './SlidingWindow';
 
 const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy }) => {
@@ -35,6 +36,17 @@ const ReceiverView: React.FC<{ setBusy: (busy: boolean) => void }> = ({ setBusy 
             if (json.status === 'complete') {
               setTransferActive(false);
               setLastFile(json.filename || 'Unknown File');
+              
+              StorageService.addHistoryItem({
+                id: Date.now().toString() + Math.random(),
+                timestamp: Date.now(),
+                filename: json.filename || 'unknown',
+                size: json.total || 0,
+                direction: 'received',
+                status: 'success',
+                protocol: protocol.toUpperCase(),
+              });
+              
               // Toast handled by Dashboard
             }
           } else if (json.type === 'ERROR') {

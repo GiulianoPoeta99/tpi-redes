@@ -1,6 +1,7 @@
 import { Check, Clock, FileText, HardDrive, List, Plus, Search, X, Zap } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { StorageService } from '../services/StorageService';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
@@ -116,6 +117,16 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
               const duration = (now - startTimeRef.current) / 1000;
               const throughput = duration > 0 ? bytes / duration : 0;
 
+              StorageService.addHistoryItem({
+                id: now.toString() + Math.random(),
+                timestamp: now,
+                filename: json.filename || 'unknown',
+                size: bytes,
+                direction: 'sent',
+                status: 'success',
+                protocol: protocol.toUpperCase(),
+              });
+
               setSessionHistory((prev) => [
                 ...prev,
                 {
@@ -198,6 +209,20 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({ setBusy, addToast }) 
   const cancelSend = async () => {
     try {
       await window.api.stopProcess();
+
+      // Log Cancellation
+      if (files[currentFileIndex]) {
+        StorageService.addHistoryItem({
+          id: Date.now().toString() + Math.random(),
+          timestamp: Date.now(),
+          filename: files[currentFileIndex].split('/').pop() || 'unknown',
+          size: totalBytesRef.current, // Might be 0 if cancelled before first progress
+          direction: 'sent',
+          status: 'cancelled',
+          protocol: protocol.toUpperCase(),
+        });
+      }
+
       setStatus('idle');
       setIsBatchActive(false);
       addToast('info', 'Cancelled', 'Transfer cancelled');

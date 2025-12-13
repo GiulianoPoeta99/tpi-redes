@@ -1,7 +1,9 @@
+import { Clock } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { AppStats } from '../services/StorageService';
 import { StorageService } from '../services/StorageService';
+import HistoryModal from './HistoryModal';
 import MitmView from './MitmView';
 import ReceiverView from './ReceiverView';
 import SnifferLog from './SnifferLog';
@@ -16,6 +18,7 @@ const Dashboard: React.FC = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [isBusy, setIsBusy] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const addToast = useCallback(
     (type: 'success' | 'error' | 'info', title: string, description?: string) => {
@@ -119,6 +122,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans relative">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
       {/* Sidebar / Stats Area (Left or Right? User said "no side menu", but "stats in dashboard")
                 User said: "packt sniffer and statistics should be in the dashboard... not side menu"
                 Implying they should be visible widgets.
@@ -154,6 +158,15 @@ const Dashboard: React.FC = () => {
                 </button>
               ))}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setShowHistory(true)}
+              className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full transition-colors"
+              title="Transfer History"
+            >
+              <Clock size={20} />
+            </button>
           </div>
         </header>
 
