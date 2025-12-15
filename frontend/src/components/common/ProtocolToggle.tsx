@@ -23,7 +23,9 @@ const ProtocolToggle: React.FC<ProtocolToggleProps> = ({
             onClick={() => onChange(p as 'tcp' | 'udp')}
             className={`flex-1 py-1.5 text-sm rounded font-medium transition-all font-mono ${
               protocol === p
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? p === 'tcp'
+                  ? 'bg-proto-tcp text-white shadow-lg shadow-proto-tcp/20'
+                  : 'bg-proto-udp text-white shadow-lg shadow-proto-udp/20'
                 : 'text-gray-400 hover:text-gray-200'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >

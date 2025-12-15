@@ -1,6 +1,7 @@
 import {
   Check,
   ChevronDown,
+  ChevronUp,
   FileText,
   List,
   Plus,
@@ -65,7 +66,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
         <div
           className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
             status === 'sending'
-              ? 'bg-blue-500/20 border-blue-500 text-blue-400 animate-pulse'
+              ? 'bg-green-500/20 border-green-500 text-green-400 animate-pulse'
               : 'bg-gray-800 border-gray-700 text-gray-400'
           }`}
         >
@@ -400,12 +401,30 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                 <InputGroup label="Port & Protocol">
                   <div className="flex-1">
                     <span className="text-xs text-gray-400 block mb-1">Port</span>
-                    <input
-                      type="number"
-                      value={port}
-                      onChange={(e) => setPort(Number(e.target.value))}
-                      className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                    />
+                    <div className="relative w-full">
+                      <input
+                        type="number"
+                        value={port}
+                        onChange={(e) => setPort(Number(e.target.value))}
+                        className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-3 pr-8 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <div className="absolute right-1 top-1 bottom-1 w-5 flex flex-col gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setPort((p) => p + 1)}
+                          className="flex-1 bg-gray-700/50 hover:bg-gray-600 rounded-t text-gray-400 hover:text-white flex items-center justify-center transition-colors"
+                        >
+                          <ChevronUp size={10} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPort((p) => Math.max(1, p - 1))}
+                          className="flex-1 bg-gray-700/50 hover:bg-gray-600 rounded-b text-gray-400 hover:text-white flex items-center justify-center transition-colors"
+                        >
+                          <ChevronDown size={10} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <ProtocolToggle protocol={protocol} onChange={setProtocol} />
                 </InputGroup>
@@ -413,8 +432,8 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
             </GlassCard>
 
             <GlassCard title="Advanced Options" icon={Settings} className="h-full">
-              <div className="space-y-4">
-                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50">
+              <div className="flex flex-col gap-4 h-full">
+                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex-1 flex flex-col justify-center">
                   <div className="flex justify-between items-end mb-2">
                     <label
                       htmlFor="delay-slider"
@@ -436,7 +455,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   />
                 </div>
 
-                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50">
+                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex-1 flex flex-col justify-center">
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase relative">
                     Chunk Size
                     <div className="relative mt-2">
@@ -606,7 +625,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                 strokeDasharray={outerCircumference}
                 strokeDashoffset={outerStrokeDashoffset}
                 strokeLinecap="round"
-                className="text-purple-500 transition-all duration-300 ease-linear"
+                className="text-mode-tx transition-all duration-300 ease-linear"
               />
             </svg>
 
@@ -637,7 +656,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
                   strokeLinecap="round"
-                  className="text-blue-500 transition-all duration-300 ease-out"
+                  className="text-proto-tcp transition-all duration-300 ease-out"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
@@ -649,14 +668,14 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-blue-300 animate-pulse font-medium tracking-wide mb-1">
+            <p className="text-proto-tcp animate-pulse font-medium tracking-wide mb-1">
               SENDING FILE {currentFileIndex + 1} OF {files.length}
             </p>
             <p className="text-sm text-gray-400 font-mono truncate max-w-xs mx-auto">
               {files[currentFileIndex]?.split('/').pop()}
             </p>
 
-            <div className="mt-2 text-xs text-purple-400 font-mono">
+            <div className="mt-2 text-xs text-mode-tx font-mono">
               Batch Progress: {Math.round(smoothBatchPercent)}%
             </div>
           </div>

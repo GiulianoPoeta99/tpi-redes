@@ -26,13 +26,13 @@ const ReceiverView: React.FC<{
   // Lift Header Content
   useEffect(() => {
     setHeaderContent(
-      <div className="min-w-[400px] bg-gradient-to-r from-blue-900/40 to-cyan-900/40 border border-blue-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
+      <div className="min-w-[400px] bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Download className="text-blue-500" size={20} />
+            <Download className="text-purple-500" size={20} />
             Receiver Mode
           </h2>
-          <p className="text-blue-200/60 text-xs">Listen for Incoming Files</p>
+          <p className="text-purple-200/60 text-xs">Listen for Incoming Files</p>
         </div>
         <div
           className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
@@ -146,8 +146,8 @@ const ReceiverView: React.FC<{
               {/* Row 2: IP & Button */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* IP Display */}
-                <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl flex flex-col justify-center h-full min-h-[84px]">
-                  <span className="text-xs font-bold text-blue-400 uppercase block mb-1">
+                <div className="p-4 bg-mode-rx-dim border border-mode-rx/20 rounded-xl flex flex-col justify-center h-full min-h-[84px]">
+                  <span className="text-xs font-bold text-mode-rx uppercase block mb-1">
                     My IP Address
                   </span>
                   <span className="text-xl font-mono text-white tracking-wider flex items-center gap-2">
@@ -164,7 +164,7 @@ const ReceiverView: React.FC<{
                     onClick={toggleServer}
                     className={`w-full h-full text-lg shadow-lg justify-center text-white ${
                       !isConnected
-                        ? 'bg-green-600 hover:bg-green-500 ring-green-500 shadow-green-900/20'
+                        ? 'bg-blue-600 hover:bg-blue-500 ring-blue-500 shadow-blue-900/20'
                         : 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
                     }`}
                     icon={<Power size={24} />}

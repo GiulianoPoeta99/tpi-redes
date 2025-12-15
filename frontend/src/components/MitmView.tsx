@@ -83,10 +83,10 @@ const MitmView: React.FC<{
   // Lift Header Content
   useEffect(() => {
     setHeaderContent(
-      <div className="min-w-[400px] bg-gradient-to-r from-red-900/40 to-orange-900/40 border border-red-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
+      <div className="min-w-[400px] bg-gradient-to-r from-mode-mitm-dim to-orange-900/40 border border-mode-mitm/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <ShieldAlert className="text-red-500" size={20} />
+            <ShieldAlert className="text-mode-mitm" size={20} />
             MITM Proxy
           </h2>
           <p className="text-red-200/60 text-xs">Intercept & Manipulate</p>
@@ -94,7 +94,7 @@ const MitmView: React.FC<{
         <div
           className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
             isRunning
-              ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse'
+              ? 'bg-green-500/20 border-green-500 text-green-400 animate-pulse'
               : 'bg-gray-800 border-gray-700 text-gray-400'
           }`}
         >
@@ -379,10 +379,10 @@ const MitmView: React.FC<{
             onClick={toggleMitm}
             variant={isRunning ? 'danger' : 'primary'}
             size="lg"
-            className={`w-full py-3 text-lg font-bold shadow-xl justify-center shrink-0 ${
+            className={`w-full py-3 text-lg font-bold shadow-xl justify-center shrink-0 text-white ${
               isRunning
-                ? 'bg-red-600 hover:bg-red-700 shadow-red-900/20 ring-red-500'
-                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
+                ? 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
+                : 'bg-blue-600 hover:bg-blue-500 ring-blue-500 shadow-blue-900/20'
             }`}
             icon={isRunning ? <StopCircle size={24} /> : <PlayCircle size={24} />}
           >

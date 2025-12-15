@@ -175,24 +175,37 @@ const Dashboard: React.FC = () => {
 
             {/* Segmented Control */}
             <div className="flex bg-black/20 border border-white/5 rounded-lg p-1">
-              {['receiver', 'transmitter', 'mitm'].map((m) => (
-                <button
-                  type="button"
-                  key={m}
-                  disabled={isBusy}
-                  onClick={() => handleModeSwitch(m as 'receiver' | 'transmitter' | 'mitm')}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                    mode === m
-                      ? 'bg-white/10 text-white shadow-sm'
-                      : isBusy
-                        ? 'text-gray-600 cursor-not-allowed'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {m.charAt(0).toUpperCase() + m.slice(1)}
-                  {isBusy && mode === m && <span className="ml-2 text-xs">🔒</span>}
-                </button>
-              ))}
+              {['receiver', 'transmitter', 'mitm'].map((m) => {
+                const isActive = mode === m;
+                let activeClass = '';
+                if (isActive) {
+                  if (m === 'receiver')
+                    activeClass = 'bg-mode-rx text-white shadow-lg shadow-mode-rx/20';
+                  else if (m === 'transmitter')
+                    activeClass = 'bg-mode-tx text-white shadow-lg shadow-mode-tx/20';
+                  else if (m === 'mitm')
+                    activeClass = 'bg-mode-mitm text-white shadow-lg shadow-mode-mitm/20';
+                }
+
+                return (
+                  <button
+                    type="button"
+                    key={m}
+                    disabled={isBusy}
+                    onClick={() => handleModeSwitch(m as 'receiver' | 'transmitter' | 'mitm')}
+                    className={`px-6 py-2 rounded-md text-sm font-bold transition-all duration-300 ${
+                      isActive
+                        ? activeClass
+                        : isBusy
+                          ? 'text-gray-600 cursor-not-allowed'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {m.charAt(0).toUpperCase() + m.slice(1)}
+                    {isBusy && mode === m && <span className="ml-2 text-xs">🔒</span>}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="w-px h-8 bg-white/10"></div>

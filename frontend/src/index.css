@@ -37,6 +37,18 @@
   --color-status-neutral-bg: rgba(107, 114, 128, 0.1);
   --color-status-neutral-text: #9ca3af;
   --color-status-neutral-border: rgba(107, 114, 128, 0.2);
+
+  /* Modes */
+  --color-mode-rx: #9333ea; /* purple-600 */
+  --color-mode-rx-dim: rgba(147, 51, 234, 0.1);
+  --color-mode-tx: #2563eb; /* blue-600 */
+  --color-mode-tx-dim: rgba(37, 99, 235, 0.1);
+  --color-mode-mitm: #dc2626; /* red-600 */
+  --color-mode-mitm-dim: rgba(220, 38, 38, 0.1);
+
+  /* Protocols */
+  --color-proto-tcp: #06b6d4; /* cyan-500 */
+  --color-proto-udp: #f97316; /* orange-500 */
 }
 
 /* Custom Scrollbar */
