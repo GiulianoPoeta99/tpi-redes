@@ -74,13 +74,15 @@ class PacketSniffer:
                 flags = ""
                 seq = 0
                 ack = 0
+                window = 0
 
                 if pkt.haslayer(TCP):
                     protocol = "TCP"
                     flags = str(pkt[TCP].flags)
                     seq = pkt[TCP].seq
                     ack = pkt[TCP].ack
-                    info = f"{src} -> {dst} [{flags}] Seq={seq} Ack={ack}"
+                    window = pkt[TCP].window
+                    info = f"{src} -> {dst} [{flags}] Seq={seq} Ack={ack} Win={window}"
                 elif pkt.haslayer(UDP):
                     protocol = "UDP"
                     info = f"{src} -> {dst} Len={pkt[UDP].len}"
@@ -101,6 +103,7 @@ class PacketSniffer:
                     "flags": flags,
                     "seq": seq,
                     "ack": ack,
+                    "window": window,
                 }
 
                 print(json.dumps(packet_data), flush=True)

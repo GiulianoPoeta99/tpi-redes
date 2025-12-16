@@ -1,31 +1,18 @@
 import type React from 'react';
 import { TableVirtuoso } from 'react-virtuoso';
-
-export interface Packet {
-  type: string;
-  timestamp: number;
-  src: string;
-  dst: string;
-  protocol: string;
-  length: number;
-  info: string;
-  flags: string;
-  seq: number;
-  ack: number;
-}
+import type { Packet } from '../types';
+import { getPacketRowClass } from '../utils/packetStyles';
 
 interface PacketTableProps {
   packets: Packet[];
 }
 
 const PacketTable: React.FC<PacketTableProps> = ({ packets }) => {
-  const getRowClass = (pkt: Packet) => {
-    if (pkt.protocol === 'TCP') {
-      if (pkt.flags.includes('S')) return 'bg-green-900/30 text-green-200'; // SYN
-      if (pkt.flags.includes('F')) return 'bg-red-900/30 text-red-200'; // FIN
-      if (pkt.flags.includes('R')) return 'bg-yellow-900/30 text-yellow-200'; // RST
-    }
-    return 'hover:bg-gray-800';
+
+  const getProtocolClass = (proto: string) => {
+    if (proto === 'TCP') return 'text-proto-tcp';
+    if (proto === 'UDP') return 'text-proto-udp';
+    return 'text-gray-300';
   };
 
   const formatTime = (ts: number) => {
@@ -49,9 +36,8 @@ const PacketTable: React.FC<PacketTableProps> = ({ packets }) => {
               <th className="p-2 w-24 border-b border-gray-700 bg-gray-800">Time</th>
               <th className="p-2 w-48 border-b border-gray-700 bg-gray-800">Source</th>
               <th className="p-2 w-48 border-b border-gray-700 bg-gray-800">Destination</th>
-              <th className="p-2 w-16 border-b border-gray-700 bg-gray-800">Proto</th>
-              <th className="p-2 w-16 border-b border-gray-700 bg-gray-800">Len</th>
-              <th className="p-2 border-b border-gray-700 bg-gray-800">Info</th>
+              <th className="p-2 w-20 border-b border-gray-700 bg-gray-800">Proto</th>
+              <th className="p-2 border-b border-gray-700 bg-gray-800">Len</th>
             </tr>
           )}
           itemContent={(index, pkt) => (
@@ -64,33 +50,16 @@ const PacketTable: React.FC<PacketTableProps> = ({ packets }) => {
               <td className="p-1 px-2 text-purple-300 truncate" title={pkt.dst}>
                 {pkt.dst}
               </td>
-              <td className="p-1 px-2 font-bold text-gray-300">{pkt.protocol}</td>
-              <td className="p-1 px-2 text-gray-400">{pkt.length}</td>
-              <td className="p-1 px-2 text-gray-300 truncate max-w-md" title={pkt.info}>
-                {pkt.info}
+              <td className={`p-1 px-2 font-bold ${getProtocolClass(pkt.protocol)}`}>
+                {pkt.protocol}
               </td>
+              <td className="p-1 px-2 text-gray-400">{pkt.length}</td>
             </>
           )}
           components={{
+            Table: (props) => <table {...props} className="w-full border-collapse" style={{ tableLayout: 'fixed' }} />,
             // biome-ignore lint/suspicious/noExplicitAny: Virtuoso types are complex
-            TableRow: (props: any) => {
-              const item = props?.item;
-              const className = item
-                ? `${getRowClass(item)} transition-colors`
-                : 'hover:bg-gray-800';
-              return <tr {...props} className={className} />;
-            },
-            Table: (props) => (
-              <table
-                {...props}
-                style={{
-                  ...props.style,
-                  width: '100%',
-                  borderCollapse: 'collapse',
-                  tableLayout: 'fixed',
-                }}
-              />
-            ),
+            TableRow: (props: any) => <tr {...props} className={`${props.className || ''} ${getPacketRowClass(props.item as Packet)}`} />
           }}
         />
       </div>

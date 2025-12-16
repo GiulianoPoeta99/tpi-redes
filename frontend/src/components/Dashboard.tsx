@@ -276,7 +276,7 @@ const Dashboard: React.FC = () => {
 
             {/* Packet Sniffer */}
             <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-0">
-              <SnifferLog logs={logs} />
+              <SnifferLog logs={logs} mode={mode} />
             </div>
           </div>
         </main>

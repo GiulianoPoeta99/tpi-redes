@@ -33,11 +33,12 @@ class TCPServer(BaseServer):
                             client_port,
                             local_ip,
                             local_port,
-                            "TCP",
-                            "Connection Established (App-Level)",
-                            flags="S",
+                            protocol="TCP",
+                            info="Connection Accepted [SYN, ACK] Seq=0 Ack=1 Win=65535",
+                            flags="SA",
                             seq=0,
-                            ack=0,
+                            ack=1,
+                            window=65535,
                         )
                         PacketLogger.flush()
                         self.handle_client(conn, addr)
@@ -102,11 +103,12 @@ class TCPServer(BaseServer):
                             local_ip,
                             local_port,
                             "TCP",
-                            f"Data Segment (App-Level) Len={len(chunk)}",
+                            f"Data Segment [PSH, ACK] Seq={received_bytes} Ack=1 Win=65535 Len={len(chunk)}",
                             size=len(chunk),
                             flags="PA",
                             seq=received_bytes,
-                            ack=0,
+                            ack=1,
+                            window=65535,
                         )
 
                         # Emit progress (optional: throttle this if too frequent)

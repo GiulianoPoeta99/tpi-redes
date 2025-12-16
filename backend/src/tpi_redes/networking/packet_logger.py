@@ -22,6 +22,7 @@ class PacketLogger:
         flags: str = "",
         seq: int = 0,
         ack: int = 0,
+        window: int = 0,
     ):
         """Buffer a packet event and potentially flush."""
         packet_data = {
@@ -35,6 +36,7 @@ class PacketLogger:
             "flags": flags,
             "seq": seq,
             "ack": ack,
+            "window": window,
         }
         PacketLogger._buffer.append(packet_data)
         PacketLogger._check_flush()
@@ -79,10 +81,19 @@ class PacketLogger:
         flags: str = "",
         seq: int = 0,
         ack: int = 0,
+        window: int = 0,
     ):
         """Helper to format IP:Port and call log_packet."""
         src = f"{src_ip}:{src_port}"
         dst = f"{dst_ip}:{dst_port}"
         PacketLogger.log_packet(
-            src, dst, protocol, info, length=size, flags=flags, seq=seq, ack=ack
+            src,
+            dst,
+            protocol,
+            info,
+            length=size,
+            flags=flags,
+            seq=seq,
+            ack=ack,
+            window=window,
         )

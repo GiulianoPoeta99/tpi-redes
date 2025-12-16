@@ -40,10 +40,14 @@ class TCPClient:
                 src_port=local_port,
                 dst_ip=ip,
                 dst_port=port,
+
                 protocol="TCP",
-                flags="SYN",
+                flags="S",
                 size=0,
-                info="Connection Request",
+                seq=0,
+                ack=0,
+                window=65535,
+                info="Connection Request [SYN] Seq=0 Win=65535",
             )
 
             for file_path in valid_files:
@@ -95,10 +99,12 @@ class TCPClient:
                             local_ip,
                             ip,
                             "TCP",
-                            f"{local_port}->{port} [PSH,ACK] "
-                            f"Sq={current_seq} Ln={chunk_len}",
-                            chunk_len,
-                            "PA",
+                            f"{local_port}->{port} [PSH, ACK] Seq={current_seq} Ack=1 Win=65535 Len={chunk_len}",
+                            length=chunk_len,
+                            flags="PA",
+                            seq=current_seq,
+                            ack=1,
+                            window=65535,
                         )
                         current_seq += chunk_len
 

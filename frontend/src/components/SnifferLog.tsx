@@ -1,14 +1,17 @@
-import { ChevronLeft, ChevronRight, FileText, List, Pause, Play, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, List, Maximize2, Pause, Play, Trash2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import PacketTable, { type Packet } from './PacketTable';
+import type { Packet } from '../types';
+import PacketTable from './PacketTable'; // Default Import
+import ExpandedPacketModal from './ExpandedPacketModal';
 
 interface SnifferLogProps {
   logs: string[];
+  mode: 'receiver' | 'transmitter' | 'mitm';
 }
 
 const ITEMS_PER_PAGE = 50;
 
-const SnifferLog: React.FC<SnifferLogProps> = ({ logs }) => {
+const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
   const [viewMode, setViewMode] = useState<'raw' | 'table'>('table');
   const [currentPage, setCurrentPage] = useState(1);
   const logEndRef = useRef<HTMLDivElement>(null);
@@ -16,15 +19,16 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs }) => {
   // Lifted Packet State
   const [packets, setPackets] = useState<Packet[]>([]);
   const [paused, setPaused] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const cleanup = window.api.onPacketCapture((packet) => {
       if (!paused) {
-        setPackets((prev) => [...prev, packet]);
+        setPackets((prev) => [...prev, { ...packet, mode }]);
       }
     });
     return cleanup;
-  }, [paused]);
+  }, [paused, mode]);
 
   const totalPages = Math.max(1, Math.ceil(logs.length / ITEMS_PER_PAGE));
 
@@ -49,6 +53,11 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs }) => {
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
+      <ExpandedPacketModal
+        isOpen={isExpanded}
+        onClose={() => setIsExpanded(false)}
+        packets={packets}
+      />
       {/* Unified Header */}
       <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex justify-between items-center shrink-0 shadow-md z-10">
         <div className="flex items-center gap-4">
@@ -110,6 +119,14 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs }) => {
               type="button"
             >
               <Trash2 size={16} />
+            </button>
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="p-2 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-gray-700 transition-colors"
+              title="Expand View"
+              type="button"
+            >
+              <Maximize2 size={16} />
             </button>
           </div>
 
