@@ -291,6 +291,8 @@ function spawnPythonProcess(args: string[]) {
             if (mainWindow) mainWindow.webContents.send('stats-update', item);
           } else if (item.type === 'PACKET_CAPTURE') {
             if (mainWindow) mainWindow.webContents.send('packet-capture', item);
+          } else if (item.type === 'SNIFFER_ERROR') {
+            if (mainWindow) mainWindow.webContents.send('sniffer-error', item);
           }
         });
       } catch (_e) {

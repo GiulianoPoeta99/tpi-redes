@@ -19,6 +19,8 @@ interface Window {
     startProxy: (args: any) => Promise<any>;
     // biome-ignore lint/suspicious/noExplicitAny: API signature
     onPacketCapture: (callback: (data: any) => void) => () => void;
+    // biome-ignore lint/suspicious/noExplicitAny: API signature
+    onSnifferError: (callback: (data: any) => void) => () => void;
     getLocalIp: () => Promise<string>;
     getDownloadsDir: () => Promise<string>;
     listFiles: (

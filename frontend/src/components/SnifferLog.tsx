@@ -20,6 +20,7 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
   const [packets, setPackets] = useState<Packet[]>([]);
   const [paused, setPaused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [permissionError, setPermissionError] = useState(false);
 
   useEffect(() => {
     const cleanup = window.api.onPacketCapture((packet) => {
@@ -29,6 +30,14 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
     });
     return cleanup;
   }, [paused, mode]);
+
+  useEffect(() => {
+    // biome-ignore lint/suspicious/noExplicitAny: Error event
+    const cleanup = window.api.onSnifferError((_err: any) => {
+      setPermissionError(true);
+    });
+    return cleanup;
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(logs.length / ITEMS_PER_PAGE));
 
@@ -52,7 +61,32 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
   const visibleLogs = logs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden">
+    <div className="flex flex-col h-full w-full overflow-hidden relative">
+      {permissionError && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-red-500/50 rounded-xl p-6 max-w-md text-center shadow-2xl mx-4">
+            <div className="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+               {/* biome-ignore lint/a11y/noSvgWithoutTitle: Icon */}
+               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Permission Required</h3>
+            <p className="text-gray-300 mb-6 leading-relaxed">
+              Packet Sniffer requires <strong className="text-red-400">Root/Administrator</strong> privileges to capture raw network traffic.
+            </p>
+            <div className="bg-black/40 rounded p-3 mb-6 font-mono text-xs text-left text-gray-400 border border-gray-800">
+               $ sudo just run
+            </div>
+            <button
+              type="button"
+              onClick={() => setPermissionError(false)}
+              className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors border border-gray-700 font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       <ExpandedPacketModal
         isOpen={isExpanded}
         onClose={() => setIsExpanded(false)}

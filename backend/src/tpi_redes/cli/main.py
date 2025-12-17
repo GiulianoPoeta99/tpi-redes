@@ -81,6 +81,20 @@ def cli(debug: bool):
 # Also removed explicit 'from ... import ...' inside commands where possible.
 
 
+@cli.command(hidden=True)
+@click.option("--port", default=8080)
+@click.option("--interface", default=None)
+def sniffer_service(port: int, interface: str | None):
+    """(Internal) Privileged sniffer process."""
+    from tpi_redes.networking.sniffer import PacketSniffer
+    # If "any", pass usage of all interfaces if supported or just None
+    if interface == "any":
+        interface = None
+        
+    sniffer = PacketSniffer(interface=interface, port=port)
+    sniffer.start_stdout_mode()
+
+
 @cli.command()
 @click.option("--port", default=8080, help="Port to listen on")
 @click.option(
@@ -92,19 +106,98 @@ def cli(debug: bool):
 @click.option(
     "--save-dir", default="./received_files", help="Directory to save received files"
 )
-@click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root)")
+@click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root permissions)")
 def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     """Start the file receiver server."""
-    sniffer = None
+    sniffer_process = None
     discovery = None
+    
+    # Thread to read sniffer output
+    import subprocess
+    import threading
 
     try:
         if sniff:
-            from tpi_redes.networking.sniffer import PacketSniffer
+            # Spawn sniffer as root via pkexec
+            # We call the same executable (python -m tpi_redes.cli.main sniffer-service)
+            # We MUST preserve PYTHONPATH because pkexec clears it
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_path = os.path.abspath(os.path.join(current_dir, "../.."))
+            
+            cmd = [
+                "pkexec",
+                "env",
+                f"PYTHONPATH={src_path}",
+                sys.executable,
+                "-m",
+                "tpi_redes.cli.main",
+                "sniffer-service",
+                "--port",
+                str(port),
+                "--interface",
+                "any"
+            ]
+            
+            logger.info("Requesting root privileges for Sniffer...")
+            
+            try:
+                sniffer_process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=sys.stderr, # Forward stderr
+                    text=True,
+                    bufsize=1 # Line buffered
+                )
+                
+                sniffer_ready_event = threading.Event()
 
-            # Use "any" to capture all interfaces (Linux)
-            sniffer = PacketSniffer(interface="any", port=port)
-            sniffer.start()
+                def forward_sniffer_output():
+                    if not sniffer_process or not sniffer_process.stdout:
+                        return
+                    for line in sniffer_process.stdout:
+                        if "SNIFFER_READY" in line:
+                            sniffer_ready_event.set()
+                        print(line, end="", flush=True)
+
+                t = threading.Thread(target=forward_sniffer_output, daemon=True)
+                t.start()
+                
+                # Wait for user to enter password and sniffer to start
+                # This ensures we don't start the server/transfer until 
+                # we have confirmed root access (or user cancellation).
+                if not sniffer_ready_event.wait(timeout=30):
+                    # Timeout usually means user closed the dialog window
+                    # or authentication failed silently? 
+                    # Actually pkexec returns 1 if cancelled.
+                    # subprocess.poll() can check this.
+                    if sniffer_process.poll() is not None:
+                         raise PermissionError("Sniffer authentication cancelled or failed.")
+                    else:
+                         # Still running but no ready signal?
+                         print(json.dumps({
+                            "type": "SNIFFER_ERROR",
+                            "code": "TIMEOUT",
+                            "message": "Sniffer startup timed out."
+                         }), flush=True)
+                
+            except Exception as e:
+                 logger.error(f"Failed to spawn sniffer: {e}")
+                 # Emit error so UI knows
+                 print(json.dumps({
+                    "type": "SNIFFER_ERROR",
+                    "code": "SPAWN_FAILED",
+                    "message": str(e)
+                 }), flush=True)
+                
+            except Exception as e:
+                 logger.error(f"Failed to spawn sniffer: {e}")
+                 # Emit error so UI knows
+                 print(json.dumps({
+                    "type": "SNIFFER_ERROR",
+                    "code": "SPAWN_FAILED",
+                    "message": str(e)
+                 }), flush=True)
 
         # Start Discovery Service Listener
         from tpi_redes.networking.discovery import DiscoveryService
@@ -144,8 +237,8 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
             ) from e
         raise
     finally:
-        if sniffer:
-            sniffer.stop()
+        if sniffer_process:
+            sniffer_process.terminate()
         if discovery:
             discovery.stop()
 
@@ -177,19 +270,81 @@ def send_file(
         console.print("[bold red]Error:[/bold red] No files provided.")
         return
 
-    sniffer = None
+    import subprocess
+    import threading
     from pathlib import Path
 
     file_paths = [Path(f) for f in files]
+    
+    sniffer_process = None
 
     try:
         # Start Sniffer if requested
         if sniff:
-            from tpi_redes.networking.sniffer import PacketSniffer
+            logger.info("Requesting root privileges for Sniffer...")
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
-            # We need to sniff on the interface used to reach 'ip'.
-            sniffer = PacketSniffer(interface="any", port=port)  # Simplified
-            sniffer.start()
+            cmd = [
+                "pkexec",
+                "env",
+                f"PYTHONPATH={src_path}",
+                sys.executable,
+                "-m",
+                "tpi_redes.cli.main",
+                "sniffer-service",
+                "--port",
+                str(port),
+                "--interface",
+                "any"
+            ]
+            
+            try:
+                sniffer_process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=sys.stderr,
+                    text=True,
+                    bufsize=1
+                )
+                
+                sniffer_ready_event = threading.Event()
+                
+                def forward_sniffer_output():
+                    if not sniffer_process or not sniffer_process.stdout:
+                        return
+                    for line in sniffer_process.stdout:
+                        if "SNIFFER_READY" in line:
+                            sniffer_ready_event.set()
+                        print(line, end="", flush=True)
+
+                t = threading.Thread(target=forward_sniffer_output, daemon=True)
+                t.start()
+                
+                # Block until Sniffer is READY or Cancelled
+                if not sniffer_ready_event.wait(timeout=30):
+                    if sniffer_process.poll() is not None:
+                         # Process exited (user cancelled or error)
+                         raise PermissionError("Sniffer authentication cancelled or failed.")
+                    else:
+                         # Timeout
+                         logger.error("Sniffer startup timed out.")
+                         
+            except Exception as e:
+                 logger.error(f"Failed to spawn sniffer: {e}")
+                 print(json.dumps({
+                    "type": "SNIFFER_ERROR",
+                    "code": "SPAWN_FAILED",
+                    "message": str(e)
+                 }), flush=True)
+            except Exception as e:
+                 logger.error(f"Failed to spawn sniffer: {e}")
+                 print(json.dumps({
+                    "type": "SNIFFER_ERROR",
+                    "code": "SPAWN_FAILED",
+                    "message": str(e)
+                 }), flush=True)
 
         if protocol == "tcp":
             from tpi_redes.networking.tcp_client import TCPClient
@@ -208,8 +363,8 @@ def send_file(
         # Let global handler catch it or re-raise
         raise e
     finally:
-        if sniffer:
-            sniffer.stop()
+        if sniffer_process:
+            sniffer_process.terminate()
 
 
 @cli.command()

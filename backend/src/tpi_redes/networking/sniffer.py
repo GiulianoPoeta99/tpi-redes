@@ -15,11 +15,22 @@ class PacketSniffer:
         self.packets: list[str] = []
 
     def start(self):
-        """Start the background sniffer."""
+        """Start the background sniffer (requires root)."""
         import os
+        import json
+        import sys
 
         if os.geteuid() != 0:
-            logger.info("Sniffer running without root (App-Level Fallback active).")
+            logger.warning("Sniffer requires root privileges. Packet capture disabled.")
+            print(
+                json.dumps({
+                    "type": "SNIFFER_ERROR",
+                    "code": "PERMISSION_DENIED",
+                    "message": "Root privileges required for packet capture."
+                }),
+                flush=True
+            )
+            return
 
         filter_str = f"tcp port {self.port} or udp port {self.port}"
         logger.info(
@@ -35,8 +46,47 @@ class PacketSniffer:
         try:
             self.sniffer.start()
             logger.info("Sniffer started successfully.")
-        except Exception as e:
-            logger.error(f"Failed to start sniffer: {e}")
+    def start_stdout_mode(self):
+        """Start sniffer in stdout mode (for piped execution)."""
+        import os
+        import json
+        import sys
+        import time
+
+        # 1. Enforce Root
+        if os.geteuid() != 0:
+            print(
+                json.dumps({
+                    "type": "SNIFFER_ERROR",
+                    "code": "PERMISSION_DENIED",
+                    "message": "Root privileges required."
+                }),
+                flush=True
+            )
+            # Exit immediately to signal parent
+            sys.exit(1)
+
+        filter_str = f"tcp port {self.port} or udp port {self.port}"
+        
+        try:
+            from scapy.all import AsyncSniffer
+        except ImportError:
+            sys.exit(1)
+
+        self.sniffer = AsyncSniffer(
+            iface=self.interface,
+            filter=filter_str,
+            prn=self._process_packet,
+            store=False,
+        )
+        self.sniffer.start()
+        
+        # Keep process alive
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.stop()
 
     def stop(self):
         """Stop the sniffer."""

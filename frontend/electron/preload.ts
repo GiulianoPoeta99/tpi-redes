@@ -37,6 +37,12 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('packet-capture', subscription);
     return () => ipcRenderer.removeListener('packet-capture', subscription);
   },
+  onSnifferError: (callback: (data: any) => void) => {
+    // biome-ignore lint/suspicious/noExplicitAny: IPC listener
+    const subscription = (_event: any, value: any) => callback(value);
+    ipcRenderer.on('sniffer-error', subscription);
+    return () => ipcRenderer.removeListener('sniffer-error', subscription);
+  },
   getFilePath: (file: File) => webUtils.getPathForFile(file),
   // File System
   getDownloadsDir: () => ipcRenderer.invoke('get-downloads-dir'),

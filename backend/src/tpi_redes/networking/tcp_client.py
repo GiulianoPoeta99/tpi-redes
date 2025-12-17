@@ -34,21 +34,8 @@ class TCPClient:
             s.connect((ip, port))
             local_ip, local_port = s.getsockname()
 
-            # Log Handshake (Simulated)
-            PacketLogger.emit_packet(
-                src_ip=local_ip,
-                src_port=local_port,
-                dst_ip=ip,
-                dst_port=port,
+            # Log Handshake (Simulated) - REMOVED for Strict Mode
 
-                protocol="TCP",
-                flags="S",
-                size=0,
-                seq=0,
-                ack=0,
-                window=65535,
-                info="Connection Request [SYN] Seq=0 Win=65535",
-            )
 
             for file_path in valid_files:
                 # 1. Calculate Hash & Prepare Metadata
@@ -94,18 +81,8 @@ class TCPClient:
                         chunk_len = len(chunk)
                         bytes_sent += chunk_len
 
-                        # Log Packet
-                        PacketLogger.log_packet(
-                            local_ip,
-                            ip,
-                            "TCP",
-                            f"{local_port}->{port} [PSH, ACK] Seq={current_seq} Ack=1 Win=65535 Len={chunk_len}",
-                            length=chunk_len,
-                            flags="PA",
-                            seq=current_seq,
-                            ack=1,
-                            window=65535,
-                        )
+                        # Log Packet - REMOVED for Strict Mode
+
                         current_seq += chunk_len
 
                         # Emit progress (Buffered by PacketLogger)

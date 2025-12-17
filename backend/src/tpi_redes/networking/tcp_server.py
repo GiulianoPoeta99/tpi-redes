@@ -25,22 +25,10 @@ class TCPServer(BaseServer):
                     conn, addr = s.accept()
                     with conn:
                         logger.info(f"Connected by {addr}")
-                        # App-Level Packet Log
-                        client_ip, client_port = addr
-                        local_ip, local_port = conn.getsockname()
-                        PacketLogger.emit_packet(
-                            client_ip,
-                            client_port,
-                            local_ip,
-                            local_port,
-                            protocol="TCP",
-                            info="Connection Accepted [SYN, ACK] Seq=0 Ack=1 Win=65535",
-                            flags="SA",
-                            seq=0,
-                            ack=1,
-                            window=65535,
-                        )
-                        PacketLogger.flush()
+                        # App-Level Packet Log - REMOVED for Strict Mode
+                        # client_ip, client_port = addr
+                        # local_ip, local_port = conn.getsockname()
+
                         self.handle_client(conn, addr)
             except KeyboardInterrupt:
                 logger.info("Server stopping...")
@@ -94,22 +82,8 @@ class TCPServer(BaseServer):
                         f.write(chunk)
                         received_bytes += len(chunk)
 
-                        # App-Level Packet Log
-                        client_ip, client_port = addr
-                        local_ip, local_port = conn.getsockname()
-                        PacketLogger.emit_packet(
-                            client_ip,
-                            client_port,
-                            local_ip,
-                            local_port,
-                            "TCP",
-                            f"Data Segment [PSH, ACK] Seq={received_bytes} Ack=1 Win=65535 Len={len(chunk)}",
-                            size=len(chunk),
-                            flags="PA",
-                            seq=received_bytes,
-                            ack=1,
-                            window=65535,
-                        )
+                        # App-Level Packet Log - REMOVED for Strict Mode
+
 
                         # Emit progress (optional: throttle this if too frequent)
                         # For now only start/end to keep it simple, or every 1MB?
