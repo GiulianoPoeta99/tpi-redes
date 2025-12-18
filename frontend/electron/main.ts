@@ -58,6 +58,7 @@ ipcMain.handle('start-server', async (_event, args) => {
     args.saveDir,
   ];
   if (args.sniff) cmdArgs.push('--sniff');
+  if (args.interface) cmdArgs.push('--interface', args.interface);
 
   return spawnPythonProcess(cmdArgs);
 });
@@ -75,6 +76,7 @@ ipcMain.handle('send-files', async (_event, args) => {
     args.protocol,
   ];
   if (args.sniff) cmdArgs.push('--sniff');
+  if (args.interface) cmdArgs.push('--interface', args.interface);
   if (args.delay) cmdArgs.push('--delay', args.delay.toString());
   if (args.chunkSize) cmdArgs.push('--chunk-size', args.chunkSize.toString());
 
@@ -156,6 +158,34 @@ ipcMain.handle('stop-process', async () => {
 
 // Helper to get local IP
 import os from 'node:os';
+
+ipcMain.handle('get-interfaces', async () => {
+  return new Promise((resolve) => {
+    const backendDir = path.resolve(__dirname, '../../backend');
+    const srcDir = path.join(backendDir, 'src');
+    const pythonPath = path.join(backendDir, '.venv/bin/python');
+    const moduleName = 'tpi_redes.cli.main';
+
+    const child = spawn(pythonPath, ['-m', moduleName, 'list-interfaces'], {
+      cwd: backendDir,
+      env: { ...process.env, PYTHONPATH: srcDir },
+    });
+
+    let output = '';
+    child.stdout.on('data', (d) => {
+      output += d.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) return resolve([]);
+      try {
+        resolve(JSON.parse(output));
+      } catch {
+        resolve([]);
+      }
+    });
+  });
+});
 
 ipcMain.handle('get-local-ip', () => {
   const nets = os.networkInterfaces();

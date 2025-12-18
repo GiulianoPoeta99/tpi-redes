@@ -31,5 +31,6 @@ interface Window {
     verifyFile: (
       path: string,
     ) => Promise<{ valid: boolean; error?: string; actual?: string; expected?: string }>;
+    getInterfaces: () => Promise<string[]>;
   };
 }

@@ -50,4 +50,5 @@ contextBridge.exposeInMainWorld('api', {
   openPath: (path: string) => ipcRenderer.invoke('open-path', path),
   openFolder: (path: string) => ipcRenderer.invoke('open-folder', path),
   verifyFile: (path: string) => ipcRenderer.invoke('verify-file', path),
+  getInterfaces: () => ipcRenderer.invoke('get-interfaces'),
 });

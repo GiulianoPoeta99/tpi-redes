@@ -69,13 +69,17 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
                {/* biome-ignore lint/a11y/noSvgWithoutTitle: Icon */}
                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Permission Required</h3>
-            <p className="text-gray-300 mb-6 leading-relaxed">
-              Packet Sniffer requires <strong className="text-red-400">Root/Administrator</strong> privileges to capture raw network traffic.
+            <h3 className="text-xl font-bold text-white mb-2">Sniffer Access Required</h3>
+            <p className="text-gray-300 mb-6 leading-relaxed text-sm">
+              We need <strong className="text-red-400">Root Privileges</strong> solely to interact with the network interface and capture raw packets.
+              <br />
+              <span className="opacity-75 block mt-2 text-xs">
+                 This permission is NOT used for file system access or other system modifications.
+              </span>
+              <span className="block mt-4">
+                 Please restart the transfer to try again.
+              </span>
             </p>
-            <div className="bg-black/40 rounded p-3 mb-6 font-mono text-xs text-left text-gray-400 border border-gray-800">
-               $ sudo just run
-            </div>
             <button
               type="button"
               onClick={() => setPermissionError(false)}

@@ -46,12 +46,16 @@ class PacketSniffer:
         try:
             self.sniffer.start()
             logger.info("Sniffer started successfully.")
+        except Exception as e:
+            logger.error(f"Failed to start sniffer: {e}")
+
     def start_stdout_mode(self):
         """Start sniffer in stdout mode (for piped execution)."""
         import os
         import json
         import sys
         import time
+
 
         # 1. Enforce Root
         if os.geteuid() != 0:
@@ -69,9 +73,10 @@ class PacketSniffer:
         filter_str = f"tcp port {self.port} or udp port {self.port}"
         
         try:
-            from scapy.all import AsyncSniffer
+            from scapy.all import AsyncSniffer, get_if_list, conf
         except ImportError:
             sys.exit(1)
+
 
         self.sniffer = AsyncSniffer(
             iface=self.interface,
@@ -80,6 +85,9 @@ class PacketSniffer:
             store=False,
         )
         self.sniffer.start()
+
+        # Signal readiness
+        print(json.dumps({"type": "SNIFFER_READY"}), flush=True)
         
         # Keep process alive
         try:
@@ -106,9 +114,12 @@ class PacketSniffer:
 
     def _process_packet(self, pkt: Any):
         """Callback for each captured packet."""
+
         try:
             import json
             import time
+            import sys
+            
 
             # Legacy summary for internal storage
             summary = pkt.summary()

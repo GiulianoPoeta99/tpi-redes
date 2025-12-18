@@ -87,10 +87,7 @@ def cli(debug: bool):
 def sniffer_service(port: int, interface: str | None):
     """(Internal) Privileged sniffer process."""
     from tpi_redes.networking.sniffer import PacketSniffer
-    # If "any", pass usage of all interfaces if supported or just None
-    if interface == "any":
-        interface = None
-        
+
     sniffer = PacketSniffer(interface=interface, port=port)
     sniffer.start_stdout_mode()
 
@@ -107,7 +104,8 @@ def sniffer_service(port: int, interface: str | None):
     "--save-dir", default="./received_files", help="Directory to save received files"
 )
 @click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root permissions)")
-def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
+@click.option("--interface", default=None, help="Network interface to sniff")
+def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface: str | None):
     """Start the file receiver server."""
     sniffer_process = None
     discovery = None
@@ -125,19 +123,25 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
             
+            # Preserve GUI environment for pkexec prompt
+            env_vars = ["env", f"PYTHONPATH={src_path}"]
+            if "DISPLAY" in os.environ:
+                env_vars.append(f"DISPLAY={os.environ['DISPLAY']}")
+            if "XAUTHORITY" in os.environ:
+                env_vars.append(f"XAUTHORITY={os.environ['XAUTHORITY']}")
+            
             cmd = [
                 "pkexec",
-                "env",
-                f"PYTHONPATH={src_path}",
+                *env_vars,
                 sys.executable,
                 "-m",
                 "tpi_redes.cli.main",
                 "sniffer-service",
                 "--port",
-                str(port),
-                "--interface",
-                "any"
+                str(port)
             ]
+            if interface:
+                cmd.extend(["--interface", interface])
             
             logger.info("Requesting root privileges for Sniffer...")
             
@@ -156,8 +160,18 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
                     if not sniffer_process or not sniffer_process.stdout:
                         return
                     for line in sniffer_process.stdout:
+                        # DEBUG: Log raw sniffer output to stderr via logger
+                        if line.strip():
+                            # Avoid double printing JSON if we log it, but user wants to SEE logs.
+                            # We use console.print or just stderr write.
+                            # Let's use stderr write to avoid interfering with stdout JSON
+                            sys.stderr.write(f"[SNIFFER_SUB] {line}")
+                            sys.stderr.flush()
+
                         if "SNIFFER_READY" in line:
                             sniffer_ready_event.set()
+                        
+                        # Forward to stdout (for Electron)
                         print(line, end="", flush=True)
 
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
@@ -166,20 +180,32 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
                 # Wait for user to enter password and sniffer to start
                 # This ensures we don't start the server/transfer until 
                 # we have confirmed root access (or user cancellation).
-                if not sniffer_ready_event.wait(timeout=30):
-                    # Timeout usually means user closed the dialog window
-                    # or authentication failed silently? 
-                    # Actually pkexec returns 1 if cancelled.
-                    # subprocess.poll() can check this.
-                    if sniffer_process.poll() is not None:
-                         raise PermissionError("Sniffer authentication cancelled or failed.")
-                    else:
-                         # Still running but no ready signal?
-                         print(json.dumps({
+                # Wait loop with early exit if process dies (cancellation)
+                import time
+                wait_start = time.time()
+                while not sniffer_ready_event.is_set():
+                    if time.time() - wait_start > 30:
+                        # Timeout
+                        logger.error("Sniffer startup timed out.")
+                        print(json.dumps({
                             "type": "SNIFFER_ERROR",
                             "code": "TIMEOUT",
                             "message": "Sniffer startup timed out."
+                        }), flush=True)
+                        break
+                    
+                    if sniffer_process.poll() is not None:
+                         # Process exited (User cancelled or error)
+                         logger.warning("Sniffer authentication cancelled or process died.")
+                         # Emit error so UI hides/disables sniffer view
+                         print(json.dumps({
+                            "type": "SNIFFER_ERROR",
+                            "code": "PERMISSION_DENIED",
+                            "message": "Sniffer authentication cancelled."
                          }), flush=True)
+                         break
+                    
+                    time.sleep(0.1)
                 
             except Exception as e:
                  logger.error(f"Failed to spawn sniffer: {e}")
@@ -253,7 +279,8 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool):
     default="tcp",
     help="Protocol to use",
 )
-@click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root)")
+@click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root permissions)")
+@click.option("--interface", default=None, help="Network interface to sniff")
 @click.option("--delay", default=0.0, help="Delay between chunks in seconds")
 @click.option("--chunk-size", default=4096, help="Buffer size in bytes")
 def send_file(
@@ -262,6 +289,7 @@ def send_file(
     port: int,
     protocol: str,
     sniff: bool,
+    interface: str | None,
     delay: float,
     chunk_size: int,
 ):
@@ -286,19 +314,25 @@ def send_file(
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
+            # Preserve GUI environment for pkexec prompt
+            env_vars = ["env", f"PYTHONPATH={src_path}"]
+            if "DISPLAY" in os.environ:
+                env_vars.append(f"DISPLAY={os.environ['DISPLAY']}")
+            if "XAUTHORITY" in os.environ:
+                env_vars.append(f"XAUTHORITY={os.environ['XAUTHORITY']}")
+
             cmd = [
                 "pkexec",
-                "env",
-                f"PYTHONPATH={src_path}",
+                *env_vars,
                 sys.executable,
                 "-m",
                 "tpi_redes.cli.main",
                 "sniffer-service",
                 "--port",
-                str(port),
-                "--interface",
-                "any"
+                str(port)
             ]
+            if interface:
+                cmd.extend(["--interface", interface])
             
             try:
                 sniffer_process = subprocess.Popen(
@@ -315,6 +349,11 @@ def send_file(
                     if not sniffer_process or not sniffer_process.stdout:
                         return
                     for line in sniffer_process.stdout:
+                        # DEBUG: Log raw sniffer output
+                        if line.strip():
+                            sys.stderr.write(f"[SNIFFER_SUB] {line}")
+                            sys.stderr.flush()
+
                         if "SNIFFER_READY" in line:
                             sniffer_ready_event.set()
                         print(line, end="", flush=True)
@@ -323,21 +362,25 @@ def send_file(
                 t.start()
                 
                 # Block until Sniffer is READY or Cancelled
-                if not sniffer_ready_event.wait(timeout=30):
+                import time
+                wait_start = time.time()
+                while not sniffer_ready_event.is_set():
+                    if time.time() - wait_start > 30:
+                        logger.error("Sniffer startup timed out.")
+                        break
+                    
                     if sniffer_process.poll() is not None:
-                         # Process exited (user cancelled or error)
-                         raise PermissionError("Sniffer authentication cancelled or failed.")
-                    else:
-                         # Timeout
-                         logger.error("Sniffer startup timed out.")
+                         # Process exited (User cancelled or error)
+                         logger.warning("Sniffer authentication cancelled or process died.")
+                         print(json.dumps({
+                            "type": "SNIFFER_ERROR",
+                            "code": "PERMISSION_DENIED",
+                            "message": "Sniffer authentication cancelled."
+                         }), flush=True)
+                         break
+                    
+                    time.sleep(0.1)
                          
-            except Exception as e:
-                 logger.error(f"Failed to spawn sniffer: {e}")
-                 print(json.dumps({
-                    "type": "SNIFFER_ERROR",
-                    "code": "SPAWN_FAILED",
-                    "message": str(e)
-                 }), flush=True)
             except Exception as e:
                  logger.error(f"Failed to spawn sniffer: {e}")
                  print(json.dumps({
@@ -418,6 +461,18 @@ def scan_network():
         for peer in peers:
             table.add_row(peer["hostname"], peer["ip"], str(peer["port"]))
         console.print(table)
+
+
+@cli.command()
+def list_interfaces():
+    """List available network interfaces."""
+    try:
+        from scapy.all import get_if_list
+        interfaces = get_if_list()
+        print(json.dumps(interfaces))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import Button from './common/Button';
 import FileListItem from './common/FileListItem';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
+import InterfaceSelector from './common/InterfaceSelector';
 import ProtocolToggle from './common/ProtocolToggle';
 import SlidingWindow from './SlidingWindow';
 
@@ -16,6 +17,7 @@ const ReceiverView: React.FC<{
 }> = ({ setBusy, setHeaderContent }) => {
   const [port, setPort] = useState(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
+  const [netInterface, setNetInterface] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   // Derived state for visualizer
@@ -113,7 +115,13 @@ const ReceiverView: React.FC<{
       }
     } else {
       try {
-        await window.api.startServer({ port, protocol, saveDir: './received_files', sniff: true });
+        await window.api.startServer({
+          port,
+          protocol,
+          saveDir: './received_files',
+          sniff: true,
+          interface: netInterface,
+        });
       } catch (e) {
         console.error(e);
       }
@@ -130,7 +138,7 @@ const ReceiverView: React.FC<{
             <div className="flex flex-col gap-6">
               {/* Row 1: Port & Protocol Group */}
               <InputGroup label="Port & Protocol">
-                <div className="flex-1">
+                <div className="min-w-[100px]">
                   <span className="text-xs text-gray-400 block mb-1">Port</span>
                   <input
                     type="number"
@@ -140,7 +148,18 @@ const ReceiverView: React.FC<{
                     className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
-                <ProtocolToggle protocol={protocol} onChange={setProtocol} disabled={isConnected} />
+                <div className="flex-1">
+                  <span className="text-xs text-gray-400 block mb-1">Interface</span>
+                  <InterfaceSelector
+                    value={netInterface}
+                    onChange={setNetInterface}
+                    disabled={isConnected}
+                  />
+                </div>
+                <div>
+                    <span className="text-xs text-gray-400 block mb-1">Protocol</span>
+                    <ProtocolToggle protocol={protocol} onChange={setProtocol} disabled={isConnected} />
+                </div>
               </InputGroup>
 
               {/* Row 2: IP & Button */}

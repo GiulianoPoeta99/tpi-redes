@@ -17,6 +17,7 @@ import { StorageService } from '../services/StorageService';
 import Button from './common/Button';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
+import InterfaceSelector from './common/InterfaceSelector';
 import ProtocolToggle from './common/ProtocolToggle';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
@@ -39,6 +40,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [delay, setDelay] = useState(0);
   const [chunkSize, setChunkSize] = useState(4096);
+  const [netInterface, setNetInterface] = useState<string | null>(null);
 
   // File State
   const [files, setFiles] = useState<string[]>([]);
@@ -249,8 +251,8 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
         sniff: true,
         delay: delay / 1000,
         chunkSize,
+        interface: netInterface,
       });
-      // biome-ignore lint/suspicious/noExplicitAny: Error
     } catch (e: any) {
       console.error(e);
       setStatus('idle');
@@ -399,6 +401,14 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                 </InputGroup>
 
                 <InputGroup label="Port & Protocol">
+                  <div className="flex-1">
+                    <span className="text-xs text-gray-400 block mb-1">Interface</span>
+                    <InterfaceSelector
+                      value={netInterface}
+                      onChange={setNetInterface}
+                      disabled={status !== 'idle'}
+                    />
+                  </div>
                   <div className="flex-1">
                     <span className="text-xs text-gray-400 block mb-1">Port</span>
                     <div className="relative w-full">
