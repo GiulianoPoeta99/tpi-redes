@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Button from './common/Button';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
+import PortInput from './common/PortInput';
 import ScanModal from './ScanModal';
 
 interface MitmConfig {
@@ -144,12 +145,11 @@ const MitmView: React.FC<{
             <InputGroup label="Proxy Listener" indicatorColor="bg-green-500">
               <div className="flex-1">
                 <span className="text-xs text-gray-400 block mb-1">Local Port</span>
-                <input
-                  type="number"
-                  disabled={isRunning}
+                <PortInput
                   value={config.listenPort}
-                  onChange={(e) => setConfig({ ...config, listenPort: Number(e.target.value) })}
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  onChange={(val) => setConfig({ ...config, listenPort: val })}
+                  disabled={isRunning}
+                  placeholder="8081"
                 />
               </div>
             </InputGroup>
@@ -249,12 +249,11 @@ const MitmView: React.FC<{
                 </div>
                 <div className="w-20">
                   <span className="text-xs text-gray-400 block mb-1">Port</span>
-                  <input
-                    type="number"
-                    disabled={isRunning}
+                  <PortInput
                     value={config.targetPort}
-                    onChange={(e) => setConfig({ ...config, targetPort: Number(e.target.value) })}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    onChange={(val) => setConfig({ ...config, targetPort: val })}
+                    disabled={isRunning}
+                    placeholder="8080"
                   />
                 </div>
                 <Button

@@ -8,6 +8,7 @@ import FileListItem from './common/FileListItem';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
 import InterfaceSelector from './common/InterfaceSelector';
+import PortInput from './common/PortInput';
 import ProtocolToggle from './common/ProtocolToggle';
 import SlidingWindow from './SlidingWindow';
 
@@ -140,12 +141,11 @@ const ReceiverView: React.FC<{
               <InputGroup label="Port & Protocol">
                 <div className="min-w-[100px]">
                   <span className="text-xs text-gray-400 block mb-1">Port</span>
-                  <input
-                    type="number"
-                    disabled={isConnected}
+                  <PortInput
                     value={port}
-                    onChange={(e) => setPort(Number(e.target.value))}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    onChange={setPort}
+                    disabled={isConnected}
+                    placeholder="8080"
                   />
                 </div>
                 <div className="flex-1">

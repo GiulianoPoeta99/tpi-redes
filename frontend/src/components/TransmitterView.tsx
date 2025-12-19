@@ -1,7 +1,6 @@
 import {
   Check,
   ChevronDown,
-  ChevronUp,
   FileText,
   List,
   Plus,
@@ -18,6 +17,7 @@ import Button from './common/Button';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
 import InterfaceSelector from './common/InterfaceSelector';
+import PortInput from './common/PortInput';
 import ProtocolToggle from './common/ProtocolToggle';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
@@ -411,30 +411,12 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   </div>
                   <div className="flex-1">
                     <span className="text-xs text-gray-400 block mb-1">Port</span>
-                    <div className="relative w-full">
-                      <input
-                        type="number"
-                        value={port}
-                        onChange={(e) => setPort(Number(e.target.value))}
-                        className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-3 pr-8 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <div className="absolute right-1 top-1 bottom-1 w-5 flex flex-col gap-0.5">
-                        <button
-                          type="button"
-                          onClick={() => setPort((p) => p + 1)}
-                          className="flex-1 bg-gray-700/50 hover:bg-gray-600 rounded-t text-gray-400 hover:text-white flex items-center justify-center transition-colors"
-                        >
-                          <ChevronUp size={10} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPort((p) => Math.max(1, p - 1))}
-                          className="flex-1 bg-gray-700/50 hover:bg-gray-600 rounded-b text-gray-400 hover:text-white flex items-center justify-center transition-colors"
-                        >
-                          <ChevronDown size={10} />
-                        </button>
-                      </div>
-                    </div>
+                    <PortInput
+                      value={port}
+                      onChange={setPort}
+                      placeholder="8080"
+                      disabled={status !== 'idle'}
+                    />
                   </div>
                   <ProtocolToggle protocol={protocol} onChange={setProtocol} />
                 </InputGroup>
