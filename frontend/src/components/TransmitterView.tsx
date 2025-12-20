@@ -17,6 +17,7 @@ import Button from './common/Button';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
 import InterfaceSelector from './common/InterfaceSelector';
+import IpInput from './common/IpInput';
 import PortInput from './common/PortInput';
 import ProtocolToggle from './common/ProtocolToggle';
 import FilesQueueModal from './FilesQueueModal';
@@ -382,11 +383,11 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   <div className="flex-1">
                     <span className="text-xs text-gray-400 block mb-1">Destination IP</span>
                     <div className="flex gap-2">
-                      <input
+                      <IpInput
                         value={ip}
-                        onChange={(e) => setIp(e.target.value)}
-                        className="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-600"
+                        onChange={setIp}
                         placeholder="e.g. 192.168.1.5"
+                        className="flex-1"
                       />
                       <Button
                         variant="secondary"
