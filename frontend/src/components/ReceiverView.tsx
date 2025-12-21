@@ -16,7 +16,7 @@ const ReceiverView: React.FC<{
   setBusy: (busy: boolean) => void;
   setHeaderContent: (content: React.ReactNode) => void;
 }> = ({ setBusy, setHeaderContent }) => {
-  const [port, setPort] = useState(8080);
+  const [port, setPort] = useState<number | string>(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [netInterface, setNetInterface] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -117,7 +117,7 @@ const ReceiverView: React.FC<{
     } else {
       try {
         await window.api.startServer({
-          port,
+          port: Number(port),
           protocol,
           saveDir: './received_files',
           sniff: true,

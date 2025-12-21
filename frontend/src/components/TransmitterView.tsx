@@ -37,7 +37,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
 }) => {
   // Config State
   const [ip, setIp] = useState('');
-  const [port, setPort] = useState(8080);
+  const [port, setPort] = useState<number | string>(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [delay, setDelay] = useState(0);
   const [chunkSize, setChunkSize] = useState(4096);
@@ -247,7 +247,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
       await window.api.sendFiles({
         files,
         ip,
-        port,
+        port: Number(port),
         protocol,
         sniff: true,
         delay: delay / 1000,

@@ -2,8 +2,8 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import type React from 'react';
 
 interface NumberInputProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: number | string;
+  onChange: (value: number | string) => void;
   min?: number;
   max?: number;
   placeholder?: string;
@@ -21,22 +21,26 @@ const NumberInput: React.FC<NumberInputProps> = ({
   className = '',
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = Number(e.target.value);
-    // Allow empty string or partial typing, but if it's a number, clamp it eventually
-    // For simple UX, we'll just pass the number. Parent can handle strict validation if needed.
-    onChange(newVal);
+    const val = e.target.value;
+    if (val === '') {
+      onChange('');
+    } else {
+      onChange(Number(val));
+    }
   };
 
   const increment = () => {
     if (disabled) return;
-    if (max !== undefined && value >= max) return;
-    onChange(value + 1);
+    const numVal = typeof value === 'string' ? (min || 0) : value;
+    if (max !== undefined && numVal >= max) return;
+    onChange(numVal + 1);
   };
 
   const decrement = () => {
     if (disabled) return;
-    if (min !== undefined && value <= min) return;
-    onChange(value - 1);
+    const numVal = typeof value === 'string' ? (min || 0) : value;
+    if (min !== undefined && numVal <= min) return;
+    onChange(numVal - 1);
   };
 
   return (
@@ -57,7 +61,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
         <button
           type="button"
           onClick={increment}
-          disabled={disabled || (max !== undefined && value >= max)}
+          disabled={disabled || (max !== undefined && (typeof value === 'string' ? false : value >= max))}
           className="flex-1 bg-gray-700/50 hover:bg-gray-600 rounded-t text-gray-400 hover:text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronUp size={10} />
@@ -65,7 +69,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
         <button
           type="button"
           onClick={decrement}
-          disabled={disabled || (min !== undefined && value <= min)}
+          disabled={disabled || (min !== undefined && (typeof value === 'string' ? false : value <= min))}
           className="flex-1 bg-gray-700/50 hover:bg-gray-600 rounded-b text-gray-400 hover:text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronDown size={10} />

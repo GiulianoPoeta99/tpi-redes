@@ -9,9 +9,9 @@ import PortInput from './common/PortInput';
 import ScanModal from './ScanModal';
 
 interface MitmConfig {
-  listenPort: number;
+  listenPort: number | string;
   targetIp: string;
-  targetPort: number;
+  targetPort: number | string;
   corruption: number;
 }
 
@@ -116,9 +116,9 @@ const MitmView: React.FC<{
       try {
         setStats({ intercepted: 0, corrupted: 0 }); // Reset stats
         await window.api.startProxy({
-          listenPort: config.listenPort,
+          listenPort: Number(config.listenPort),
           targetIp: config.targetIp,
-          targetPort: config.targetPort,
+          targetPort: Number(config.targetPort),
           corruptionRate: config.corruption,
         });
         setIsRunning(true);

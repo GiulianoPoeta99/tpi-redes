@@ -3,8 +3,8 @@ import type React from 'react';
 import NumberInput from './NumberInput';
 
 interface PortInputProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: number | string;
+  onChange: (value: number | string) => void;
   disabled?: boolean;
   placeholder?: string;
   className?: string;
@@ -17,7 +17,7 @@ const PortInput: React.FC<PortInputProps> = ({
   placeholder = '8080',
   className = '',
 }) => {
-  const isSystemPort = value > 0 && value < 1024;
+  const isSystemPort = typeof value === 'number' && value > 0 && value < 1024;
 
   return (
     <div className={`relative ${className}`}>
