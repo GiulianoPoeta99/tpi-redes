@@ -5,7 +5,7 @@ import { StorageService } from '../services/StorageService';
 import SubmitButton from './common/SubmitButton';
 
 import FileListItem from './common/FileListItem';
-import GlassCard from './common/GlassCard';
+import ConfigGroup from './common/ConfigGroup';
 import PortProtocolConfig from './common/PortProtocolConfig';
 import SlidingWindow from './SlidingWindow';
 
@@ -132,7 +132,7 @@ const ReceiverView: React.FC<{
       <div className="flex flex-col gap-6 flex-1 min-h-0">
         {/* Config Panel - Stacked Top */}
         <div className="shrink-0">
-          <GlassCard title="Listener Config" icon={Settings}>
+          <ConfigGroup title="Listener Config" icon={Settings}>
             <div className="flex flex-col gap-6">
               {/* Row 1: Port & Protocol Group */}
               {/* Row 1: Port & Protocol Group */}
@@ -176,7 +176,7 @@ const ReceiverView: React.FC<{
                 </div>
               </div>
             </div>
-          </GlassCard>
+          </ConfigGroup>
         </div>
 
         {/* Visualizer / Status Area - Flexible Bottom */}

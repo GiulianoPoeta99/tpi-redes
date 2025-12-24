@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { StorageService } from '../services/StorageService';
 import SubmitButton from './common/SubmitButton';
 import FileSelectionConfig from './common/FileSelectionConfig';
-import GlassCard from './common/GlassCard';
+import ConfigGroup from './common/ConfigGroup';
 import PortProtocolConfig from './common/PortProtocolConfig';
 import ChunkSizeConfig from './common/ChunkSizeConfig';
 import DelayConfig from './common/DelayConfig';
@@ -357,7 +357,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
         <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pb-2">
           {/* TOP ROW: Config & Advanced */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 shrink-0">
-            <GlassCard title="Network Configuration" icon={Settings} className="h-full">
+            <ConfigGroup title="Network Configuration" icon={Settings} className="h-full">
               <div className="space-y-4">
                 <TargetConfig
                   ip={ip}
@@ -376,9 +376,9 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   disabled={status !== 'idle'}
                 />
               </div>
-            </GlassCard>
+            </ConfigGroup>
 
-            <GlassCard title="Advanced Options" icon={Settings} className="h-full">
+            <ConfigGroup title="Advanced Options" icon={Settings} className="h-full">
               <div className="flex flex-col gap-4 h-full">
                 <DelayConfig
                   value={delay}
@@ -392,11 +392,11 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   disabled={status !== 'idle'}
                 />
               </div>
-            </GlassCard>
+            </ConfigGroup>
           </div>
 
           {/* BOTTOM ROW: Payload */}
-          <GlassCard
+          <ConfigGroup
             title="Payload Configuration"
             icon={FileText}
             className="flex-1 min-h-[220px] flex flex-col"
@@ -421,7 +421,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                 SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
               </SubmitButton>
             </div>
-          </GlassCard>
+          </ConfigGroup>
         </div>
       )}
 

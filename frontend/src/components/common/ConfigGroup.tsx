@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
-interface GlassCardProps {
+interface ConfigGroupProps {
   icon?: LucideIcon;
   title?: string;
   children: React.ReactNode;
@@ -10,7 +10,7 @@ interface GlassCardProps {
   className?: string;
 }
 
-const GlassCard: React.FC<GlassCardProps> = ({
+const ConfigGroup: React.FC<ConfigGroupProps> = ({
   icon: Icon,
   title,
   children,
@@ -37,4 +37,4 @@ const GlassCard: React.FC<GlassCardProps> = ({
   );
 };
 
-export default GlassCard;
+export default ConfigGroup;

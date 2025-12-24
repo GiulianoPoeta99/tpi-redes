@@ -3,7 +3,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import SubmitButton from './common/SubmitButton';
 import CorruptionSlider from './common/CorruptionSlider';
-import GlassCard from './common/GlassCard';
+import ConfigGroup from './common/ConfigGroup';
 import MitmProxyConfig from './common/MitmProxyConfig';
 import MitmStatsConfig from './common/MitmStatsConfig';
 import MitmTargetConfig from './common/MitmTargetConfig';
@@ -140,7 +140,7 @@ const MitmView: React.FC<{
         error={scanError}
       />
       {/* Network Configuration */}
-      <GlassCard title="Network Configuration" icon={Network}>
+      <ConfigGroup title="Network Configuration" icon={Network}>
         <div className="flex items-start gap-4">
           {/* Listener: Fixed Width */}
           <div className="w-64 shrink-0">
@@ -241,10 +241,10 @@ const MitmView: React.FC<{
             />
           </div>
         </div>
-      </GlassCard>
+      </ConfigGroup>
 
       {/* Attack Configuration */}
-      <GlassCard title="Active Attacks" icon={ShieldAlert} className="flex-1 flex flex-col">
+      <ConfigGroup title="Active Attacks" icon={ShieldAlert} className="flex-1 flex flex-col">
         <div className="flex flex-col h-full gap-4">
           {/* Slider & Presets Section */}
           <CorruptionSlider
@@ -273,7 +273,7 @@ const MitmView: React.FC<{
             {isRunning ? 'STOP PROXY' : 'START PROXY'}
           </SubmitButton>
         </div>
-      </GlassCard>
+      </ConfigGroup>
     </div>
   );
 };
