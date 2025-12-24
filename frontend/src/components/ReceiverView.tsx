@@ -2,7 +2,7 @@ import { Activity, Download, Power, Settings, Wifi } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { StorageService } from '../services/StorageService';
-import Button from './common/Button';
+import SubmitButton from './common/SubmitButton';
 
 import FileListItem from './common/FileListItem';
 import GlassCard from './common/GlassCard';
@@ -161,11 +161,10 @@ const ReceiverView: React.FC<{
 
                 {/* Button */}
                 <div className="h-full">
-                  <Button
-                    size="lg"
+                  <SubmitButton
                     variant={isConnected ? 'danger' : 'primary'}
                     onClick={toggleServer}
-                    className={`w-full h-full text-lg shadow-lg justify-center text-white ${
+                    className={`h-full text-white ${
                       !isConnected
                         ? 'bg-blue-600 hover:bg-blue-500 ring-blue-500 shadow-blue-900/20'
                         : 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
@@ -173,7 +172,7 @@ const ReceiverView: React.FC<{
                     icon={<Power size={24} />}
                   >
                     {isConnected ? 'STOP' : 'START'}
-                  </Button>
+                  </SubmitButton>
                 </div>
               </div>
             </div>

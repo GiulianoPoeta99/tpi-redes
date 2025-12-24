@@ -8,7 +8,7 @@ import {
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { StorageService } from '../services/StorageService';
-import Button from './common/Button';
+import SubmitButton from './common/SubmitButton';
 import FileSelectionConfig from './common/FileSelectionConfig';
 import GlassCard from './common/GlassCard';
 import PortProtocolConfig from './common/PortProtocolConfig';
@@ -412,16 +412,14 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
             />
 
             <div className="mt-4">
-              <Button
+              <SubmitButton
                 onClick={startBatch}
                 disabled={!isValid}
                 variant={isValid ? 'primary' : 'secondary'}
-                size="lg"
-                className="w-full py-3 text-lg font-bold shadow-xl justify-center"
                 icon={<Send size={20} />}
               >
                 SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
-              </Button>
+              </SubmitButton>
             </div>
           </GlassCard>
         </div>

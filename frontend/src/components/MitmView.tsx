@@ -1,7 +1,7 @@
 import { Activity, Network, PlayCircle, ShieldAlert, StopCircle } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import Button from './common/Button';
+import SubmitButton from './common/SubmitButton';
 import CorruptionSlider from './common/CorruptionSlider';
 import GlassCard from './common/GlassCard';
 import MitmProxyConfig from './common/MitmProxyConfig';
@@ -230,7 +230,7 @@ const MitmView: React.FC<{
           </div>
 
           {/* Target: Fixed Width */}
-          <div className="w-80 shrink-0">
+          <div className="w-96 shrink-0">
             <MitmTargetConfig
               targetIp={config.targetIp}
               targetPort={config.targetPort}
@@ -260,11 +260,10 @@ const MitmView: React.FC<{
             className="flex-1 min-h-0"
           />
 
-          <Button
+          <SubmitButton
             onClick={toggleMitm}
             variant={isRunning ? 'danger' : 'primary'}
-            size="lg"
-            className={`w-full py-3 text-lg font-bold shadow-xl justify-center shrink-0 text-white ${
+            className={`text-white ${
               isRunning
                 ? 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
                 : 'bg-blue-600 hover:bg-blue-500 ring-blue-500 shadow-blue-900/20'
@@ -272,7 +271,7 @@ const MitmView: React.FC<{
             icon={isRunning ? <StopCircle size={24} /> : <PlayCircle size={24} />}
           >
             {isRunning ? 'STOP PROXY' : 'START PROXY'}
-          </Button>
+          </SubmitButton>
         </div>
       </GlassCard>
     </div>
