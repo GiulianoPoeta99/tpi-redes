@@ -24,6 +24,7 @@ import DelaySlider from './common/DelaySlider';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
+import TargetConfig from './common/TargetConfig';
 
 interface TransmitterViewProps {
   setBusy: (busy: boolean) => void;
@@ -380,27 +381,12 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 shrink-0">
             <GlassCard title="Network Configuration" icon={Settings} className="h-full">
               <div className="space-y-4">
-                <InputGroup label="Target Config" indicatorColor="bg-blue-500">
-                  <div className="flex-1">
-                    <span className="text-xs text-gray-400 block mb-1">Destination IP</span>
-                    <div className="flex gap-2">
-                      <IpInput
-                        value={ip}
-                        onChange={setIp}
-                        placeholder="e.g. 192.168.1.5"
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={openScan}
-                        className="text-blue-400 border-gray-600"
-                        title="Scan Network"
-                        icon={<Search size={20} />}
-                      />
-                    </div>
-                  </div>
-                </InputGroup>
+                <TargetConfig
+                  ip={ip}
+                  setIp={setIp}
+                  onScan={openScan}
+                  disabled={status !== 'idle'}
+                />
 
                 <PortProtocolConfig
                   port={port}
