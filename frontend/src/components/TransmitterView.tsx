@@ -18,9 +18,9 @@ import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
 import IpInput from './common/IpInput';
 import PortProtocolConfig from './common/PortProtocolConfig';
-import ChunkSizeSelector from './common/ChunkSizeSelector';
+import ChunkSizeConfig from './common/ChunkSizeConfig';
 import ControlContainer from './common/ControlContainer';
-import DelaySlider from './common/DelaySlider';
+import DelayConfig from './common/DelayConfig';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
@@ -402,22 +402,17 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
 
             <GlassCard title="Advanced Options" icon={Settings} className="h-full">
               <div className="flex flex-col gap-4 h-full">
-                <DelaySlider
+                <DelayConfig
                   value={delay}
                   onChange={setDelay}
                   disabled={status !== 'idle'}
                 />
 
-                <ControlContainer className="flex-1 flex flex-col justify-center" padding="p-3">
-                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
-                    Chunk Size
-                  </label>
-                  <ChunkSizeSelector
-                    value={chunkSize}
-                    onChange={setChunkSize}
-                    disabled={status !== 'idle'}
-                  />
-                </ControlContainer>
+                <ChunkSizeConfig
+                  value={chunkSize}
+                  onChange={setChunkSize}
+                  disabled={status !== 'idle'}
+                />
               </div>
             </GlassCard>
           </div>
