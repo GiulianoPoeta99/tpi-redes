@@ -135,7 +135,6 @@ const ReceiverView: React.FC<{
           <ConfigGroup title="Listener Config" icon={Settings}>
             <div className="flex flex-col gap-6">
               {/* Row 1: Port & Protocol Group */}
-              {/* Row 1: Port & Protocol Group */}
               <PortProtocolConfig
                 port={port}
                 setPort={setPort}
@@ -146,35 +145,18 @@ const ReceiverView: React.FC<{
                 disabled={isConnected}
               />
 
-              {/* Row 2: IP & Button */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* IP Display */}
-                <div className="p-4 bg-mode-rx-dim border border-mode-rx/20 rounded-xl flex flex-col justify-center h-full min-h-[84px]">
-                  <span className="text-xs font-bold text-mode-rx uppercase block mb-1">
-                    My IP Address
-                  </span>
-                  <span className="text-xl font-mono text-white tracking-wider flex items-center gap-2">
-                    {localIp}
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                  </span>
-                </div>
-
-                {/* Button */}
-                <div className="h-full">
-                  <SubmitButton
-                    variant={isConnected ? 'danger' : 'primary'}
-                    onClick={toggleServer}
-                    className={`h-full text-white ${
-                      !isConnected
-                        ? 'bg-blue-600 hover:bg-blue-500 ring-blue-500 shadow-blue-900/20'
-                        : 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
-                    }`}
-                    icon={<Power size={24} />}
-                  >
-                    {isConnected ? 'STOP' : 'START'}
-                  </SubmitButton>
-                </div>
-              </div>
+              <SubmitButton
+                variant={isConnected ? 'danger' : 'primary'}
+                onClick={toggleServer}
+                className={`text-white ${
+                  !isConnected
+                    ? 'bg-blue-600 hover:bg-blue-500 ring-blue-500 shadow-blue-900/20'
+                    : 'bg-red-600 hover:bg-red-500 ring-red-500 shadow-red-900/20'
+                }`}
+                icon={<Power size={24} />}
+              >
+                {isConnected ? 'STOP' : 'START'}
+              </SubmitButton>
             </div>
           </ConfigGroup>
         </div>

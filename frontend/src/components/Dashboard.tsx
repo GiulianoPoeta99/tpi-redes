@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { AppStats } from '../services/StorageService';
 import { StorageService } from '../services/StorageService';
 import HistoryModal from './HistoryModal';
+import IpDisplay from './common/IpDisplay';
 import MitmView from './MitmView';
 import { ReceivedFilesModal } from './ReceivedFilesModal';
 import ReceiverView from './ReceiverView';
@@ -240,7 +241,10 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Right: Header Content & Actions */}
-          <div className="flex items-center gap-4">{headerContent}</div>
+          <div className="flex items-center gap-4">
+            <IpDisplay variant="gray" className="min-h-0 py-2 px-4" />
+            {headerContent}
+          </div>
         </header>
 
         {/* Main Content Area - Grid Layout */}
