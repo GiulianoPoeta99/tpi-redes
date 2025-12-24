@@ -1,22 +1,16 @@
 import {
   Check,
-  ChevronDown,
   FileText,
-  List,
-  Plus,
   Radio,
-  Search,
   Send,
   Settings,
-  X,
 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { StorageService } from '../services/StorageService';
 import Button from './common/Button';
+import FileSelectionConfig from './common/FileSelectionConfig';
 import GlassCard from './common/GlassCard';
-import InputGroup from './common/InputGroup';
-import IpInput from './common/IpInput';
 import PortProtocolConfig from './common/PortProtocolConfig';
 import ChunkSizeConfig from './common/ChunkSizeConfig';
 import DelayConfig from './common/DelayConfig';
@@ -54,7 +48,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [isBatchActive, setIsBatchActive] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   // Lift Header Content
   useEffect(() => {
@@ -91,7 +84,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
   const [discoveredPeers, setDiscoveredPeers] = useState<any[]>([]);
   const [scanError, setScanError] = useState<string>();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Stats
   const [transferStats, setTransferStats] = useState({
@@ -317,14 +309,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
     setFiles((prev) => [...prev, ...unique]);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const paths = Array.from(e.target.files)
-        .map((f) => window.api.getFilePath(f))
-        .filter(Boolean) as string[];
-      addFiles(paths);
-    }
-  };
+
 
   const resetForm = () => {
     setStatus('idle');
@@ -357,13 +342,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
         onRemove={(i) => setFiles((prev) => prev.filter((_, idx) => idx !== i))}
       />
 
-      <input
-        type="file"
-        multiple
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        className="hidden"
-      />
+
       <ScanModal
         isOpen={isScanOpen}
         onClose={() => setIsScanOpen(false)}
@@ -424,94 +403,13 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
           >
             {/* DROP ZONE */}
             {/* biome-ignore lint/a11y/useSemanticElements: Cannot use button because it contains nested buttons */}
-            <div
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  if (files.length === 0) fileInputRef.current?.click();
-                }
-              }}
-              onClick={() => files.length === 0 && fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.dataTransfer.dropEffect = 'copy';
-                setIsDragging(true);
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-                setIsDragging(false);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsDragging(false);
-                const paths = Array.from(e.dataTransfer.files)
-                  .map((f) => window.api.getFilePath(f))
-                  .filter(Boolean) as string[];
-                addFiles(paths);
-              }}
-              className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-4 transition-all group min-h-[160px] relative cursor-pointer
-                                  ${isDragging ? 'bg-blue-900/20 border-blue-500' : 'bg-gray-900/20 border-gray-700 hover:border-blue-500/50 hover:bg-gray-800/50'}
-                              `}
-            >
-              {files.length > 0 ? (
-                <div className="text-center w-full">
-                  <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mx-auto mb-2 text-blue-400 group-hover:scale-110 transition-transform">
-                    <FileText size={24} />
-                  </div>
-                  <p className="font-medium text-white text-lg mb-1">
-                    {files.length} {files.length === 1 ? 'file' : 'files'} selected
-                  </p>
-                  <p className="text-xs text-gray-500 mb-4">Ready to transmit</p>
-
-                  <div className="flex justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsQueueOpen(true);
-                      }}
-                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium text-gray-200 flex items-center gap-2 transition-colors border border-gray-700"
-                    >
-                      <List size={14} /> View List
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fileInputRef.current?.click();
-                      }}
-                      className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-xs font-medium text-blue-300 flex items-center gap-2 transition-colors border border-blue-500/30"
-                    >
-                      <Plus size={14} /> Add More
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFiles([]);
-                      }}
-                      className="px-3 py-1.5 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-xs font-medium text-red-300 flex items-center gap-2 transition-colors border border-red-500/30"
-                    >
-                      <X size={14} /> Clear
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
-                    <Plus size={24} />
-                  </div>
-                  <p className="text-gray-300 mb-1 text-base font-medium">Drag & Drop files</p>
-                  <p className="text-xs text-gray-500">or click to browse</p>
-                </div>
-              )}
-            </div>
+            <FileSelectionConfig
+              files={files}
+              onFilesAdded={addFiles}
+              onFilesCleared={() => setFiles([])}
+              onShowQueue={() => setIsQueueOpen(true)}
+              disabled={status !== 'idle'}
+            />
 
             <div className="mt-4">
               <Button
