@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 interface IpDisplayProps {
   ip?: string; // If not provided, will fetch internally
   variant?: 'purple' | 'red' | 'blue' | 'gray';
+  size?: 'sm' | 'md';
   className?: string;
   showLabel?: boolean;
 }
@@ -11,6 +12,7 @@ interface IpDisplayProps {
 const IpDisplay: React.FC<IpDisplayProps> = ({
   ip: providedIp,
   variant = 'purple',
+  size = 'md',
   className = '',
   showLabel = true,
 }) => {
@@ -50,20 +52,38 @@ const IpDisplay: React.FC<IpDisplayProps> = ({
     },
   };
 
+  const sizes = {
+    sm: {
+      container: 'px-4 py-2 min-h-0', // Compact
+      label: 'text-[10px] mb-0.5',
+      value: 'text-sm font-bold',
+      dot: 'w-1.5 h-1.5',
+    },
+    md: {
+      container: 'px-4 py-3 min-h-[74px]', // Reduced further
+      label: 'text-xs mb-1',
+      value: 'text-xl',
+      dot: 'w-2 h-2',
+    },
+  };
+
   const style = variants[variant];
+  const sizeStyle = sizes[size];
 
   return (
     <div
-      className={`p-4 border rounded-xl flex flex-col justify-center min-h-[84px] ${style.container} ${className}`}
+      className={`border rounded-xl flex flex-col justify-center ${style.container} ${sizeStyle.container} ${className}`}
     >
       {showLabel && (
-        <span className={`text-xs font-bold uppercase block mb-1 ${style.label}`}>
+        <span className={`font-bold uppercase block ${style.label} ${sizeStyle.label}`}>
           My IP Address
         </span>
       )}
-      <span className="text-xl font-mono text-white tracking-wider flex items-center gap-2">
+      <span
+        className={`font-mono text-white tracking-wider flex items-center gap-2 ${sizeStyle.value}`}
+      >
         {ip}
-        <div className={`w-2 h-2 rounded-full animate-pulse ${style.dot}`} />
+        <div className={`rounded-full animate-pulse ${style.dot} ${sizeStyle.dot}`} />
       </span>
     </div>
   );

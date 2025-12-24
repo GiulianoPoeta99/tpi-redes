@@ -11,6 +11,7 @@ import { StorageService } from '../services/StorageService';
 import SubmitButton from './common/SubmitButton';
 import FileSelectionConfig from './common/FileSelectionConfig';
 import ConfigGroup from './common/ConfigGroup';
+import HeaderStatusCard from './common/HeaderStatusCard';
 import PortProtocolConfig from './common/PortProtocolConfig';
 import ChunkSizeConfig from './common/ChunkSizeConfig';
 import DelayConfig from './common/DelayConfig';
@@ -52,27 +53,14 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
   // Lift Header Content
   useEffect(() => {
     setHeaderContent(
-      <div className="min-w-[400px] bg-gradient-to-r from-blue-900/40 to-cyan-900/40 border border-blue-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Send className="text-blue-500" size={20} />
-            Transmitter Mode
-          </h2>
-          <p className="text-blue-200/60 text-xs">Send Files to Node</p>
-        </div>
-        <div
-          className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
-            status === 'sending'
-              ? 'bg-green-500/20 border-green-500 text-green-400 animate-pulse'
-              : 'bg-gray-800 border-gray-700 text-gray-400'
-          }`}
-        >
-          <Radio size={16} />
-          <span className="font-mono font-bold text-xs">
-            {status === 'sending' ? 'TRANSMITTING' : 'IDLE'}
-          </span>
-        </div>
-      </div>,
+      <HeaderStatusCard
+        title="Transmitter Mode"
+        subtitle="Send Files to Node"
+        icon={Send}
+        variant="blue"
+        status={status === 'sending' ? 'active' : 'idle'}
+        statusLabel={status === 'sending' ? 'TRANSMITTING' : 'IDLE'}
+      />
     );
     return () => setHeaderContent(null);
   }, [status, setHeaderContent]);

@@ -1,9 +1,10 @@
-import { Activity, Network, PlayCircle, ShieldAlert, StopCircle } from 'lucide-react';
+import { Network, PlayCircle, ShieldAlert, StopCircle } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import SubmitButton from './common/SubmitButton';
 import CorruptionSlider from './common/CorruptionSlider';
 import ConfigGroup from './common/ConfigGroup';
+import HeaderStatusCard from './common/HeaderStatusCard';
 import MitmProxyConfig from './common/MitmProxyConfig';
 import MitmStatsConfig from './common/MitmStatsConfig';
 import MitmTargetConfig from './common/MitmTargetConfig';
@@ -86,25 +87,14 @@ const MitmView: React.FC<{
   // Lift Header Content
   useEffect(() => {
     setHeaderContent(
-      <div className="min-w-[400px] bg-gradient-to-r from-mode-mitm-dim to-orange-900/40 border border-mode-mitm/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <ShieldAlert className="text-mode-mitm" size={20} />
-            MITM Proxy
-          </h2>
-          <p className="text-red-200/60 text-xs">Intercept & Manipulate</p>
-        </div>
-        <div
-          className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
-            isRunning
-              ? 'bg-green-500/20 border-green-500 text-green-400 animate-pulse'
-              : 'bg-gray-800 border-gray-700 text-gray-400'
-          }`}
-        >
-          <Activity size={16} />
-          <span className="font-mono font-bold text-xs">{isRunning ? 'ACTIVE' : 'IDLE'}</span>
-        </div>
-      </div>,
+      <HeaderStatusCard
+        title="MITM Proxy"
+        subtitle="Intercept & Manipulate"
+        icon={ShieldAlert}
+        variant="red"
+        status={isRunning ? 'active' : 'idle'}
+        statusLabel={isRunning ? 'ACTIVE' : 'IDLE'}
+      />
     );
     return () => setHeaderContent(null);
   }, [isRunning, setHeaderContent]);

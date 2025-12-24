@@ -241,8 +241,8 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Right: Header Content & Actions */}
-          <div className="flex items-center gap-4">
-            <IpDisplay variant="gray" className="min-h-0 py-2 px-4" />
+          <div className="flex items-stretch gap-4">
+            <IpDisplay variant="gray" className="h-full" />
             {headerContent}
           </div>
         </header>

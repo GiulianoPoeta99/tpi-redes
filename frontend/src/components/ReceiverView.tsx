@@ -1,4 +1,14 @@
-import { Activity, Download, Power, Settings, Wifi } from 'lucide-react';
+import {
+  Activity,
+  ArrowRight,
+  Download,
+  Info,
+  Play,
+  PlayCircle,
+  Power,
+  Settings,
+  Square,
+} from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { StorageService } from '../services/StorageService';
@@ -6,6 +16,7 @@ import SubmitButton from './common/SubmitButton';
 
 import FileListItem from './common/FileListItem';
 import ConfigGroup from './common/ConfigGroup';
+import HeaderStatusCard from './common/HeaderStatusCard';
 import PortProtocolConfig from './common/PortProtocolConfig';
 import SlidingWindow from './SlidingWindow';
 
@@ -26,27 +37,14 @@ const ReceiverView: React.FC<{
   // Lift Header Content
   useEffect(() => {
     setHeaderContent(
-      <div className="min-w-[400px] bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg gap-6">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Download className="text-purple-500" size={20} />
-            Receiver Mode
-          </h2>
-          <p className="text-purple-200/60 text-xs">Listen for Incoming Files</p>
-        </div>
-        <div
-          className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
-            isConnected
-              ? 'bg-green-500/20 border-green-500 text-green-400 animate-pulse'
-              : 'bg-gray-800 border-gray-700 text-gray-400'
-          }`}
-        >
-          <Wifi size={16} />
-          <span className="font-mono font-bold text-xs">
-            {isConnected ? 'LISTENING' : 'OFFLINE'}
-          </span>
-        </div>
-      </div>,
+      <HeaderStatusCard
+        title="Receiver Mode"
+        subtitle="Listen for Incoming Files"
+        icon={Download}
+        variant="purple"
+        status={isConnected ? 'active' : 'idle'}
+        statusLabel={isConnected ? 'LISTENING' : 'OFFLINE'}
+      />
     );
     return () => setHeaderContent(null);
   }, [isConnected, setHeaderContent]);
