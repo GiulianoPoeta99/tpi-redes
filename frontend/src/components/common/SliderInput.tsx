@@ -14,6 +14,11 @@ interface SliderInputProps {
   accentColor?: 'blue' | 'red';
 }
 
+import ControlContainer from './ControlContainer';
+
+// ... (props interface kept in file, just hidden in diff) Since I am replacing the whole return block and imports I need to be careful.
+// Actually, let's just use replace on the whole file or the return block + import.
+
 const SliderInput: React.FC<SliderInputProps> = ({
   value,
   min,
@@ -30,7 +35,7 @@ const SliderInput: React.FC<SliderInputProps> = ({
   const accentClass = accentColor === 'red' ? 'accent-red-500' : 'accent-blue-500';
 
   return (
-    <div className={`bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex flex-col justify-center ${className}`}>
+    <ControlContainer className={`flex flex-col justify-center ${className}`} padding="p-3">
       {(label || headerRight) && (
         <div className="flex justify-between items-end mb-2">
           {label && (
@@ -56,7 +61,7 @@ const SliderInput: React.FC<SliderInputProps> = ({
       </div>
 
       {footer && <div className="mt-2">{footer}</div>}
-    </div>
+    </ControlContainer>
   );
 };
 

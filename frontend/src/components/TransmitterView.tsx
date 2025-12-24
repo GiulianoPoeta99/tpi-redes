@@ -21,6 +21,7 @@ import IpInput from './common/IpInput';
 import PortInput from './common/PortInput';
 import ProtocolToggle from './common/ProtocolToggle';
 import ChunkSizeSelector from './common/ChunkSizeSelector';
+import ControlContainer from './common/ControlContainer';
 import DelaySlider from './common/DelaySlider';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
@@ -434,7 +435,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   disabled={status !== 'idle'}
                 />
 
-                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex-1 flex flex-col justify-center">
+                <ControlContainer className="flex-1 flex flex-col justify-center" padding="p-3">
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
                     Chunk Size
                   </label>
@@ -443,7 +444,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                     onChange={setChunkSize}
                     disabled={status !== 'idle'}
                   />
-                </div>
+                </ControlContainer>
               </div>
             </GlassCard>
           </div>
