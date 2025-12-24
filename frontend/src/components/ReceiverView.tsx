@@ -6,10 +6,7 @@ import Button from './common/Button';
 
 import FileListItem from './common/FileListItem';
 import GlassCard from './common/GlassCard';
-import InputGroup from './common/InputGroup';
-import InterfaceSelector from './common/InterfaceSelector';
-import PortInput from './common/PortInput';
-import ProtocolToggle from './common/ProtocolToggle';
+import PortProtocolConfig from './common/PortProtocolConfig';
 import SlidingWindow from './SlidingWindow';
 
 const ReceiverView: React.FC<{
@@ -138,29 +135,16 @@ const ReceiverView: React.FC<{
           <GlassCard title="Listener Config" icon={Settings}>
             <div className="flex flex-col gap-6">
               {/* Row 1: Port & Protocol Group */}
-              <InputGroup label="Port & Protocol">
-                <div className="min-w-[100px]">
-                  <span className="text-xs text-gray-400 block mb-1">Port</span>
-                  <PortInput
-                    value={port}
-                    onChange={setPort}
-                    disabled={isConnected}
-                    placeholder="8080"
-                  />
-                </div>
-                <div className="flex-1">
-                  <span className="text-xs text-gray-400 block mb-1">Interface</span>
-                  <InterfaceSelector
-                    value={netInterface}
-                    onChange={setNetInterface}
-                    disabled={isConnected}
-                  />
-                </div>
-                <div>
-                    <span className="text-xs text-gray-400 block mb-1">Protocol</span>
-                    <ProtocolToggle protocol={protocol} onChange={setProtocol} disabled={isConnected} />
-                </div>
-              </InputGroup>
+              {/* Row 1: Port & Protocol Group */}
+              <PortProtocolConfig
+                port={port}
+                setPort={setPort}
+                protocol={protocol}
+                setProtocol={setProtocol}
+                interfaceVal={netInterface}
+                setInterfaceVal={setNetInterface}
+                disabled={isConnected}
+              />
 
               {/* Row 2: IP & Button */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

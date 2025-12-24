@@ -29,7 +29,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
   loading = false,
 }) => {
   return (
-    <div className={`relative group min-w-[120px] ${className}`}>
+    <div className={`relative group ${className}`}>
       {icon && (
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-400">
           {icon}

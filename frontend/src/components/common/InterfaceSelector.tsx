@@ -7,12 +7,14 @@ interface InterfaceSelectorProps {
   value: string | null;
   onChange: (value: string | null) => void;
   disabled?: boolean;
+  className?: string; // Allow container to control width
 }
 
 const InterfaceSelector: React.FC<InterfaceSelectorProps> = ({
   value,
   onChange,
   disabled = false,
+  className,
 }) => {
   const [interfaces, setInterfaces] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,6 +44,7 @@ const InterfaceSelector: React.FC<InterfaceSelectorProps> = ({
       loading={loading}
       placeholder="Auto (Default)"
       icon={<Network size={16} />}
+      className={className}
     />
   );
 };

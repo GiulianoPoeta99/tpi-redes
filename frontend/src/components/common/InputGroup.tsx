@@ -15,7 +15,7 @@ const InputGroup: React.FC<InputGroupProps> = ({ label, children, indicatorColor
         {indicatorColor && <span className={`w-2 h-2 rounded-full ${indicatorColor}`}></span>}
         {label}
       </div>
-      <div className="flex items-center gap-4">{children}</div>
+      <div className="flex flex-wrap items-center gap-4">{children}</div>
     </ControlContainer>
   );
 };

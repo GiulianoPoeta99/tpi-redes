@@ -16,10 +16,8 @@ import { StorageService } from '../services/StorageService';
 import Button from './common/Button';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
-import InterfaceSelector from './common/InterfaceSelector';
 import IpInput from './common/IpInput';
-import PortInput from './common/PortInput';
-import ProtocolToggle from './common/ProtocolToggle';
+import PortProtocolConfig from './common/PortProtocolConfig';
 import ChunkSizeSelector from './common/ChunkSizeSelector';
 import ControlContainer from './common/ControlContainer';
 import DelaySlider from './common/DelaySlider';
@@ -404,26 +402,15 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                   </div>
                 </InputGroup>
 
-                <InputGroup label="Port & Protocol">
-                  <div className="flex-1">
-                    <span className="text-xs text-gray-400 block mb-1">Interface</span>
-                    <InterfaceSelector
-                      value={netInterface}
-                      onChange={setNetInterface}
-                      disabled={status !== 'idle'}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-xs text-gray-400 block mb-1">Port</span>
-                    <PortInput
-                      value={port}
-                      onChange={setPort}
-                      placeholder="8080"
-                      disabled={status !== 'idle'}
-                    />
-                  </div>
-                  <ProtocolToggle protocol={protocol} onChange={setProtocol} />
-                </InputGroup>
+                <PortProtocolConfig
+                  port={port}
+                  setPort={setPort}
+                  protocol={protocol}
+                  setProtocol={setProtocol}
+                  interfaceVal={netInterface}
+                  setInterfaceVal={setNetInterface}
+                  disabled={status !== 'idle'}
+                />
               </div>
             </GlassCard>
 
