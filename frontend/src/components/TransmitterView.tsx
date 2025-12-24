@@ -20,6 +20,7 @@ import InterfaceSelector from './common/InterfaceSelector';
 import IpInput from './common/IpInput';
 import PortInput from './common/PortInput';
 import ProtocolToggle from './common/ProtocolToggle';
+import ChunkSizeSelector from './common/ChunkSizeSelector';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
@@ -449,27 +450,14 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
                 </div>
 
                 <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex-1 flex flex-col justify-center">
-                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase relative">
+                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
                     Chunk Size
-                    <div className="relative mt-2">
-                      <select
-                        value={chunkSize}
-                        onChange={(e) => setChunkSize(Number(e.target.value))}
-                        className="w-full bg-gray-800 border border-gray-600 p-2 rounded-lg text-white appearance-none cursor-pointer pr-10 hover:bg-gray-700 focus:border-blue-500 outline-none"
-                      >
-                        <option value={1024}>1 KB</option>
-                        <option value={4096}>4 KB (Default)</option>
-                        <option value={8192}>8 KB</option>
-                        <option value={16384}>16 KB</option>
-                        <option value={32768}>32 KB</option>
-                        <option value={65536}>64 KB</option>
-                      </select>
-                      <ChevronDown
-                        size={16}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                      />
-                    </div>
                   </label>
+                  <ChunkSizeSelector
+                    value={chunkSize}
+                    onChange={setChunkSize}
+                    disabled={status !== 'idle'}
+                  />
                 </div>
               </div>
             </GlassCard>
