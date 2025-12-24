@@ -2,6 +2,7 @@ import { Activity, Network, PlayCircle, ShieldAlert, StopCircle, Search } from '
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import Button from './common/Button';
+import CorruptionSlider from './common/CorruptionSlider';
 import GlassCard from './common/GlassCard';
 import InputGroup from './common/InputGroup';
 import IpInput from './common/IpInput';
@@ -275,68 +276,11 @@ const MitmView: React.FC<{
       <GlassCard title="Active Attacks" icon={ShieldAlert} className="flex-1 flex flex-col">
         <div className="flex flex-col h-full gap-4">
           {/* Slider & Presets Section */}
-          <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50 flex flex-col gap-4">
-            <div className="flex justify-between items-end">
-              <label htmlFor="corruption-slider" className="text-sm font-bold text-gray-300">
-                Data Corruption Rate
-              </label>
-              <span
-                className={`text-2xl font-mono font-bold transition-colors ${
-                  config.corruption > 0 ? 'text-red-500' : 'text-gray-500'
-                }`}
-              >
-                {Math.round(config.corruption * 100)}%
-              </span>
-            </div>
-
-            <input
-              id="corruption-slider"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              disabled={isRunning}
-              value={config.corruption}
-              onChange={(e) => setConfig({ ...config, corruption: Number(e.target.value) })}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            <div className="flex justify-between text-xs text-gray-500 font-mono px-1">
-              <span>Passthrough</span>
-              <span>Noise</span>
-              <span>Destructive</span>
-            </div>
-
-            {/* Intensity Presets */}
-            <div className="flex gap-2">
-              {[
-                {
-                  label: 'Bit Flip',
-                  val: 0.01,
-                  color: 'hover:bg-yellow-900/50 border-yellow-700 text-yellow-500',
-                },
-                {
-                  label: 'Noise',
-                  val: 0.2,
-                  color: 'hover:bg-orange-900/50 border-orange-700 text-orange-500',
-                },
-                {
-                  label: 'Fuzz',
-                  val: 0.8,
-                  color: 'hover:bg-red-900/50 border-red-700 text-red-500',
-                },
-              ].map((p) => (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => !isRunning && setConfig({ ...config, corruption: p.val })}
-                  disabled={isRunning}
-                  className={`flex-1 py-1.5 text-xs font-mono border rounded transition-all bg-gray-800/50 disabled:opacity-50 disabled:cursor-not-allowed ${p.color}`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <CorruptionSlider
+            value={config.corruption}
+            onChange={(val) => setConfig({ ...config, corruption: val })}
+            disabled={isRunning}
+          />
 
           {/* Stats & Mode Info */}
           <div className="bg-gray-900/30 p-4 rounded-xl border border-gray-800 flex flex-col gap-3 flex-1 min-h-0">

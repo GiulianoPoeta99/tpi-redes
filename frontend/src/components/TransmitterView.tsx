@@ -21,6 +21,7 @@ import IpInput from './common/IpInput';
 import PortInput from './common/PortInput';
 import ProtocolToggle from './common/ProtocolToggle';
 import ChunkSizeSelector from './common/ChunkSizeSelector';
+import DelaySlider from './common/DelaySlider';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
 import StatsModal from './StatsModal';
@@ -427,27 +428,11 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
 
             <GlassCard title="Advanced Options" icon={Settings} className="h-full">
               <div className="flex flex-col gap-4 h-full">
-                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex-1 flex flex-col justify-center">
-                  <div className="flex justify-between items-end mb-2">
-                    <label
-                      htmlFor="delay-slider"
-                      className="text-xs font-bold text-gray-500 uppercase"
-                    >
-                      Transmission Delay
-                    </label>
-                    <span className="text-blue-400 font-mono font-bold text-sm">{delay} ms</span>
-                  </div>
-                  <input
-                    id="delay-slider"
-                    type="range"
-                    min="0"
-                    max="1000"
-                    step="10"
-                    value={delay}
-                    onChange={(e) => setDelay(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
-                </div>
+                <DelaySlider
+                  value={delay}
+                  onChange={setDelay}
+                  disabled={status !== 'idle'}
+                />
 
                 <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex-1 flex flex-col justify-center">
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">
