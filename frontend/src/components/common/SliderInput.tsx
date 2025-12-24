@@ -34,33 +34,32 @@ const SliderInput: React.FC<SliderInputProps> = ({
 }) => {
   const accentClass = accentColor === 'red' ? 'accent-red-500' : 'accent-blue-500';
 
-  return (
-    <ControlContainer className={`flex flex-col justify-center ${className}`} padding="p-3">
-      {(label || headerRight) && (
-        <div className="flex justify-between items-end mb-2">
-          {label && (
-            <label className="text-xs font-bold text-gray-500 uppercase">
-              {label}
-            </label>
-          )}
-          {headerRight}
-        </div>
-      )}
-
-      <div className="relative">
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          disabled={disabled}
-          className={`w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${accentClass}`}
-        />
+  const titleNode =
+    label || headerRight ? (
+    <div className="w-full flex-1 flex justify-between items-center">
+        <span>{label}</span>
+        {headerRight}
       </div>
+    ) : undefined;
 
-      {footer && <div className="mt-2">{footer}</div>}
+  return (
+    <ControlContainer className={`flex flex-col ${className}`} title={titleNode}>
+      <div className="flex-1 flex flex-col justify-center">
+        <div className="relative">
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => onChange(Number(e.target.value))}
+            disabled={disabled}
+            className={`w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${accentClass}`}
+          />
+        </div>
+
+        {footer && <div className="mt-2">{footer}</div>}
+      </div>
     </ControlContainer>
   );
 };

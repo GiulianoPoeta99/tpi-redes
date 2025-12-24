@@ -10,15 +10,14 @@ interface ChunkSizeConfigProps {
 
 const ChunkSizeConfig: React.FC<ChunkSizeConfigProps> = ({ value, onChange, disabled = false }) => {
   return (
-    <ControlContainer className="flex-1 flex flex-col justify-center gap-2" padding="p-3">
-      <label className="block text-xs font-bold text-gray-500 uppercase">
-        Chunk Size
-      </label>
-      <ChunkSizeSelector
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-      />
+    <ControlContainer className="flex-1 flex flex-col" title="Chunk Size">
+      <div className="flex-1 flex flex-col justify-center">
+        <ChunkSizeSelector
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      </div>
     </ControlContainer>
   );
 };

@@ -1,12 +1,12 @@
-import { Activity, Network, PlayCircle, ShieldAlert, StopCircle, Search } from 'lucide-react';
+import { Activity, Network, PlayCircle, ShieldAlert, StopCircle } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import Button from './common/Button';
 import CorruptionSlider from './common/CorruptionSlider';
 import GlassCard from './common/GlassCard';
-import InputGroup from './common/InputGroup';
-import IpInput from './common/IpInput';
-import PortInput from './common/PortInput';
+import MitmProxyConfig from './common/MitmProxyConfig';
+import MitmStatsConfig from './common/MitmStatsConfig';
+import MitmTargetConfig from './common/MitmTargetConfig';
 import ScanModal from './ScanModal';
 
 interface MitmConfig {
@@ -144,17 +144,11 @@ const MitmView: React.FC<{
         <div className="flex items-start gap-4">
           {/* Listener: Fixed Width */}
           <div className="w-64 shrink-0">
-            <InputGroup label="Proxy Listener" indicatorColor="bg-green-500">
-              <div className="flex-1">
-                <span className="text-xs text-gray-400 block mb-1">Local Port</span>
-                <PortInput
-                  value={config.listenPort}
-                  onChange={(val) => setConfig({ ...config, listenPort: val })}
-                  disabled={isRunning}
-                  placeholder="8081"
-                />
-              </div>
-            </InputGroup>
+            <MitmProxyConfig
+              listenPort={config.listenPort}
+              onChange={(val) => setConfig({ ...config, listenPort: val })}
+              disabled={isRunning}
+            />
           </div>
 
           {/* Flow Animation: Flexible Space */}
@@ -237,37 +231,14 @@ const MitmView: React.FC<{
 
           {/* Target: Fixed Width */}
           <div className="w-80 shrink-0">
-            <InputGroup label="Forward Target" indicatorColor="bg-blue-500">
-              <div className="flex gap-2 w-full items-end">
-                <div className="flex-1">
-                  <span className="text-xs text-gray-400 block mb-1">Target Host / IP</span>
-                  <IpInput
-                    value={config.targetIp}
-                    onChange={(val) => setConfig({ ...config, targetIp: val })}
-                    disabled={isRunning}
-                    className="w-full"
-                  />
-                </div>
-                <div className="w-20">
-                  <span className="text-xs text-gray-400 block mb-1">Port</span>
-                  <PortInput
-                    value={config.targetPort}
-                    onChange={(val) => setConfig({ ...config, targetPort: val })}
-                    disabled={isRunning}
-                    placeholder="8080"
-                  />
-                </div>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={openScan}
-                  disabled={isRunning}
-                  className="text-blue-400 border-gray-600 shrink-0 h-[42px] w-[42px]"
-                  title="Scan Network"
-                  icon={<Search size={18} />}
-                />
-              </div>
-            </InputGroup>
+            <MitmTargetConfig
+              targetIp={config.targetIp}
+              targetPort={config.targetPort}
+              onIpChange={(val) => setConfig({ ...config, targetIp: val })}
+              onPortChange={(val) => setConfig({ ...config, targetPort: val })}
+              onScanClick={openScan}
+              disabled={isRunning}
+            />
           </div>
         </div>
       </GlassCard>
@@ -283,40 +254,11 @@ const MitmView: React.FC<{
           />
 
           {/* Stats & Mode Info */}
-          <div className="bg-gray-900/30 p-4 rounded-xl border border-gray-800 flex flex-col gap-3 flex-1 min-h-0">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Operational Mode
-              </span>
-              <span className="text-[10px] font-mono font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
-                DATA CORRUPTION ONLY
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 flex-1 items-center">
-              <div className="flex flex-col items-center justify-center">
-                <span className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">
-                  Intercepted
-                </span>
-                <span className="text-3xl font-mono text-green-500 tracking-tight">
-                  {stats.intercepted.toLocaleString().padStart(5, '0')}
-                </span>
-              </div>
-
-              <div className="flex flex-col items-center justify-center border-l border-gray-800">
-                <span className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">
-                  Corrupted
-                </span>
-                <span
-                  className={`text-3xl font-mono tracking-tight ${
-                    stats.corrupted > 0 ? 'text-red-500' : 'text-gray-600'
-                  }`}
-                >
-                  {stats.corrupted.toLocaleString().padStart(5, '0')}
-                </span>
-              </div>
-            </div>
-          </div>
+          <MitmStatsConfig
+            stats={stats}
+            isActive={isRunning}
+            className="flex-1 min-h-0"
+          />
 
           <Button
             onClick={toggleMitm}

@@ -6,16 +6,22 @@ interface InputGroupProps {
   label: string;
   children: React.ReactNode;
   indicatorColor?: string;
+  className?: string;
 }
 
-const InputGroup: React.FC<InputGroupProps> = ({ label, children, indicatorColor }) => {
+const InputGroup: React.FC<InputGroupProps> = ({ label, children, indicatorColor, className = '' }) => {
+  const titleContent = (
+    <>
+      {indicatorColor && <span className={`w-2 h-2 rounded-full ${indicatorColor}`}></span>}
+      {label}
+    </>
+  );
+
   return (
-    <ControlContainer>
-      <div className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
-        {indicatorColor && <span className={`w-2 h-2 rounded-full ${indicatorColor}`}></span>}
-        {label}
+    <ControlContainer title={titleContent} className={className}>
+      <div className="flex-1 flex flex-col justify-center">
+        <div className="flex flex-wrap items-center gap-4 w-full">{children}</div>
       </div>
-      <div className="flex flex-wrap items-center gap-4">{children}</div>
     </ControlContainer>
   );
 };

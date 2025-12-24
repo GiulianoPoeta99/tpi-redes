@@ -19,7 +19,6 @@ import InputGroup from './common/InputGroup';
 import IpInput from './common/IpInput';
 import PortProtocolConfig from './common/PortProtocolConfig';
 import ChunkSizeConfig from './common/ChunkSizeConfig';
-import ControlContainer from './common/ControlContainer';
 import DelayConfig from './common/DelayConfig';
 import FilesQueueModal from './FilesQueueModal';
 import ScanModal from './ScanModal';
