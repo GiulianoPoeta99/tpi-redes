@@ -245,8 +245,8 @@ const Dashboard: React.FC = () => {
 
         {/* Main Content Area - Grid Layout */}
         <main className="flex-1 p-6 overflow-hidden flex gap-6">
-          {/* LEFT COLUMN: Modes (50%) */}
-          <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden flex flex-col">
+          {/* LEFT COLUMN: Modes (55%) */}
+          <div className="flex-[55] bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden flex flex-col">
             <div className="h-full overflow-y-auto">
               {mode === 'receiver' && (
                 <ReceiverView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />
@@ -264,8 +264,8 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Stats + Sniffer (50%) */}
-          <div className="flex-1 flex flex-col gap-6 min-w-0">
+          {/* RIGHT COLUMN: Stats + Sniffer (45%) */}
+          <div className="flex-[45] flex flex-col gap-6 min-w-0">
             {/* Statistics Widget */}
             <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center shrink-0">
               <h3 className="text-gray-400 text-sm font-semibold mb-2 uppercase tracking-wider">
