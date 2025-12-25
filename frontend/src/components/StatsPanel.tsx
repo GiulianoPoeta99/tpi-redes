@@ -19,20 +19,38 @@ const StatCard: React.FC<{
     pink: 'border-pink-500/30 bg-pink-500/10 text-pink-400',
   };
 
+  const getFontSizeClass = (val: string | number) => {
+    const str = String(val);
+    // "100.00 MB" is 9 chars -> text-sm
+    // "10000" is 5 chars -> text-lg
+    if (str.length >= 9) return 'text-sm';
+    if (str.length >= 6) return 'text-base';
+    if (str.length >= 4) return 'text-lg';
+    return 'text-xl';
+  };
+
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-xl border ${colors[color]} relative overflow-hidden group transition-all hover:bg-opacity-20`}
     >
       <div className={`p-3 rounded-lg bg-gray-900/50 ${colors[color].split(' ')[2]}`}>
-        <Icon size={24} />
+        <Icon size={22} />
       </div>
       <div>
         <p
-          className={`text-[10px] font-bold uppercase tracking-wider opacity-70 ${colors[color].split(' ')[2]}`}
+          className={`text-[10px] font-bold uppercase tracking-wider opacity-70 ${
+            colors[color].split(' ')[2]
+          }`}
         >
           {label}
         </p>
-        <p className="text-xl font-mono font-bold text-white tracking-tight">{value}</p>
+        <p
+          className={`${getFontSizeClass(
+            value,
+          )} font-mono font-bold text-white tracking-tight transition-all duration-300`}
+        >
+          {value}
+        </p>
       </div>
     </div>
   );

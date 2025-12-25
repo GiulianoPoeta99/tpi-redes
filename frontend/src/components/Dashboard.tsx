@@ -5,6 +5,7 @@ import type { AppStats } from '../services/StorageService';
 import { StorageService } from '../services/StorageService';
 import HistoryModal from './HistoryModal';
 import IpDisplay from './common/IpDisplay';
+import HeaderActionButton from './common/HeaderActionButton';
 import MitmView from './MitmView';
 import { ReceivedFilesModal } from './ReceivedFilesModal';
 import ReceiverView from './ReceiverView';
@@ -212,31 +213,19 @@ const Dashboard: React.FC = () => {
             <div className="w-px h-8 bg-white/10"></div>
 
             <div className="flex items-center gap-3">
-              <button
+              <HeaderActionButton
+                label="Files"
+                icon={Folder}
+                color="blue"
                 onClick={() => setShowFiles(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all hover:border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] group active:scale-95"
-                type="button"
-              >
-                <div className="p-1.5 bg-blue-500/10 rounded-md group-hover:bg-blue-500/20 transition-colors">
-                  <Folder size={18} className="text-blue-400 group-hover:text-blue-300" />
-                </div>
-                <span className="text-sm font-medium text-gray-300 group-hover:text-white">
-                  Files
-                </span>
-              </button>
+              />
 
-              <button
-                type="button"
+              <HeaderActionButton
+                label="History"
+                icon={Clock}
+                color="purple"
                 onClick={() => setShowHistory(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] group active:scale-95"
-              >
-                <div className="p-1.5 bg-purple-500/10 rounded-md group-hover:bg-purple-500/20 transition-colors">
-                  <Clock size={18} className="text-purple-400 group-hover:text-purple-300" />
-                </div>
-                <span className="text-sm font-medium text-gray-300 group-hover:text-white">
-                  History
-                </span>
-              </button>
+              />
             </div>
           </div>
 
