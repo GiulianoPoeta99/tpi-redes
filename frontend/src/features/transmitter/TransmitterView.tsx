@@ -1,4 +1,4 @@
-import { Check, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import StatsModal from '../dashboard/components/StatsModal';
@@ -9,6 +9,8 @@ import AdvancedOptions from './components/AdvancedOptions';
 import FilesQueueModal from './components/FilesQueueModal';
 import NetworkConfiguration from './components/NetworkConfiguration';
 import PayloadConfiguration from './components/PayloadConfiguration';
+import TransferCompleteOverlay from './components/TransferCompleteOverlay';
+import TransferProgressOverlay from './components/TransferProgressOverlay';
 
 interface TransmitterViewProps {
   setBusy: (busy: boolean) => void;
@@ -298,16 +300,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
     setCurrentFileIndex(0);
   };
 
-  const radius = 60;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
-
-  const outerRadius = 80;
-  const outerCircumference = 2 * Math.PI * outerRadius;
-  const smoothBatchPercent = ((currentFileIndex + progress / 100) / files.length) * 100;
-  const outerStrokeDashoffset =
-    outerCircumference - (smoothBatchPercent / 100) * outerCircumference;
-
   return (
     <div className="h-full flex flex-col gap-4 relative overflow-hidden">
       <StatsModal
@@ -376,124 +368,21 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
 
       {/* SHOW SENDING UI if actually sending OR if waiting for next batch file */}
       {(status === 'sending' || (isBatchActive && status === 'completed')) && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-sm z-10 animate-in fade-in zoom-in duration-300">
-          <div className="relative w-64 h-64 flex items-center justify-center">
-            {/* Outer Circle (Batch) */}
-            <svg
-              className="absolute inset-0 w-full h-full transform -rotate-90"
-              aria-label="Batch Progress"
-              role="img"
-            >
-              <title>Batch Progress</title>
-              <circle
-                cx="128"
-                cy="128"
-                r={outerRadius}
-                stroke="currentColor"
-                strokeWidth="6"
-                fill="transparent"
-                className="text-gray-800"
-              />
-              <circle
-                cx="128"
-                cy="128"
-                r={outerRadius}
-                stroke="currentColor"
-                strokeWidth="6"
-                fill="transparent"
-                strokeDasharray={outerCircumference}
-                strokeDashoffset={outerStrokeDashoffset}
-                strokeLinecap="round"
-                className="text-mode-tx transition-all duration-300 ease-linear"
-              />
-            </svg>
-
-            {/* Inner Circle (File) */}
-            <div className="relative w-32 h-32">
-              <svg
-                className="w-full h-full transform -rotate-90"
-                aria-label="File Progress"
-                role="img"
-              >
-                <title>File Progress</title>
-                <circle
-                  cx="64"
-                  cy="64"
-                  r={radius}
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  fill="transparent"
-                  className="text-gray-800"
-                />
-                <circle
-                  cx="64"
-                  cy="64"
-                  r={radius}
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  fill="transparent"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                  className="text-proto-tcp transition-all duration-300 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-bold font-mono text-white">
-                  {Math.round(progress)}%
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <p className="text-proto-tcp animate-pulse font-medium tracking-wide mb-1">
-              SENDING FILE {currentFileIndex + 1} OF {files.length}
-            </p>
-            <p className="text-sm text-gray-400 font-mono truncate max-w-xs mx-auto">
-              {files[currentFileIndex]?.split('/').pop()}
-            </p>
-
-            <div className="mt-2 text-xs text-mode-tx font-mono">
-              Batch Progress: {Math.round(smoothBatchPercent)}%
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={cancelSend}
-            className="mt-8 px-6 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/50 rounded-lg font-bold transition-all text-sm uppercase tracking-wide hover:scale-105"
-          >
-            Cancel Batch
-          </button>
-        </div>
+        <TransferProgressOverlay
+          progress={progress}
+          currentFileIndex={currentFileIndex}
+          totalFiles={files.length}
+          currentFilename={files[currentFileIndex]?.split('/').pop() || 'Unknown'}
+          onCancel={cancelSend}
+        />
       )}
 
       {status === 'completed' && !isBatchActive && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/50 backdrop-blur-sm z-10 animate-in fade-in zoom-in duration-500">
-          <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-500/30 mb-6 animate-bounce">
-            <Check size={48} className="text-white box-content" />
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Batch Complete!</h2>
-          <p className="text-gray-400 mb-8">All {files.length} files transferred successfully.</p>
-
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => setShowStats(true)}
-              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors border border-gray-700"
-            >
-              Last File Stats
-            </button>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 transition-all hover:scale-105"
-            >
-              Send More
-            </button>
-          </div>
-        </div>
+        <TransferCompleteOverlay
+          totalFiles={files.length}
+          onShowStats={() => setShowStats(true)}
+          onReset={resetForm}
+        />
       )}
     </div>
   );
