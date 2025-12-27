@@ -17,12 +17,7 @@ describe('MitmView', () => {
   const setHeaderContent = vi.fn();
 
   it('renders mitm configuration', async () => {
-    render(
-      <MitmView 
-        setBusy={setBusy} 
-        setHeaderContent={setHeaderContent} 
-      />
-    );
+    render(<MitmView setBusy={setBusy} setHeaderContent={setHeaderContent} />);
 
     // Check for Proxy Listener config
     expect(await screen.findByText('Proxy Listener')).toBeInTheDocument();

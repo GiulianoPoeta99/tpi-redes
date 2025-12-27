@@ -19,16 +19,11 @@ describe('ReceiverView', () => {
   const setHeaderContent = vi.fn();
 
   it('renders receiver configuration', async () => {
-    render(
-      <ReceiverView 
-        setBusy={setBusy} 
-        setHeaderContent={setHeaderContent} 
-      />
-    );
+    render(<ReceiverView setBusy={setBusy} setHeaderContent={setHeaderContent} />);
 
     // Check for Listener Config section
     expect(await screen.findByText('Listener Config')).toBeInTheDocument();
-    
+
     // Check for Start/Stop button
     expect(screen.getByRole('button', { name: /START/i })).toBeInTheDocument();
   });

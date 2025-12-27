@@ -64,17 +64,17 @@ const ReceiverView: React.FC<{
             setIsConnected(true);
             setBusy(true);
             // Toast handled by Dashboard
-          } else if (json.type === 'TRANSFER_UPDATE') {
-            if (json.status === 'start') setTransferActive(true);
-            if (json.status === 'complete') {
+          } else if (event.type === 'TRANSFER_UPDATE') {
+            if (event.status === 'start') setTransferActive(true);
+            if (event.status === 'complete') {
               setTransferActive(false);
-              setLastFile(json.filename || 'Unknown File');
+              setLastFile(event.filename || 'Unknown File');
 
               StorageService.addHistoryItem({
                 id: Date.now().toString() + Math.random(),
                 timestamp: Date.now(),
-                filename: json.filename || 'unknown',
-                size: json.total || 0,
+                filename: event.filename || 'unknown',
+                size: event.total || 0,
                 direction: 'received',
                 status: 'success',
                 protocol: protocol.toUpperCase(),
@@ -82,7 +82,7 @@ const ReceiverView: React.FC<{
 
               // Toast handled by Dashboard
             }
-          } else if (json.type === 'ERROR') {
+          } else if (event.type === 'ERROR') {
             setIsConnected(false);
             setTransferActive(false);
             setBusy(false);

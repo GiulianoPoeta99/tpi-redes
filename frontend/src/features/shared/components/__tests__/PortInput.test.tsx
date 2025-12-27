@@ -12,7 +12,7 @@ describe('PortInput', () => {
   it('calls onChange with valid number', () => {
     const onChange = vi.fn();
     render(<PortInput value={0} onChange={onChange} />);
-    
+
     const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: '3000' } });
 

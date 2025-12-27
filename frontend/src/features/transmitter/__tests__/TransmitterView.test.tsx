@@ -19,7 +19,7 @@ describe('TransmitterView', () => {
 
   it('renders form elements correctly', () => {
     render(
-      <TransmitterView setBusy={setBusy} addToast={addToast} setHeaderContent={setHeaderContent} />
+      <TransmitterView setBusy={setBusy} addToast={addToast} setHeaderContent={setHeaderContent} />,
     );
 
     expect(screen.getByText('Destination IP')).toBeInTheDocument();
@@ -27,7 +27,7 @@ describe('TransmitterView', () => {
 
   it('validates input before sending', async () => {
     render(
-      <TransmitterView setBusy={setBusy} addToast={addToast} setHeaderContent={setHeaderContent} />
+      <TransmitterView setBusy={setBusy} addToast={addToast} setHeaderContent={setHeaderContent} />,
     );
 
     const sendBtn = screen.getByRole('button', { name: /Send/i });
