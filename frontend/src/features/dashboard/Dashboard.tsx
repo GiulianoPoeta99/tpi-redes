@@ -1,20 +1,17 @@
-import { Clock, Folder, Network } from 'lucide-react';
-import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import SnifferLog from '../mitm/components/SnifferLog';
 import MitmView from '../mitm/MitmView';
 import { ReceivedFilesModal } from '../receiver/components/ReceivedFilesModal';
 import ReceiverView from '../receiver/ReceiverView';
-import HeaderActionButton from '../shared/components/HeaderActionButton';
-import IpDisplay from '../shared/components/IpDisplay';
-import ModeSelector from '../shared/components/ModeSelector';
-import ToastContainer, { type ToastMessage } from '../shared/components/Toast';
+import type { ToastMessage } from '../shared/components/Toast';
 import type { AppStats } from '../shared/services/StorageService';
 import { StorageService } from '../shared/services/StorageService';
 import type { Packet } from '../shared/types';
 import TransmitterView from '../transmitter/TransmitterView';
+import DashboardHeader from './components/DashboardHeader';
 import HistoryModal from './components/HistoryModal';
 import StatsPanel from './components/StatsPanel';
+import DashboardLayout from './DashboardLayout';
 
 // Dashboard "Desktop" Layout with 3 modes + Persistent Sidebars
 const Dashboard: React.FC = () => {
@@ -163,107 +160,57 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white overflow-hidden font-sans relative">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
-      {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
-      <ReceivedFilesModal isOpen={showFiles} onClose={() => setShowFiles(false)} />
-      {/* Sidebar / Stats Area (Left or Right? User said "no side menu", but "stats in dashboard")
-                User said: "packt sniffer and statistics should be in the dashboard... not side menu"
-                Implying they should be visible widgets.
-                Let's make a top-bar for navigation and a main grid for content + widgets.
-            */}
-
-      <div className="flex-1 flex flex-col h-full relative">
-        {/* Top Navigation */}
-        <header className="bg-white/5 border-b border-white/10 backdrop-blur-md p-4 flex items-center justify-between z-10 sticky top-0">
-          {/* Left: Brand & Modes */}
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3 group cursor-default">
-              <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300 group-hover:scale-105">
-                <Network className="text-white" size={24} strokeWidth={2.5} />
-              </div>
-              <div className="flex flex-col">
-                <h1 className="text-lg font-bold text-white leading-tight tracking-tight group-hover:text-blue-200 transition-colors">
-                  TPI Redes
-                </h1>
-                <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold group-hover:text-gray-300 transition-colors">
-                  Network Manager
-                </span>
-              </div>
-            </div>
-
-            {/* Segmented Control */}
-            <ModeSelector
-              currentMode={mode}
-              onModeChange={(m) => handleModeSwitch(m)}
-              isBusy={isBusy}
+    <DashboardLayout
+      toasts={toasts}
+      removeToast={removeToast}
+      modals={
+        <>
+          {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
+          <ReceivedFilesModal isOpen={showFiles} onClose={() => setShowFiles(false)} />
+        </>
+      }
+      header={
+        <DashboardHeader
+          mode={mode}
+          onModeChange={handleModeSwitch}
+          isBusy={isBusy}
+          onShowFiles={() => setShowFiles(true)}
+          onShowHistory={() => setShowHistory(true)}
+          headerContent={headerContent}
+        />
+      }
+      mainContent={
+        <>
+          {mode === 'receiver' && (
+            <ReceiverView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />
+          )}
+          {mode === 'transmitter' && (
+            <TransmitterView
+              setBusy={setIsBusy}
+              addToast={addToast}
+              setHeaderContent={setHeaderContent}
             />
-
-            <div className="w-px h-8 bg-white/10"></div>
-
-            <div className="flex items-center gap-3">
-              <HeaderActionButton
-                label="Files"
-                icon={Folder}
-                color="blue"
-                onClick={() => setShowFiles(true)}
-              />
-
-              <HeaderActionButton
-                label="History"
-                icon={Clock}
-                color="purple"
-                onClick={() => setShowHistory(true)}
-              />
-            </div>
+          )}
+          {mode === 'mitm' && <MitmView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />}
+        </>
+      }
+      sideContent={
+        <>
+          {/* Statistics Widget */}
+          <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center shrink-0">
+            <h3 className="text-gray-400 text-sm font-semibold mb-2 uppercase tracking-wider">
+              Network Stats
+            </h3>
+            <StatsPanel stats={stats} />
           </div>
 
-          {/* Right: Header Content & Actions */}
-          <div className="flex items-stretch gap-4">
-            <IpDisplay variant="gray" className="h-full" />
-            {headerContent}
+          {/* Packet Sniffer */}
+          <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-0">
+            <SnifferLog logs={logs} mode={mode} />
           </div>
-        </header>
-
-        {/* Main Content Area - Grid Layout */}
-        <main className="flex-1 p-6 overflow-hidden flex gap-6">
-          {/* LEFT COLUMN: Modes (55%) */}
-          <div className="flex-[55] bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-6 relative overflow-hidden flex flex-col">
-            <div className="h-full overflow-y-auto">
-              {mode === 'receiver' && (
-                <ReceiverView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />
-              )}
-              {mode === 'transmitter' && (
-                <TransmitterView
-                  setBusy={setIsBusy}
-                  addToast={addToast}
-                  setHeaderContent={setHeaderContent}
-                />
-              )}
-              {mode === 'mitm' && (
-                <MitmView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />
-              )}
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: Stats + Sniffer (45%) */}
-          <div className="flex-[45] flex flex-col gap-6 min-w-0">
-            {/* Statistics Widget */}
-            <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center shrink-0">
-              <h3 className="text-gray-400 text-sm font-semibold mb-2 uppercase tracking-wider">
-                Network Stats
-              </h3>
-              <StatsPanel stats={stats} />
-            </div>
-
-            {/* Packet Sniffer */}
-            <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-0">
-              <SnifferLog logs={logs} mode={mode} />
-            </div>
-          </div>
-        </main>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 };
 

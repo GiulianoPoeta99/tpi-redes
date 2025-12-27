@@ -24,11 +24,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg
-        className="w-full h-full transform -rotate-90"
-        aria-label="Progress Bar"
-        role="img"
-      >
+      <svg className="w-full h-full transform -rotate-90" aria-label="Progress Bar" role="img">
         <title>Progress Bar</title>
         <circle
           cx={center}
@@ -53,9 +49,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         />
       </svg>
       {children && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          {children}
-        </div>
+        <div className="absolute inset-0 flex items-center justify-center">{children}</div>
       )}
     </div>
   );
