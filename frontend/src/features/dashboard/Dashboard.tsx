@@ -1,8 +1,6 @@
 import { Clock, Folder, Network } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import type { AppStats } from '../../services/StorageService';
-import { StorageService } from '../../services/StorageService';
 import SnifferLog from '../mitm/components/SnifferLog';
 import MitmView from '../mitm/MitmView';
 import { ReceivedFilesModal } from '../receiver/components/ReceivedFilesModal';
@@ -11,6 +9,8 @@ import HeaderActionButton from '../shared/components/HeaderActionButton';
 import IpDisplay from '../shared/components/IpDisplay';
 import ModeSelector from '../shared/components/ModeSelector';
 import ToastContainer, { type ToastMessage } from '../shared/components/Toast';
+import type { AppStats } from '../shared/services/StorageService';
+import { StorageService } from '../shared/services/StorageService';
 import type { Packet } from '../shared/types';
 import TransmitterView from '../transmitter/TransmitterView';
 import HistoryModal from './components/HistoryModal';

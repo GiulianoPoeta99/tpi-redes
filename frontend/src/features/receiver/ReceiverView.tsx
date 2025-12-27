@@ -1,13 +1,12 @@
 import { Activity, Download, Power, Settings } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { StorageService } from '../../services/StorageService';
 import ConfigGroup from '../shared/components/ConfigGroup';
-
 import FileListItem from '../shared/components/FileListItem';
 import HeaderStatusCard from '../shared/components/HeaderStatusCard';
 import PortProtocolConfig from '../shared/components/PortProtocolConfig';
 import SubmitButton from '../shared/components/SubmitButton';
+import { StorageService } from '../shared/services/StorageService';
 import SlidingWindow from './components/SlidingWindow';
 
 const ReceiverView: React.FC<{

@@ -1,6 +1,6 @@
 import { Activity, ArrowDownCircle, ArrowUpCircle, HardDrive } from 'lucide-react';
 import type React from 'react';
-import type { AppStats } from '../../../services/StorageService';
+import type { AppStats } from '../../shared/services/StorageService';
 
 interface StatsPanelProps {
   stats: AppStats;

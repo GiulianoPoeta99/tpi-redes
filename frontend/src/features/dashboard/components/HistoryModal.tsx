@@ -1,11 +1,11 @@
 import { ArrowDown, ArrowUp, Clock, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { StorageService, type TransferHistoryItem } from '../../../services/StorageService';
 import BaseModal from '../../shared/components/BaseModal';
 import Button from '../../shared/components/Button';
 import EmptyState from '../../shared/components/EmptyState';
 import FileListItem from '../../shared/components/FileListItem';
+import { StorageService, type TransferHistoryItem } from '../../shared/services/StorageService';
 
 interface HistoryModalProps {
   onClose: () => void;

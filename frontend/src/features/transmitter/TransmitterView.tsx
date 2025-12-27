@@ -1,13 +1,13 @@
 import { Check, FileText, Send, Settings } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { StorageService } from '../../services/StorageService';
 import StatsModal from '../dashboard/components/StatsModal';
 import ConfigGroup from '../shared/components/ConfigGroup';
 import HeaderStatusCard from '../shared/components/HeaderStatusCard';
 import PortProtocolConfig from '../shared/components/PortProtocolConfig';
 import ScanModal from '../shared/components/ScanModal';
 import SubmitButton from '../shared/components/SubmitButton';
+import { StorageService } from '../shared/services/StorageService';
 import ChunkSizeConfig from './components/ChunkSizeConfig';
 import DelayConfig from './components/DelayConfig';
 import FileSelectionConfig from './components/FileSelectionConfig';
