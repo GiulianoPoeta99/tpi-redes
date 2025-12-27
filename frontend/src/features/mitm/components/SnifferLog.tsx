@@ -1,18 +1,11 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-  List,
-  Maximize2,
-  Pause,
-  Play,
-  Trash2,
-} from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { Packet } from '../../shared/types';
 import ExpandedPacketModal from './ExpandedPacketModal';
 import PacketTable from './PacketTable';
+import SnifferControls from './SnifferControls';
+import SnifferPermissionModal from './SnifferPermissionModal';
+import SnifferRawLog from './SnifferRawLog';
 
 interface SnifferLogProps {
   logs: { id: string; text: string; type?: string }[];
@@ -73,195 +66,40 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden relative">
-      {permissionError && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-gray-900 border border-red-500/50 rounded-xl p-6 max-w-md text-center shadow-2xl mx-4">
-            <div className="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-red-400"
-                aria-labelledby="sniffer-access-title"
-              >
-                <title id="sniffer-access-title">Sniffer Access Required</title>
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Sniffer Access Required</h3>
-            <p className="text-gray-300 mb-6 leading-relaxed text-sm">
-              We need <strong className="text-red-400">Root Privileges</strong> solely to interact
-              with the network interface and capture raw packets.
-              <br />
-              <span className="opacity-75 block mt-2 text-xs">
-                This permission is NOT used for file system access or other system modifications.
-              </span>
-              <span className="block mt-4">Please restart the transfer to try again.</span>
-            </p>
-            <button
-              type="button"
-              onClick={() => setPermissionError(false)}
-              className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors border border-gray-700 font-medium"
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
-      )}
+      <SnifferPermissionModal
+        isOpen={permissionError}
+        onDismiss={() => setPermissionError(false)}
+      />
 
       <ExpandedPacketModal
         isOpen={isExpanded}
         onClose={() => setIsExpanded(false)}
         packets={packets}
       />
-      {/* Unified Header */}
-      <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex justify-between items-center shrink-0 shadow-md z-10">
-        <div className="flex items-center gap-4">
-          <h2 className="font-bold text-gray-200 flex items-center gap-2">
-            Packet Sniffer
-            <span className="text-xs font-mono font-normal bg-gray-700 text-gray-400 px-1.5 py-0.5 rounded">
-              {viewMode === 'table' ? packets.length : logs.length}
-            </span>
-          </h2>
 
-          {/* View Toggles */}
-          <div className="flex bg-gray-900 rounded-lg p-1 border border-gray-700/50">
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`px-3 py-1 text-xs font-medium rounded flex items-center gap-2 transition-all ${
-                viewMode === 'table'
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <List size={14} /> Table
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('raw')}
-              className={`px-3 py-1 text-xs font-medium rounded flex items-center gap-2 transition-all ${
-                viewMode === 'raw'
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <FileText size={14} /> Raw
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Controls */}
-          <div className="flex items-center gap-1 border-r border-gray-700 pr-3 mr-1">
-            <button
-              onClick={() => setPaused(!paused)}
-              className={`p-2 rounded-lg transition-colors ${paused ? 'bg-yellow-500/10 text-yellow-400' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
-              title={paused ? 'Resume Capture' : 'Pause Capture'}
-              type="button"
-            >
-              {paused ? (
-                <Play size={16} fill="currentColor" />
-              ) : (
-                <Pause size={16} fill="currentColor" />
-              )}
-            </button>
-            <button
-              onClick={() => {
-                setPackets([]); /* Clear logs? No props for that yet */
-              }}
-              className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-gray-700 transition-colors"
-              title="Clear Packets"
-              type="button"
-            >
-              <Trash2 size={16} />
-            </button>
-            <button
-              onClick={() => setIsExpanded(true)}
-              className="p-2 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-gray-700 transition-colors"
-              title="Expand View"
-              type="button"
-            >
-              <Maximize2 size={16} />
-            </button>
-          </div>
-
-          {/* Pagination (Raw Mode Only) */}
-          {viewMode === 'raw' && (
-            <div className="flex items-center gap-1 text-xs font-mono bg-gray-900 p-1 rounded-lg border border-gray-700">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-1 hover:bg-gray-700 rounded disabled:opacity-30"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <span className="min-w-[50px] text-center text-gray-400">
-                {currentPage}/{totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-1 hover:bg-gray-700 rounded disabled:opacity-30"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <SnifferControls
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        packetCount={packets.length}
+        logCount={logs.length}
+        paused={paused}
+        setPaused={setPaused}
+        onClear={() => setPackets([])}
+        onExpand={() => setIsExpanded(true)}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden relative bg-black/20">
         <div className={`absolute inset-0 ${viewMode === 'table' ? 'block' : 'hidden'}`}>
           <PacketTable packets={packets} />
         </div>
-        <div
-          className={`absolute inset-0 p-4 overflow-y-auto font-mono text-xs space-y-1 ${viewMode === 'raw' ? 'block' : 'hidden'}`}
-        >
-          {logs.length === 0 && (
-            <div className="text-gray-500 italic text-center mt-10">No logs captured yet...</div>
-          )}
-          {visibleLogs.map((log) => (
-            <div
-              key={log.id}
-              className={`${getLogColor(log.text)} break-all border-b border-gray-800/30 pb-0.5`}
-            >
-              {stripAnsi(log.text)}
-            </div>
-          ))}
-          <div ref={logEndRef} />
-        </div>
+        <SnifferRawLog logs={visibleLogs} visible={viewMode === 'raw'} logEndRef={logEndRef} />
       </div>
     </div>
   );
 };
-
-function stripAnsi(str: string): string {
-  // eslint-disable-next-line no-control-regex
-  // biome-ignore lint/complexity/useRegexLiterals: Avoiding control characters in regex literal lint
-  const ansiRegex = new RegExp(
-    '[\\u001b\\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]',
-    'g',
-  );
-  return str.replace(ansiRegex, '');
-}
-
-function getLogColor(log: string): string {
-  const cleanLog = stripAnsi(log);
-  if (cleanLog.includes('INFO')) return 'text-cyan-400';
-  if (cleanLog.includes('WARNING')) return 'text-yellow-400';
-  if (cleanLog.includes('ERROR') || cleanLog.includes('Error:')) return 'text-red-400';
-  if (cleanLog.includes('Starting')) return 'text-green-400';
-  return 'text-gray-300';
-}
 
 export default SnifferLog;

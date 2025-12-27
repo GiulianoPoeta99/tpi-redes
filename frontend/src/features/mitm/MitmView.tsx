@@ -3,6 +3,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import HeaderStatusCard from '../shared/components/HeaderStatusCard';
 import ScanModal from '../shared/components/ScanModal';
+import { useDiscovery } from '../shared/hooks/useDiscovery';
 import ActiveAttacks from './components/ActiveAttacks';
 import MitmNetworkConfig from './components/MitmNetworkConfig';
 
@@ -28,29 +29,11 @@ const MitmView: React.FC<{
   const [stats, setStats] = useState({ intercepted: 0, corrupted: 0 });
 
   // Discovery
-  const [isScanOpen, setIsScanOpen] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
-  const [discoveredPeers, setDiscoveredPeers] = useState<{ ip: string; port?: number }[]>([]);
-  const [scanError, setScanError] = useState<string>();
+  const discovery = useDiscovery();
 
   useEffect(() => {
     setBusy(isRunning);
   }, [isRunning, setBusy]);
-
-  const openScan = async () => {
-    setIsScanOpen(true);
-    setIsScanning(true);
-    setScanError(undefined);
-    setDiscoveredPeers([]);
-    try {
-      const peers = await window.api.scanNetwork();
-      setDiscoveredPeers(peers || []);
-    } catch (e: unknown) {
-      setScanError(String(e));
-    } finally {
-      setIsScanning(false);
-    }
-  };
 
   const handleSelectPeer = (peer: { ip: string; port?: number }) => {
     setConfig((prev) => ({
@@ -58,7 +41,7 @@ const MitmView: React.FC<{
       targetIp: peer.ip,
       targetPort: peer.port || prev.targetPort,
     }));
-    setIsScanOpen(false);
+    discovery.close();
   };
 
   // Fake Stats Simulation
@@ -115,12 +98,12 @@ const MitmView: React.FC<{
   return (
     <div className="h-full flex flex-col gap-4 overflow-y-auto">
       <ScanModal
-        isOpen={isScanOpen}
-        onClose={() => setIsScanOpen(false)}
+        isOpen={discovery.isOpen}
+        onClose={discovery.close}
         onSelect={handleSelectPeer}
-        scanning={isScanning}
-        peers={discoveredPeers}
-        error={scanError}
+        scanning={discovery.scanning}
+        peers={discovery.peers}
+        error={discovery.error}
       />
       {/* Network Configuration */}
       <MitmNetworkConfig
@@ -128,7 +111,7 @@ const MitmView: React.FC<{
         setConfig={setConfig}
         isRunning={isRunning}
         isAttacking={isAttacking}
-        openScan={openScan}
+        openScan={discovery.scan}
       />
 
       <ActiveAttacks
