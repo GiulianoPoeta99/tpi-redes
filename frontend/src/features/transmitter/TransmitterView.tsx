@@ -1,18 +1,14 @@
-import { Check, FileText, Send, Settings } from 'lucide-react';
+import { Check, Send } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import StatsModal from '../dashboard/components/StatsModal';
-import ConfigGroup from '../shared/components/ConfigGroup';
 import HeaderStatusCard from '../shared/components/HeaderStatusCard';
-import PortProtocolConfig from '../shared/components/PortProtocolConfig';
 import ScanModal from '../shared/components/ScanModal';
-import SubmitButton from '../shared/components/SubmitButton';
 import { StorageService } from '../shared/services/StorageService';
-import ChunkSizeConfig from './components/ChunkSizeConfig';
-import DelayConfig from './components/DelayConfig';
-import FileSelectionConfig from './components/FileSelectionConfig';
+import AdvancedOptions from './components/AdvancedOptions';
 import FilesQueueModal from './components/FilesQueueModal';
-import TargetConfig from './components/TargetConfig';
+import NetworkConfiguration from './components/NetworkConfiguration';
+import PayloadConfiguration from './components/PayloadConfiguration';
 
 interface TransmitterViewProps {
   setBusy: (busy: boolean) => void;
@@ -97,7 +93,7 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
   const currentFileIndexRef = useRef(0);
   const totalBatchFilesRef = useRef(0);
 
-  const isValid = ip && port && files.length > 0;
+  const isValid = Boolean(ip && port && files.length > 0);
 
   useEffect(() => {
     setBusy(status === 'sending' || isBatchActive);
@@ -339,69 +335,42 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
       {/* MAIN LAYOUT */}
       {status === 'idle' && (
         <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pb-2">
-          {/* TOP ROW: Config & Advanced */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 shrink-0">
-            <ConfigGroup title="Network Configuration" icon={Settings} className="h-full">
-              <div className="space-y-4">
-                <TargetConfig
-                  ip={ip}
-                  setIp={setIp}
-                  onScan={openScan}
-                  disabled={status !== 'idle'}
-                />
-
-                <PortProtocolConfig
-                  port={port}
-                  setPort={setPort}
-                  protocol={protocol}
-                  setProtocol={setProtocol}
-                  interfaceVal={netInterface}
-                  setInterfaceVal={setNetInterface}
-                  disabled={status !== 'idle'}
-                />
-              </div>
-            </ConfigGroup>
-
-            <ConfigGroup title="Advanced Options" icon={Settings} className="h-full">
-              <div className="flex flex-col gap-4 h-full">
-                <DelayConfig value={delay} onChange={setDelay} disabled={status !== 'idle'} />
-
-                <ChunkSizeConfig
-                  value={chunkSize}
-                  onChange={setChunkSize}
-                  disabled={status !== 'idle'}
-                />
-              </div>
-            </ConfigGroup>
-          </div>
-
-          {/* BOTTOM ROW: Payload */}
-          <ConfigGroup
-            title="Payload Configuration"
-            icon={FileText}
-            className="flex-1 min-h-[220px] flex flex-col"
-          >
-            {/* DROP ZONE */}
-            {/* FileSelectionConfig should generally not contain nested buttons, check implementation */}
-            <FileSelectionConfig
-              files={files}
-              onFilesAdded={addFiles}
-              onFilesCleared={() => setFiles([])}
-              onShowQueue={() => setIsQueueOpen(true)}
-              disabled={status !== 'idle'}
+          {/* Row 1: Network & Advanced Params */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[320px]">
+            {/* Network Config */}
+            <NetworkConfiguration
+              ip={ip}
+              setIp={setIp}
+              openScan={openScan}
+              status={status}
+              port={port}
+              setPort={setPort}
+              protocol={protocol}
+              setProtocol={setProtocol}
+              netInterface={netInterface}
+              setNetInterface={setNetInterface}
             />
 
-            <div className="mt-4">
-              <SubmitButton
-                onClick={startBatch}
-                disabled={!isValid}
-                variant={isValid ? 'primary' : 'secondary'}
-                icon={<Send size={20} />}
-              >
-                SEND {files.length > 0 ? `${files.length} FILES` : 'FILES'}
-              </SubmitButton>
-            </div>
-          </ConfigGroup>
+            {/* Advanced Params */}
+            <AdvancedOptions
+              delay={delay}
+              setDelay={setDelay}
+              status={status}
+              chunkSize={chunkSize}
+              setChunkSize={setChunkSize}
+            />
+          </div>
+
+          {/* Row 2: Payload Selection - Flexible Bottom */}
+          <PayloadConfiguration
+            files={files}
+            addFiles={addFiles}
+            setFiles={setFiles}
+            setIsQueueOpen={setIsQueueOpen}
+            status={status}
+            startBatch={startBatch}
+            isValid={isValid}
+          />
         </div>
       )}
 
