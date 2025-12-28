@@ -17,6 +17,9 @@ class BaseServer(ABC):
             host: IP address to bind to.
             port: Port number to use.
             save_dir: Path to storage directory.
+
+        Returns:
+            None
         """
         self.host = host
         self.port = port
@@ -28,6 +31,9 @@ class BaseServer(ABC):
 
         This method should be non-blocking or managed via threading
         if intended to run alongside other tasks.
+
+        Returns:
+            None: No return value.
         """
         pass
 
@@ -36,5 +42,8 @@ class BaseServer(ABC):
         """Stop the server gracefully.
 
         Should ensure that all sockets are closed and resources released.
+
+        Returns:
+            None: No return value.
         """
         pass

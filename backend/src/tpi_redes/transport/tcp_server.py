@@ -20,8 +20,11 @@ class TCPServer(BaseServer):
     def start(self):
         """Start listening for TCP connections.
 
-        Blocks the calling thread until a `KeyboardInterrupt` occurs.
-        Accepts connections and processes them sequentially via `handle_client`.
+        This method blocks the calling thread until a `KeyboardInterrupt` occurs.
+        It accepts connections and processes them sequentially via `handle_client`.
+
+        Returns:
+            None: No return value.
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -51,6 +54,9 @@ class TCPServer(BaseServer):
         Args:
             conn: The accepted socket object.
             addr: The client address tuple (IP, Port).
+
+        Returns:
+            None: No return value.
         """
         try:
             while True:

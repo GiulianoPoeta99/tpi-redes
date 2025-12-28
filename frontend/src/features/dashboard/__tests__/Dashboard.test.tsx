@@ -31,7 +31,6 @@ vi.mock('../../shared/components/IpDisplay', () => ({
   default: () => <div data-testid="ip-display">MockIpDisplay</div>,
 }));
 
-// Mock consumer views to isolate Dashboard testing and avoid child side-effects
 vi.mock('../../receiver/ReceiverView', () => ({
   default: () => <div data-testid="receiver-view">Receiver View</div>,
 }));
@@ -52,7 +51,8 @@ describe('Dashboard', () => {
     expect(screen.getByText('Transmitter')).toBeInTheDocument();
     expect(screen.getByText('Mitm')).toBeInTheDocument();
     
-    // Default view
+    expect(screen.getByText('Mitm')).toBeInTheDocument();
+    
     expect(screen.getByTestId('receiver-view')).toBeInTheDocument();
   });
 

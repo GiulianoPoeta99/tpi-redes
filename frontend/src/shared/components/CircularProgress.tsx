@@ -4,7 +4,7 @@ interface CircularProgressProps {
   size: number;
   progress: number;
   strokeWidth?: number;
-  className?: string; // Text color class
+  className?: string;
   trackClassName?: string;
   children?: React.ReactNode;
 }

@@ -9,6 +9,16 @@ class TestUDPServer:
         assert server.save_dir == "/tmp"
 
     def test_process_datagram_sequential(self, tmp_path):
+        """Test sequential datagram processing.
+
+        Simulates receiving Header, Metadata, and Content packets in order.
+
+        Args:
+            tmp_path: Pytest fixture for file saving.
+
+        Returns:
+            None: No return value.
+        """
         save_dir = tmp_path / "received_udp"
         save_dir.mkdir()
         server = UDPServer(host="127.0.0.1", port=0, save_dir=str(save_dir))
@@ -20,18 +30,18 @@ class TestUDPServer:
         file_hash = "dummy_hash"
         addr = ("127.0.0.1", 55555)
 
-        # 1. Header
+        file_hash = "dummy_hash"
+        addr = ("127.0.0.1", 55555)
+
         header = ProtocolHandler.pack_header(b"F", filename, len(content), file_hash)
         server.process_datagram(header, addr)
 
-        # 2. Metadata
         metadata = filename.encode() + file_hash.encode()
         server.process_datagram(metadata, addr)
 
-        # 3. Content
         server.process_datagram(content, addr)
 
-        # Verify
+
         saved_file = save_dir / filename
         assert saved_file.exists()
         assert saved_file.read_bytes() == content

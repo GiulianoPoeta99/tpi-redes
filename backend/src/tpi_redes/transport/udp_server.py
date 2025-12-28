@@ -44,7 +44,10 @@ class UDPServer(BaseServer):
     def start(self):
         """Start listening for UDP packets.
 
-        binds to the socket and enters a loop receiving datagrams up to 65535 bytes.
+        Binds to the socket and enters a loop receiving datagrams up to 65535 bytes.
+
+        Returns:
+            None: No return value.
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
@@ -89,6 +92,9 @@ class UDPServer(BaseServer):
         Args:
             data: The raw bytes received.
             addr: The sender's (IP, Port) tuple.
+
+        Returns:
+            None: No return value.
         """
         session = self.sessions.get(addr)
 

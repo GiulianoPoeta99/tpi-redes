@@ -39,6 +39,9 @@ class TCPClient:
         Raises:
             FileNotFoundError: If no valid existing files are provided.
             ConnectionError: If the connection to the server fails.
+
+        Returns:
+            None: No return value.
         """
         valid_files = [f for f in files if f.exists()]
         if not valid_files:

@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+import time
 from typing import Any
 
 import click
@@ -8,8 +9,8 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.traceback import install
 
-
 console = Console(stderr=True)
+logger = logging.getLogger("tpi-redes")
 
 
 
@@ -152,12 +153,13 @@ def start_server(
                     if not sniffer_process or not sniffer_process.stdout:
                         return
                     for line in sniffer_process.stdout:
-
+                        if line.strip():
                             sniffer_ready_event.set()
                         print(line, end="", flush=True)
 
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
                 t.start()
+                wait_start = time.time()
                 while not sniffer_ready_event.is_set():
                     if time.time() - wait_start > 30:
                         logger.error("Sniffer startup timed out.")

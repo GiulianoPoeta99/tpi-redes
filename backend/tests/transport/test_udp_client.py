@@ -4,12 +4,22 @@ from tpi_redes.transport.udp_client import UDPClient
 
 class TestUDPClient:
     def test_send_file_udp(self, tmp_path):
-        # Setup source file
+        """Test UDP file sending.
+
+        Verifies that header, metadata, and content packets are sent correctly.
+
+        Args:
+            tmp_path: Pytest fixture for source file.
+
+        Returns:
+            None: No return value.
+        """
         file_path = tmp_path / "udp_source.txt"
         content = b"UDP Client Test Content"
         file_path.write_bytes(content)
 
-        # Mock socket
+        file_path.write_bytes(content)
+
         sent_packets = []
 
         class MockSocket:
@@ -28,7 +38,6 @@ class TestUDPClient:
             def __exit__(self, exc_type, exc_val, exc_tb, **kwargs):
                 pass
 
-        # Mock socket.socket
         import socket
 
         original_socket = socket.socket
@@ -44,8 +53,8 @@ class TestUDPClient:
             target_port = 9999
             client.send_files([file_path], target_ip, target_port)
 
-            # Verify sent packets
-            # 1. Header
+            client.send_files([file_path], target_ip, target_port)
+
             assert len(sent_packets) >= 3
             header_pkt, addr1 = sent_packets[0]
             assert len(header_pkt) == 16
@@ -55,14 +64,16 @@ class TestUDPClient:
             assert header.op_code == b"F"
             assert header.file_size == len(content)
 
-            # 2. Metadata
+            assert header.file_size == len(content)
+
             metadata_pkt, addr2 = sent_packets[1]
             expected_meta_len = header.name_len + header.hash_len
             assert len(metadata_pkt) == expected_meta_len
             assert addr2 == (target_ip, target_port)
 
-            # 3. Content
-            # Since content is small, it should be in one chunk
+            assert len(metadata_pkt) == expected_meta_len
+            assert addr2 == (target_ip, target_port)
+
             content_pkt, addr3 = sent_packets[2]
             assert content_pkt == content
             assert addr3 == (target_ip, target_port)
