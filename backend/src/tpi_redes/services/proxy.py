@@ -9,9 +9,24 @@ logger = logging.getLogger("tpi-redes")
 
 
 class ProxyServer:
+    """Man-In-The-Middle (MITM) Proxy Server.
+
+    Intercepts TCP connections, forwards traffic between client and target server,
+    and optionally corrupts data streams to simulate network interference.
+    Logs intercepted packets for observability.
+    """
+
     def __init__(
         self, listen_port: int, target_ip: str, target_port: int, corruption_rate: float
     ):
+        """Initialize the proxy configuration.
+
+        Args:
+            listen_port: Local port to accept victim connections.
+            target_ip: Real server IP to forward traffic to.
+            target_port: Real server port.
+            corruption_rate: Probability (0.0 to 1.0) of corrupting a packet chunk.
+        """
         self.listen_port = listen_port
         self.target_ip = target_ip
         self.target_port = target_port
@@ -19,6 +34,10 @@ class ProxyServer:
         self.running = False
 
     def start(self):
+        """Start the proxy server loops.
+
+        Accepts incoming connections and spawns a handler thread for each.
+        """
         self.running = True
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             server_socket.bind(("0.0.0.0", self.listen_port))
@@ -41,12 +60,15 @@ class ProxyServer:
                         logger.error(f"Error accepting connection: {e}")
 
     def handle_client(self, client_socket: socket.socket):
+        """Establish connection to upstream target and bridge the sockets.
+
+        Args:
+            client_socket: The victim's socket connection from accept().
+        """
         try:
-            # Connect to the real server
             target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             target_socket.connect((self.target_ip, self.target_port))
 
-            # Start threads to forward data in both directions
             client_to_target = threading.Thread(
                 target=self.forward, args=(client_socket, target_socket, True)
             )
@@ -66,6 +88,16 @@ class ProxyServer:
             client_socket.close()
 
     def forward(self, source: socket.socket, destination: socket.socket, corrupt: bool):
+        """Forward data from source to destination socket.
+
+        Applies data corruption logic if `corrupt` is True and `corruption_rate` > 0.
+        Logs every forwarded packet to `PacketLogger`.
+
+        Args:
+            source: Input socket.
+            destination: Output socket.
+            corrupt: Whether to apply corruption logic to this stream.
+        """
         try:
             while self.running:
                 data = source.recv(4096)
@@ -81,7 +113,6 @@ class ProxyServer:
 
                 destination.sendall(data)
 
-                # App-Level Log
                 try:
                     src_ip, src_port = source.getpeername()
                     dst_ip, dst_port = destination.getpeername()
@@ -106,8 +137,15 @@ class ProxyServer:
             destination.close()
 
     def corrupt_data(self, data: bytes) -> bytes:
+        """Randomly flip a single bit in a random byte of the data payload.
+
+        Args:
+            data: Original uncorrupted bytes.
+
+        Returns:
+            bytes: Potentially corrupted bytes effectively mimicking bit-rot.
+        """
         if random.random() < self.corruption_rate:
-            # Flip a random bit in a random byte
             mutable_data = bytearray(data)
             idx = random.randint(0, len(mutable_data) - 1)
             bit_idx = random.randint(0, 7)

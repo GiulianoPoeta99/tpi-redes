@@ -54,8 +54,7 @@ class UDPServer(BaseServer):
 
             try:
                 while True:
-                    data, addr = self.sock.recvfrom(65535)  # Max UDP size
-
+                    data, addr = self.sock.recvfrom(65535)
 
                     local_ip, local_port = self.sock.getsockname()
                     PacketLogger.emit_packet(

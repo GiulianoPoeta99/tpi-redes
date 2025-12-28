@@ -13,12 +13,33 @@ BROADCAST_IP = "255.255.255.255"
 
 
 class DiscoveryService:
+    """Service for discovering peer nodes on the local network via UDP Broadcast.
+
+    Implements a simple PING/PONG protocol:
+    - `scan()`: Broadcasts PING and collects PONG responses.
+    - `listen()`: Listens for PINGs and replies with PONG containing self info.
+    """
+
     def __init__(self, hostname: str | None = None):
+        """Initialize discovery service.
+
+        Args:
+            hostname: Custom hostname to announce. Defaults to system hostname.
+        """
         self.hostname = hostname or socket.gethostname()
         self.running = False
 
     def scan(self, timeout: int = 2) -> list[dict[str, Any]]:
-        """Sends a broadcast PING and returns a list of discovered peers."""
+        """Scan for peers on the local network.
+
+        Sends a UDP broadcast packet and waits for responses during the timeout period.
+
+        Args:
+            timeout: Seconds to wait for responses.
+
+        Returns:
+            list[dict]: List of unique discovered peers with keys: hostname, ip, port.
+        """
         discovered_peers: list[dict[str, Any]] = []
 
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -41,13 +62,9 @@ class DiscoveryService:
                         if response.get("type") == "PONG":
                             peer: dict[str, Any] = {
                                 "hostname": response.get("hostname"),
-                                "ip": addr[0],  # Use the IP from the packet source
-                                "port": response.get(
-                                    "port", 8080
-                                ),  # Default or specified port
+                                "ip": addr[0],
+                                "port": response.get("port", 8080),
                             }
-                            # Avoid duplicates
-                            # Use explicit Any annotation for p to suppress type error
                             if not any(
                                 (p["ip"] == peer["ip"]) for p in discovered_peers
                             ):
@@ -67,13 +84,19 @@ class DiscoveryService:
         return discovered_peers
 
     def listen(self, port: int):
-        """Listens for PING messages and responds with PONG."""
+        """Start a background thread listening for PING broadcasts.
+
+        Responds with PONG packets containing this node's hostname and service port.
+        Uses SO_REUSEPORT (if available) to coexist with other listeners.
+
+        Args:
+            port: The TCP service port to announce in PONG responses.
+        """
         self.running = True
 
         def _listen_loop():
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                # SO_REUSEPORT allows multiple apps on same port (Linux/Mac)
                 with contextlib.suppress(AttributeError):
                     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
@@ -105,4 +128,5 @@ class DiscoveryService:
         threading.Thread(target=_listen_loop, daemon=True).start()
 
     def stop(self):
+        """Stop the listening thread."""
         self.running = False

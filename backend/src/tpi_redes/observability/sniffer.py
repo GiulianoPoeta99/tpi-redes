@@ -1,4 +1,8 @@
+import json
 import logging
+import os
+import sys
+import time
 from typing import Any
 
 from scapy.layers.inet import IP, TCP, UDP
@@ -8,17 +12,33 @@ logger = logging.getLogger("tpi-redes")
 
 
 class PacketSniffer:
+    """Captures and analyzes network packets using Scapy.
+
+    Can run in two modes:
+    1. Background thread (via `start`): Captures packets alongside the application.
+    2. Stdout mode (via `start_stdout_mode`): Runs as a dedicated process outputting JSON.
+
+    Requires root privileges (sudo) to capture packets on Linux interfaces.
+    """
+
     def __init__(self, interface: str | None, port: int):
+        """Initialize sniffer configuration.
+
+        Args:
+            interface: Network interface to bind to (e.g., 'eth0', 'wlan0'). None for default.
+            port: Port to filter logic for (captures 'tcp port X or udp port X').
+        """
         self.interface = interface
         self.port = port
         self.sniffer: Any = None
         self.packets: list[str] = []
 
     def start(self):
-        """Start the background sniffer (requires root)."""
-        import json
-        import os
+        """Start the background sniffer loop.
 
+        Checks for root privileges first. If missing, logs a warning and returns
+        a JSON error event to stdout (for frontend).
+        """
         if os.geteuid() != 0:
             logger.warning("Sniffer requires root privileges. Packet capture disabled.")
             print(
@@ -50,14 +70,12 @@ class PacketSniffer:
             logger.error(f"Failed to start sniffer: {e}")
 
     def start_stdout_mode(self):
-        """Start sniffer in stdout mode (for piped execution)."""
-        import json
-        import os
-        import sys
-        import time
+        """Start sniffer in blocking mode, outputting JSON events to stdout.
 
-
-        # 1. Enforce Root
+        Used when running as a separate child process purely for sniffing.
+        Enforces root privileges; exits with code 1 if missing.
+        Keeps running until `KeyboardInterrupt` or termination signal.
+        """
         if os.geteuid() != 0:
             print(
                 json.dumps({
@@ -67,16 +85,15 @@ class PacketSniffer:
                 }),
                 flush=True
             )
-            # Exit immediately to signal parent
             sys.exit(1)
 
         filter_str = f"tcp port {self.port} or udp port {self.port}"
 
         try:
-            from scapy.all import AsyncSniffer
+            from scapy.all import AsyncSniffer as ScapyAsyncSniffer
+            assert ScapyAsyncSniffer
         except ImportError:
             sys.exit(1)
-
 
         self.sniffer = AsyncSniffer(
             iface=self.interface,
@@ -86,18 +103,10 @@ class PacketSniffer:
         )
         self.sniffer.start()
 
-        # Signal readiness
-        print(json.dumps({"type": "SNIFFER_READY"}), flush=True)
-
-        # Keep process alive
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            self.stop()
+        self.sniffer.start()
 
     def stop(self):
-        """Stop the sniffer."""
+        """Stop packet capturing."""
         if self.sniffer:
             try:
                 self.sniffer.stop()
@@ -109,18 +118,23 @@ class PacketSniffer:
                     logger.warning(f"Error stopping sniffer: {e}")
 
     def get_packets(self) -> list[str]:
-        """Return the list of captured packet summaries."""
+        """Return a list of string summaries of captured packets.
+
+        Returns:
+            list[str]: Summary lines.
+        """
         return self.packets
 
     def _process_packet(self, pkt: Any):
-        """Callback for each captured packet."""
+        """Callback for each captured packet.
 
+        Extracts IP, TCP, and UDP headers, parses flags/seq/ack,
+        and outputs a JSON event `PACKET_CAPTURE`.
+
+        Args:
+            pkt: Scapy packet object.
+        """
         try:
-            import json
-            import time
-
-
-            # Legacy summary for internal storage
             summary = pkt.summary()
             self.packets.append(summary)
 
@@ -147,11 +161,8 @@ class PacketSniffer:
                     protocol = "UDP"
                     info = f"{src} -> {dst} Len={pkt[UDP].len}"
 
-                # Log for Raw View
                 if info:
                     logger.info(f"SNIFFER: {info}")
-
-                # JSON for Table View
                 packet_data = {
                     "type": "PACKET_CAPTURE",
                     "timestamp": time.time(),

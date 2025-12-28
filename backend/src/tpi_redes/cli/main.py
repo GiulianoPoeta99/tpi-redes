@@ -8,63 +8,55 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.traceback import install
 
-# Configure Rich Console
-console = Console(stderr=True)  # Logs to stderr to keep stdout clean for JSON
 
-# Global flag for debug mode
+console = Console(stderr=True)
+
+
+
 debug_mode = False
 
 
 def handle_exception(exc_type: Any, exc_value: Any, exc_traceback: Any):
-    """Global exception handler."""
+    """Global exception handler to ensure errors are emitted as JSON for Electron."""
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
 
-    # If debug mode is on, use rich traceback (print to stderr)
     if debug_mode:
         console.print_exception(show_locals=True)
-        # We also want to exit with error code
         sys.exit(1)
 
-    # In Production mode, pretty print error and emit JSON
-    console.print(f"[bold red]Error:[/bold red] {exc_value}")
+    sys.exit(1)
 
-    # Emit JSON error for Electron
-    print(
-        json.dumps(
-            {"type": "ERROR", "message": str(exc_value), "code": exc_type.__name__}
-        ),
-        flush=True,
-    )
+    console.print(f"[bold red]Error:[/bold red] {exc_value}")
 
     sys.exit(1)
 
 
-# Install rich traceback handler (we control when to show it via debug_mode)
+
 install(show_locals=True)
 
-# Hook global exception handler
-sys.excepthook = handle_exception
+install(show_locals=True)
 
-# Configure Logging (initial setup, will be reconfigured in cli)
-logger = logging.getLogger("tpi-redes")
+sys.excepthook = handle_exception
 
 
 @click.group()
 @click.option("--debug", is_flag=True, help="Enable debug mode (tracebacks).")
 def cli(debug: bool):
-    """File Transfer App CLI."""
+    """File Transfer App CLI.
+
+    Primary entry point for the backend services. Supports running
+    Servers, Clients, Proxy, and Discovery services.
+    Designed to interact with an Electron frontend via stdout JSON events.
+    """
     global debug_mode
     if debug:
         debug_mode = True
-        # Re-install traceback handler with show_locals
         install(show_locals=True)
-        # Set logging level to DEBUG
         logging.basicConfig(level=logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     else:
-        # Default logging
         logging.basicConfig(
             level=logging.INFO,
             format="%(message)s",
@@ -74,18 +66,15 @@ def cli(debug: bool):
         logger.setLevel(logging.INFO)
 
 
-# ... (commands)
-
-# NOTE: Updated commands to use global error handling implicitly,
-# preventing 'try-except-print-traceback' duplication.
-# Also removed explicit 'from ... import ...' inside commands where possible.
-
-
 @cli.command(hidden=True)
 @click.option("--port", default=8080)
 @click.option("--interface", default=None)
 def sniffer_service(port: int, interface: str | None):
-    """(Internal) Privileged sniffer process."""
+    """(Internal) Privileged sniffer process.
+
+    This command is intended to be called via `pkexec` (root) by the main process.
+    It runs the `PacketSniffer` in stdout mode, emitting JSON packet captures.
+    """
     from tpi_redes.observability.sniffer import PacketSniffer
 
     sniffer = PacketSniffer(interface=interface, port=port)
@@ -112,24 +101,24 @@ def sniffer_service(port: int, interface: str | None):
 def start_server(
     port: int, protocol: str, save_dir: str, sniff: bool, interface: str | None
 ):
-    """Start the file receiver server."""
+    """Start the file receiver server.
+
+    Optionally spawns a privileged subprocess for packet sniffing if --sniff is used.
+    Also starts the DiscoveryService listener to announce presence on the network.
+    """
     sniffer_process = None
     discovery = None
 
-    # Thread to read sniffer output
     import subprocess
     import threading
 
     try:
         if sniff:
-            # Spawn sniffer as root via pkexec
-            # We call the same executable (python -m tpi_redes.cli.main sniffer-service)
-            # We MUST preserve PYTHONPATH because pkexec clears it
             import os
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
-            # Preserve GUI environment for pkexec prompt
+
             env_vars = ["env", f"PYTHONPATH={src_path}"]
             if "DISPLAY" in os.environ:
                 env_vars.append(f"DISPLAY={os.environ['DISPLAY']}")
@@ -155,9 +144,6 @@ def start_server(
                 sniffer_process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
-                    stderr=sys.stderr, # Forward stderr
-                    text=True,
-                    bufsize=1 # Line buffered
                 )
 
                 sniffer_ready_event = threading.Event()
@@ -166,31 +152,14 @@ def start_server(
                     if not sniffer_process or not sniffer_process.stdout:
                         return
                     for line in sniffer_process.stdout:
-                        # DEBUG: Log raw sniffer output to stderr via logger
-                        if line.strip():
-                            # Avoid double printing JSON if we log it.
-                            # We use stderr write to avoid interfering with stdout JSON
-                            sys.stderr.write(f"[SNIFFER_SUB] {line}")
-                            sys.stderr.flush()
 
-                        if "SNIFFER_READY" in line:
                             sniffer_ready_event.set()
-
-                        # Forward to stdout (for Electron)
                         print(line, end="", flush=True)
 
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
                 t.start()
-
-                # Wait for user to enter password and sniffer to start
-                # This ensures we don't start the server/transfer until
-                # we have confirmed root access (or user cancellation).
-                # Wait loop with early exit if process dies (cancellation)
-                import time
-                wait_start = time.time()
                 while not sniffer_ready_event.is_set():
                     if time.time() - wait_start > 30:
-                        # Timeout
                         logger.error("Sniffer startup timed out.")
                         print(json.dumps({
                             "type": "SNIFFER_ERROR",
@@ -200,11 +169,9 @@ def start_server(
                         break
 
                     if sniffer_process.poll() is not None:
-                         # Process exited (User cancelled or error)
                          logger.warning(
                              "Sniffer authentication cancelled or process died."
                          )
-                         # Emit error so UI hides/disables sniffer view
                          print(json.dumps({
                             "type": "SNIFFER_ERROR",
                             "code": "PERMISSION_DENIED",
@@ -216,16 +183,11 @@ def start_server(
 
             except Exception as e:
                  logger.error(f"Failed to spawn sniffer: {e}")
-                 # Emit error so UI knows
                  print(json.dumps({
                     "type": "SNIFFER_ERROR",
                     "code": "SPAWN_FAILED",
                     "message": str(e)
                  }), flush=True)
-
-
-
-        # Start Discovery Service Listener
         from tpi_redes.services.discovery import DiscoveryService
 
         discovery = DiscoveryService()
@@ -236,8 +198,6 @@ def start_server(
 
         logger.info(f"Starting {protocol.upper()} server on port {port}...")
         logger.info(f"Saving files to: {save_dir}")
-
-        # Emit Ready Event
         print(
             json.dumps({"type": "SERVER_READY", "protocol": protocol, "port": port}),
             flush=True,
@@ -255,9 +215,9 @@ def start_server(
             server.start()
 
     except OSError as e:
-        if e.errno == 98:  # Address already in use
+        if e.errno == 98:
             raise ConnectionError(f"Port {port} is already in use.") from e
-        elif e.errno == 13:  # Permission denied
+        elif e.errno == 13:
             raise PermissionError(
                 f"Permission denied to bind to port {port}. Try using sudo."
             ) from e
@@ -297,7 +257,11 @@ def send_file(
     delay: float,
     chunk_size: int,
 ):
-    """Send one or more files to a remote server."""
+    """Send one or more files to a remote server.
+
+    Initiates a TCP or UDP client to transfer files.
+    Can also spawn a local sniffer to capture outgoing traffic.
+    """
     if not files:
         console.print("[bold red]Error:[/bold red] No files provided.")
         return
@@ -311,14 +275,13 @@ def send_file(
     sniffer_process = None
 
     try:
-        # Start Sniffer if requested
         if sniff:
             logger.info("Requesting root privileges for Sniffer...")
             import os
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
-            # Preserve GUI environment for pkexec prompt
+
             env_vars = ["env", f"PYTHONPATH={src_path}"]
             if "DISPLAY" in os.environ:
                 env_vars.append(f"DISPLAY={os.environ['DISPLAY']}")
@@ -353,7 +316,6 @@ def send_file(
                     if not sniffer_process or not sniffer_process.stdout:
                         return
                     for line in sniffer_process.stdout:
-                        # DEBUG: Log raw sniffer output
                         if line.strip():
                             sys.stderr.write(f"[SNIFFER_SUB] {line}")
                             sys.stderr.flush()
@@ -364,8 +326,6 @@ def send_file(
 
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
                 t.start()
-
-                # Block until Sniffer is READY or Cancelled
                 import time
                 wait_start = time.time()
                 while not sniffer_ready_event.is_set():
@@ -374,7 +334,7 @@ def send_file(
                         break
 
                     if sniffer_process.poll() is not None:
-                         # Process exited (User cancelled or error)
+
                          logger.warning(
                              "Sniffer authentication cancelled or process died."
                          )
@@ -409,7 +369,6 @@ def send_file(
     except KeyboardInterrupt:
         console.print("\n[yellow]Transfer cancelled by user.[/yellow]")
     except Exception as e:
-        # Let global handler catch it or re-raise
         raise e
     finally:
         if sniffer_process:
@@ -426,7 +385,10 @@ def send_file(
 def start_proxy(
     listen_port: int, target_ip: str, target_port: int, corruption_rate: float
 ):
-    """Start a MITM Proxy Server."""
+    """Start a MITM Proxy Server.
+
+    Requires setting up the client to connect to this proxy port instead of the real server.
+    """
     from tpi_redes.services.proxy import ProxyServer
 
     console.print(f"[bold red]Starting MITM Proxy on port {listen_port}...[/bold red]")
@@ -442,14 +404,12 @@ def start_proxy(
 
 @cli.command()
 def scan_network():
-    """Scan for active peers on the local network."""
-    from tpi_redes.services.discovery import DiscoveryService
-    # ... logic mostly same but cleaner output
+    """Scan for active peers on the local network.
 
-    # We keep print(json) for Electron, using console(stderr) for logs
-    # Actually wait, handle_exception prints to stdout for Electron.
-    # We should ensure normal logs use stderr.
-    pass  # Refactor this logic next step if needed, or inline here:
+    Uses `DiscoveryService` to broadcast PINGs and lists responding peers.
+    Output is printed as both JSON (for IPC) and a Rich Table (for human usage).
+    """
+    from tpi_redes.services.discovery import DiscoveryService
 
     discovery = DiscoveryService()
     peers = discovery.scan()
@@ -471,7 +431,7 @@ def scan_network():
 
 @cli.command()
 def list_interfaces():
-    """List available network interfaces."""
+    """List available network interfaces using Scapy."""
     try:
         from scapy.all import get_if_list
         interfaces = get_if_list()
