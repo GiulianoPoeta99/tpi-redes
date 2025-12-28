@@ -94,7 +94,6 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
         setCurrentPage={setCurrentPage}
       />
 
-      {/* Content Area */}
       <div className="flex-1 overflow-hidden relative bg-black/20">
         <div className={`absolute inset-0 ${viewMode === 'table' ? 'block' : 'hidden'}`}>
           <PacketTable packets={packets} />

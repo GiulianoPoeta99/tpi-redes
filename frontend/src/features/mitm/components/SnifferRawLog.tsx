@@ -4,8 +4,17 @@ import type React from 'react';
  * Props for SnifferRawLog.
  */
 interface SnifferRawLogProps {
+  /**
+   * List of raw log entries to display.
+   */
   logs: { id: string; text: string }[];
+  /**
+   * Whether this view is currently visible.
+   */
   visible: boolean;
+  /**
+   * Ref to the end of the log list, for auto-scrolling.
+   */
   logEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -31,6 +40,9 @@ function getLogColor(log: string): string {
   return 'text-gray-300';
 }
 
+/**
+ * Component to display raw log text with syntax highlighting (colors based on log level).
+ */
 const SnifferRawLog: React.FC<SnifferRawLogProps> = ({ logs, visible, logEndRef }) => {
   return (
     <div

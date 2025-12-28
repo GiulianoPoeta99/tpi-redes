@@ -10,20 +10,60 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for SnifferControls.
+ */
 interface SnifferControlsProps {
+  /**
+   * Current view mode (Table or Raw log).
+   */
   viewMode: 'raw' | 'table';
+  /**
+   * Callback to switch view mode.
+   */
   setViewMode: (mode: 'raw' | 'table') => void;
+  /**
+   * Total number of captured packet objects.
+   */
   packetCount: number;
+  /**
+   * Total number of raw log entries.
+   */
   logCount: number;
+  /**
+   * Whether the capture is currently paused.
+   */
   paused: boolean;
+  /**
+   * Callback to toggle pause state.
+   */
   setPaused: (paused: boolean) => void;
+  /**
+   * Callback to clear all logs.
+   */
   onClear: () => void;
+  /**
+   * Callback to open the expanded modal.
+   */
   onExpand: () => void;
+  /**
+   * Current page number (for Raw mode pagination).
+   */
   currentPage: number;
+  /**
+   * Total pages available (for Raw mode pagination).
+   */
   totalPages: number;
+  /**
+   * Callback to update current page.
+   */
   setCurrentPage: (page: number | ((prev: number) => number)) => void;
 }
 
+/**
+ * Control bar for the Sniffer Log.
+ * Includes toggles for Table/Raw view, Pause/Resume, Clear, Expand, and Pagination.
+ */
 const SnifferControls: React.FC<SnifferControlsProps> = ({
   viewMode,
   setViewMode,
@@ -47,7 +87,6 @@ const SnifferControls: React.FC<SnifferControlsProps> = ({
           </span>
         </h2>
 
-        {/* View Toggles */}
         <div className="flex bg-gray-900 rounded-lg p-1 border border-gray-700/50">
           <button
             type="button"
@@ -75,7 +114,6 @@ const SnifferControls: React.FC<SnifferControlsProps> = ({
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Controls */}
         <div className="flex items-center gap-1 border-r border-gray-700 pr-3 mr-1">
           <button
             onClick={() => setPaused(!paused)}
@@ -107,7 +145,6 @@ const SnifferControls: React.FC<SnifferControlsProps> = ({
           </button>
         </div>
 
-        {/* Pagination (Raw Mode Only) */}
         {viewMode === 'raw' && (
           <div className="flex items-center gap-1 text-xs font-mono bg-gray-900 p-1 rounded-lg border border-gray-700">
             <button

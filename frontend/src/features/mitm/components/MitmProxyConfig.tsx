@@ -2,12 +2,27 @@ import type React from 'react';
 import InputGroup from '../../shared/components/InputGroup';
 import PortInput from '../../shared/components/PortInput';
 
+/**
+ * Props for MitmProxyConfig.
+ */
 interface MitmProxyConfigProps {
+  /**
+   * The port the proxy should listen on.
+   */
   listenPort: number | string;
+  /**
+   * Callback to update the listening port.
+   */
   onChange: (val: number | string) => void;
+  /**
+   * Whether the input is disabled (e.g. while running).
+   */
   disabled?: boolean;
 }
 
+/**
+ * Configuration for the Proxy Listener side of the MITM setup.
+ */
 const MitmProxyConfig: React.FC<MitmProxyConfigProps> = ({
   listenPort,
   onChange,

@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import MitmView from '../MitmView';
 
-// Mock window.api
 window.api = {
   ...window.api,
   startProxy: vi.fn(),
@@ -12,6 +11,15 @@ window.api = {
   scanNetwork: vi.fn().mockResolvedValue([]),
 };
 
+// Mock async components to avoid act warnings
+vi.mock('../../shared/components/InterfaceSelector', () => ({
+  default: () => <div data-testid="interface-selector">MockInterfaceSelector</div>,
+}));
+
+vi.mock('../../shared/components/IpDisplay', () => ({
+  default: () => <div data-testid="ip-display">MockIpDisplay</div>,
+}));
+
 describe('MitmView', () => {
   const setBusy = vi.fn();
   const setHeaderContent = vi.fn();
@@ -19,7 +27,6 @@ describe('MitmView', () => {
   it('renders mitm configuration', async () => {
     render(<MitmView setBusy={setBusy} setHeaderContent={setHeaderContent} />);
 
-    // Check for Proxy Listener config
     expect(await screen.findByText('Proxy Listener')).toBeInTheDocument();
   });
 });

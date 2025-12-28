@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import Dashboard from '../Dashboard';
 
-// Mock window.api
 window.api = {
   startServer: vi.fn(),
   sendFiles: vi.fn(),
@@ -20,9 +19,31 @@ window.api = {
   openPath: vi.fn(),
   openFolder: vi.fn(),
   verifyFile: vi.fn().mockResolvedValue({ valid: true }),
-  getInterfaces: vi.fn().mockResolvedValue([{ name: 'eth0', ip: '192.168.1.5' }]),
+  getInterfaces: vi.fn().mockResolvedValue(['eth0']),
   onSnifferError: vi.fn(),
 };
+
+// Mock async components to avoid act warnings
+vi.mock('../../shared/components/InterfaceSelector', () => ({
+  default: () => <div data-testid="interface-selector">MockInterfaceSelector</div>,
+}));
+
+vi.mock('../../shared/components/IpDisplay', () => ({
+  default: () => <div data-testid="ip-display">MockIpDisplay</div>,
+}));
+
+// Mock consumer views to isolate Dashboard testing and avoid child side-effects
+vi.mock('../../receiver/ReceiverView', () => ({
+  default: () => <div data-testid="receiver-view">Receiver View</div>,
+}));
+
+vi.mock('../../transmitter/TransmitterView', () => ({
+  default: () => <div data-testid="transmitter-view">Transmitter View</div>,
+}));
+
+vi.mock('../../mitm/MitmView', () => ({
+  default: () => <div data-testid="mitm-view">Mitm View</div>,
+}));
 
 describe('Dashboard', () => {
   it('renders the sidebar with navigation items', () => {
@@ -31,6 +52,9 @@ describe('Dashboard', () => {
     expect(screen.getByText('Receiver')).toBeInTheDocument();
     expect(screen.getByText('Transmitter')).toBeInTheDocument();
     expect(screen.getByText('Mitm')).toBeInTheDocument();
+    
+    // Default view
+    expect(screen.getByTestId('receiver-view')).toBeInTheDocument();
   });
 
   it('switches to Transmitter mode when button is clicked', async () => {
@@ -38,7 +62,7 @@ describe('Dashboard', () => {
     const transmitterBtn = screen.getByText('Transmitter');
     fireEvent.click(transmitterBtn);
 
-    expect(await screen.findByText('Destination IP')).toBeInTheDocument();
+    expect(await screen.findByTestId('transmitter-view')).toBeInTheDocument();
   });
 
   it('switches to Mitm mode when button is clicked', async () => {
@@ -46,7 +70,6 @@ describe('Dashboard', () => {
     const mitmBtn = screen.getByText('Mitm');
     fireEvent.click(mitmBtn);
 
-    // Wait for text specific to MitmView
-    expect(await screen.findByText('Proxy Listener')).toBeInTheDocument();
+    expect(await screen.findByTestId('mitm-view')).toBeInTheDocument();
   });
 });

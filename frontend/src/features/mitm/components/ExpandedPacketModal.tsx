@@ -5,12 +5,19 @@ import BaseModal from '../../shared/components/BaseModal';
 import { getPacketRowClass } from '../../shared/tools/packetStyles';
 import type { Packet } from '../../shared/types';
 
+/**
+ * Props for ExpandedPacketModal.
+ */
 interface ExpandedPacketModalProps {
   isOpen: boolean;
   onClose: () => void;
   packets: Packet[];
 }
 
+/**
+ * Modal to view the full list of captured packets in a detailed table.
+ * Uses virtualization for high performance with large datasets.
+ */
 const ExpandedPacketModal: React.FC<ExpandedPacketModalProps> = ({ isOpen, onClose, packets }) => {
   const formatTime = (ts: number) => {
     const date = new Date(ts * 1000);

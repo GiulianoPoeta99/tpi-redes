@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReceivedFilesModal } from '../ReceivedFilesModal';
-// Mock useReceivedFiles hook
 import * as useReceivedFilesModule from '../../hooks/useReceivedFiles';
 
 describe('ReceivedFilesModal', () => {
@@ -9,7 +8,6 @@ describe('ReceivedFilesModal', () => {
     const mockUseReceivedFiles = vi.spyOn(useReceivedFilesModule, 'useReceivedFiles');
 
     beforeEach(() => {
-        // Reset Mock
         mockUseReceivedFiles.mockReturnValue({
              files: [],
              loading: false,

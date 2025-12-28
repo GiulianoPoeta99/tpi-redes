@@ -3,10 +3,20 @@ import { TableVirtuoso } from 'react-virtuoso';
 import { getPacketRowClass } from '../../shared/tools/packetStyles';
 import type { Packet } from '../../shared/types';
 
+/**
+ * Props for PacketTable.
+ */
 interface PacketTableProps {
+  /**
+   * List of captured packets to display.
+   */
   packets: Packet[];
 }
 
+/**
+ * A virtualized table component for displaying packet capture logs.
+ * Supports efficient rendering of large datasets.
+ */
 const PacketTable: React.FC<PacketTableProps> = ({ packets }) => {
   const getProtocolClass = (proto: string) => {
     if (proto === 'TCP') return 'text-proto-tcp';

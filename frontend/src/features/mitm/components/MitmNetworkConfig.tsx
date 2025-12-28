@@ -4,6 +4,9 @@ import ConfigGroup from '../../shared/components/ConfigGroup';
 import MitmProxyConfig from './MitmProxyConfig';
 import MitmTargetConfig from './MitmTargetConfig';
 
+/**
+ * Configuration for MITM network settings.
+ */
 interface MitmConfig {
   listenPort: number | string;
   targetIp: string;
@@ -11,14 +14,36 @@ interface MitmConfig {
   corruption: number;
 }
 
+/**
+ * Props for MitmNetworkConfig.
+ */
 interface MitmNetworkConfigProps {
+  /**
+   * Current MITM network configuration.
+   */
   config: MitmConfig;
+  /**
+   * Callback to update configuration.
+   */
   setConfig: (config: MitmConfig) => void;
+  /**
+   * Whether the MITM proxy is currently running.
+   */
   isRunning: boolean;
+  /**
+   * Whether an attack (corruption) is active.
+   */
   isAttacking: boolean;
+  /**
+   * Callback to open the network scan modal.
+   */
   openScan: () => void;
 }
 
+/**
+ * Visualization and configuration of the MITM network flow.
+ * Shows the proxy listener, the packet flow animation, and the target configuration.
+ */
 const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
   config,
   setConfig,
@@ -29,7 +54,6 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
   return (
     <ConfigGroup title="Network Configuration" icon={Network}>
       <div className="flex items-start gap-4">
-        {/* Listener: Fixed Width */}
         <div className="w-64 shrink-0">
           <MitmProxyConfig
             listenPort={config.listenPort}
@@ -38,7 +62,6 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
           />
         </div>
 
-        {/* Flow Animation: Flexible Space */}
         <div className="flex-1 flex flex-col justify-center px-4 relative h-full pt-8 group">
           <style>
             {`
@@ -57,7 +80,6 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
           </style>
 
           <div className="relative w-full h-8 flex items-center">
-            {/* Connection Points */}
             <div
               className={`w-2 h-2 rounded-full ${
                 isRunning
@@ -101,7 +123,6 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
               />
             </svg>
 
-            {/* Status Label */}
             {isRunning && (
               <div
                 className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] font-mono font-bold tracking-widest px-2 rounded border bg-gray-900/80 ${
@@ -116,7 +137,6 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
           </div>
         </div>
 
-        {/* Target: Fixed Width */}
         <div className="w-96 shrink-0">
           <MitmTargetConfig
             targetIp={config.targetIp}

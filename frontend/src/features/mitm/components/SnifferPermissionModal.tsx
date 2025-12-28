@@ -1,10 +1,22 @@
 import type React from 'react';
 
+/**
+ * Props for SnifferPermissionModal.
+ */
 interface SnifferPermissionModalProps {
+  /**
+   * Whether the modal is open (visible).
+   */
   isOpen: boolean;
+  /**
+   * Callback to dismiss the modal.
+   */
   onDismiss: () => void;
 }
 
+/**
+ * Modal shown when the sniffer fails to start due to permission errors (e.g. lack of root/admin privileges).
+ */
 const SnifferPermissionModal: React.FC<SnifferPermissionModalProps> = ({ isOpen, onDismiss }) => {
   if (!isOpen) return null;
 

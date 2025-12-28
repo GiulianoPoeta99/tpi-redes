@@ -27,7 +27,7 @@ export const useDiscovery = () => {
   const [error, setError] = useState<string>();
 
   /**
-   * trigger a network discovery scan.
+   * Trigger a network discovery scan.
    */
   const scan = async () => {
     setIsOpen(true);

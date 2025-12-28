@@ -1,9 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import HistoryModal from '../HistoryModal'; // Default import
+import HistoryModal from '../HistoryModal';
 import type { TransferHistoryItem } from '../../../shared/services/StorageService';
 
-// Mock dependencies
+
 const mockLoadHistory = vi.fn().mockReturnValue([]);
 const mockClearHistory = vi.fn();
 
@@ -19,7 +19,6 @@ describe('HistoryModal', () => {
 
   it('renders nothing when history is empty', () => {
     mockLoadHistory.mockReturnValue([]);
-    // The Modal itself will render, but the content will be EmptyState
     render(<HistoryModal onClose={mockOnClose} />);
     
     expect(screen.getByText('Transfer History')).toBeInTheDocument();

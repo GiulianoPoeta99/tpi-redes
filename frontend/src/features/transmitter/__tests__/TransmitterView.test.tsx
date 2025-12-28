@@ -1,16 +1,20 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import TransmitterView from '../TransmitterView';
 
-// Mock window.api
 window.api = {
   ...window.api,
   sendFiles: vi.fn().mockResolvedValue(true),
-  getInterfaces: vi.fn().mockResolvedValue([{ name: 'eth0', ip: '127.0.0.1' }]),
+  getInterfaces: vi.fn().mockResolvedValue(['eth0']),
   onLog: vi.fn(),
   onStatsUpdate: vi.fn(),
   scanNetwork: vi.fn().mockResolvedValue([]),
 };
+
+// Mock InterfaceSelector to avoid async act warnings
+vi.mock('../../shared/components/InterfaceSelector', () => ({
+  default: () => <div data-testid="interface-selector">MockInterfaceSelector</div>,
+}));
 
 describe('TransmitterView', () => {
   const setBusy = vi.fn();

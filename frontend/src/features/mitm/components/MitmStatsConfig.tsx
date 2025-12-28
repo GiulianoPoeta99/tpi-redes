@@ -1,15 +1,28 @@
 import type React from 'react';
 import ControlContainer from '../../shared/components/ControlContainer';
 
+/**
+ * Props for MitmStatsConfig.
+ */
 interface MitmStatsConfigProps {
+  /**
+   * Current statistics (intercepted and corrupted packets/chunks).
+   */
   stats: {
     intercepted: number;
     corrupted: number;
   };
+  /**
+   * Whether the MITM is active (unused in rendering currently).
+   */
   isActive: boolean;
   className?: string;
 }
 
+/**
+ * Display for MITM statistics (Operational Mode information).
+ * Shows counters for Intercepted and Corrupted packets.
+ */
 const MitmStatsConfig: React.FC<MitmStatsConfigProps> = ({
   stats,
   isActive: _isActive,

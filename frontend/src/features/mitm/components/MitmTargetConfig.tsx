@@ -5,15 +5,40 @@ import InputGroup from '../../shared/components/InputGroup';
 import IpInput from '../../shared/components/IpInput';
 import PortInput from '../../shared/components/PortInput';
 
+/**
+ * Props for MitmTargetConfig.
+ */
 interface MitmTargetConfigProps {
+  /**
+   * The destination IP address to forward traffic to.
+   */
   targetIp: string;
+  /**
+   * The destination port to forward traffic to.
+   */
   targetPort: number | string;
+  /**
+   * Callback to update the target IP.
+   */
   onIpChange: (val: string) => void;
+  /**
+   * Callback to update the target port.
+   */
   onPortChange: (val: number | string) => void;
+  /**
+   * Callback to trigger network scan.
+   */
   onScanClick: () => void;
+  /**
+   * Whether inputs are disabled.
+   */
   disabled?: boolean;
 }
 
+/**
+ * Configuration for the Forwarding Target (where the proxy sends data).
+ * Includes inputs for IP, Port, and a specific Scan button.
+ */
 const MitmTargetConfig: React.FC<MitmTargetConfigProps> = ({
   targetIp,
   targetPort,

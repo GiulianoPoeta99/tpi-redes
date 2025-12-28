@@ -11,9 +11,13 @@ import MitmNetworkConfig from './components/MitmNetworkConfig';
  * Configuration state for the MITM proxy.
  */
 interface MitmConfig {
+  /** Local port to listen on */
   listenPort: number | string;
+  /** IP address to forward traffic to */
   targetIp: string;
+  /** Port to forward traffic to */
   targetPort: number | string;
+  /** Probability of data corruption (0.0 - 1.0) */
   corruption: number;
 }
 
