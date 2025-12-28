@@ -105,8 +105,12 @@ class PacketSniffer:
             store=False,
         )
         self.sniffer.start()
-
-        self.sniffer.start()
+        print("SNIFFER_READY", flush=True)
+        
+        try:
+            self.sniffer.join()
+        except KeyboardInterrupt:
+            self.sniffer.stop()
 
     def stop(self):
         """Stop packet capturing."""

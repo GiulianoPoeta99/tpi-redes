@@ -119,10 +119,6 @@ def start_server(
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
             env_vars = ["env", f"PYTHONPATH={src_path}"]
-            if "DISPLAY" in os.environ:
-                env_vars.append(f"DISPLAY={os.environ['DISPLAY']}")
-            if "XAUTHORITY" in os.environ:
-                env_vars.append(f"XAUTHORITY={os.environ['XAUTHORITY']}")
 
             cmd = [
                 "pkexec",
@@ -143,6 +139,8 @@ def start_server(
                 sniffer_process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
+                    text=True,
+                    bufsize=1
                 )
 
                 sniffer_ready_event = threading.Event()
@@ -174,15 +172,16 @@ def start_server(
                         break
 
                     if sniffer_process.poll() is not None:
+                        exit_code = sniffer_process.poll()
                         logger.warning(
-                            "Sniffer authentication cancelled or process died."
+                            f"Sniffer process exited. Code: {exit_code}"
                         )
                         print(
                             json.dumps(
                                 {
                                     "type": "SNIFFER_ERROR",
                                     "code": "PERMISSION_DENIED",
-                                    "message": "Sniffer authentication cancelled.",
+                                    "message": f"Sniffer process died (Code {exit_code}).",
                                 }
                             ),
                             flush=True,
@@ -297,15 +296,11 @@ def send_file(
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
-            env_vars = ["env", f"PYTHONPATH={src_path}"]
-            if "DISPLAY" in os.environ:
-                env_vars.append(f"DISPLAY={os.environ['DISPLAY']}")
-            if "XAUTHORITY" in os.environ:
-                env_vars.append(f"XAUTHORITY={os.environ['XAUTHORITY']}")
-
+            # Preserve GUI environment for pkexec prompt
             cmd = [
                 "pkexec",
-                *env_vars,
+                "env",
+                f"PYTHONPATH={src_path}",
                 sys.executable,
                 "-m",
                 "tpi_redes.cli.main",
