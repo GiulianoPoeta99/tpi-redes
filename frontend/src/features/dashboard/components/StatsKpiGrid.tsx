@@ -1,6 +1,6 @@
 import { Clock, Database, FileText, TrendingUp } from 'lucide-react';
 import type React from 'react';
-import { formatBytes, formatSpeed } from '../../../features/shared/utils/formatters';
+import { Formatters } from '../../../features/shared/utils/formatters';
 import KpiCard from '../../shared/components/KpiCard';
 
 /**
@@ -39,7 +39,7 @@ const StatsKpiGrid: React.FC<StatsKpiGridProps> = ({
       <KpiCard
         icon={<Database size={16} />}
         label="Total Data"
-        value={formatBytes(totalBytes)}
+        value={Formatters.bytes(totalBytes)}
         color="text-purple-400"
         bg="bg-purple-500/10"
       />
@@ -53,7 +53,7 @@ const StatsKpiGrid: React.FC<StatsKpiGridProps> = ({
       <KpiCard
         icon={<TrendingUp size={16} />}
         label="Avg Speed"
-        value={formatSpeed(avgThroughput)}
+        value={Formatters.speed(avgThroughput)}
         color="text-green-400"
         bg="bg-green-500/10"
       />

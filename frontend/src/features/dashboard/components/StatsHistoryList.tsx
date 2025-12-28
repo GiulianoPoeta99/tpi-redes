@@ -1,6 +1,6 @@
 import { History } from 'lucide-react';
 import type React from 'react';
-import { formatBytes, formatSpeed } from '../../shared/utils/formatters';
+import { Formatters } from '../../shared/utils/formatters';
 import type { HistoryItem } from '../types';
 
 /**
@@ -46,8 +46,8 @@ const StatsHistoryList: React.FC<StatsHistoryListProps> = ({ history }) => {
               </span>
             </div>
             <div className="flex justify-between items-center text-[10px]">
-              <span className="text-gray-500">{formatBytes(h.size)}</span>
-              <span className="font-mono text-blue-400">{formatSpeed(h.throughput)}</span>
+              <span className="text-gray-500">{Formatters.bytes(h.size)}</span>
+              <span className="font-mono text-blue-400">{Formatters.speed(h.throughput)}</span>
             </div>
           </div>
         ))}

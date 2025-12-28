@@ -1,7 +1,7 @@
 import { BarChart3 } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
-import { formatBytes, formatSpeed } from '../../shared/utils/formatters';
+import { Formatters } from '../../shared/utils/formatters';
 import type { HistoryItem } from '../types';
 
 /**
@@ -51,7 +51,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
           <BarChart3 size={16} className="text-gray-400" />
           Throughput History
         </h3>
-        <span className="text-xs font-mono text-gray-500">Peak: {formatSpeed(maxThroughput)}</span>
+        <span className="text-xs font-mono text-gray-500">Peak: {Formatters.speed(maxThroughput)}</span>
       </div>
 
       <div className="relative flex-1 w-full bg-black/20 rounded-xl border border-white/10 overflow-hidden group min-h-0">
@@ -93,7 +93,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
 
 
               <text x={padding - 5} y={padding + 5} fill="#6B7280" fontSize="10" textAnchor="end">
-                {formatSpeed(maxThroughput)}
+                {Formatters.speed(maxThroughput)}
               </text>
               <text
                 x={padding - 5}
@@ -180,11 +180,11 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-gray-400">
                   <span>Speed:</span>
                   <span className="text-right text-blue-400 font-mono">
-                    {formatSpeed(history[hoveredIndex].throughput)}
+                    {Formatters.speed(history[hoveredIndex].throughput)}
                   </span>
                   <span>Size:</span>
                   <span className="text-right text-gray-300 font-mono">
-                    {formatBytes(history[hoveredIndex].size)}
+                    {Formatters.bytes(history[hoveredIndex].size)}
                   </span>
                   <span>Time:</span>
                   <span className="text-right text-gray-500 font-mono">

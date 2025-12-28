@@ -38,7 +38,8 @@ export const StorageService = {
 
   /**
    * Load application stats from storage.
-   * Returns a zeroed object if no data exists or parsing fails.
+   *
+   * @returns The loaded stats object, or a zeroed object if no data exists.
    */
   loadStats: (): AppStats => {
     const data = localStorage.getItem(STATS_KEY);
@@ -66,7 +67,8 @@ export const StorageService = {
 
   /**
    * Load transfer history from storage.
-   * Returns empty array if no data exists.
+   *
+   * @returns Array of history items, or empty array if no data exists.
    */
   loadHistory: (): TransferHistoryItem[] => {
     const data = localStorage.getItem(HISTORY_KEY);

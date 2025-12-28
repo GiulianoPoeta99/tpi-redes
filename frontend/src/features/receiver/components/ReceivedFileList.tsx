@@ -1,6 +1,6 @@
 import { Check, FileText, Folder, RefreshCw, ShieldCheck, X } from 'lucide-react';
 import type React from 'react';
-import { formatBytes, formatDate } from '../../shared/utils/formatters';
+import { Formatters } from '../../shared/utils/formatters';
 import type { FileItem, VerificationResult } from '../types';
 
 /**
@@ -57,8 +57,8 @@ const ReceivedFileList: React.FC<ReceivedFileListProps> = ({
                   <span className="text-white font-medium">{file.name}</span>
                 </div>
               </td>
-              <td className="py-3 text-gray-400 font-mono">{formatBytes(file.size)}</td>
-              <td className="py-3 text-gray-500">{formatDate(file.mtime)}</td>
+              <td className="py-3 text-gray-400 font-mono">{Formatters.bytes(file.size)}</td>
+              <td className="py-3 text-gray-500">{Formatters.date(file.mtime)}</td>
               <td className="py-3 pr-2 text-right">
                 <div className="flex items-center justify-end gap-2">
                   <div className="mr-2">

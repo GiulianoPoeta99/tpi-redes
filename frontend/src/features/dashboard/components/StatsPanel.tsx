@@ -1,6 +1,7 @@
 import { Activity, ArrowDownCircle, ArrowUpCircle, HardDrive } from 'lucide-react';
 import type React from 'react';
 import type { AppStats } from '../../shared/services/StorageService';
+import { Formatters } from '../../shared/utils/formatters';
 
 /**
  * Props for the StatsPanel component.
@@ -66,14 +67,14 @@ const StatCard: React.FC<{
  * A side panel displaying summary cards for network packets and data volume.
  */
 const StatsPanel: React.FC<StatsPanelProps> = ({ stats }) => {
-  const formatBytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-full">
       <StatCard label="Packets Sent" value={stats.totalSent} icon={ArrowUpCircle} color="blue" />
       <StatCard
         label="Data Sent"
-        value={formatBytes(stats.bytesSent)}
+        value={Formatters.bytes(stats.bytesSent)}
         icon={HardDrive}
         color="cyan"
       />
@@ -86,7 +87,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats }) => {
       />
       <StatCard
         label="Data Recv"
-        value={formatBytes(stats.bytesReceived)}
+        value={Formatters.bytes(stats.bytesReceived)}
         icon={Activity}
         color="pink"
       />

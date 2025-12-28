@@ -5,7 +5,9 @@ import BaseModal from '../../shared/components/BaseModal';
 import Button from '../../shared/components/Button';
 import EmptyState from '../../shared/components/EmptyState';
 import FileListItem from '../../shared/components/FileListItem';
-import { StorageService, type TransferHistoryItem } from '../../shared/services/StorageService';
+import type { TransferHistoryItem } from '../../shared/services/StorageService';
+import { StorageService } from '../../shared/services/StorageService';
+import { Formatters } from '../../shared/utils/formatters';
 
 /**
  * Props for the HistoryModal component.
@@ -32,9 +34,6 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
     setHistory([]);
   };
 
-  const formatDate = (ts: number) => {
-    return new Date(ts).toLocaleString();
-  };
 
   return (
     <BaseModal
@@ -72,7 +71,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
                   <span>•</span>
                   <span>{item.protocol.toUpperCase()}</span>
                   <span>•</span>
-                  <span>{formatDate(item.timestamp)}</span>
+                  <span>{Formatters.date(item.timestamp)}</span>
                 </>
               }
             />

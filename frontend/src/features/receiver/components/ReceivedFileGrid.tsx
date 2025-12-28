@@ -1,6 +1,6 @@
 import { Check, FileText, Folder, RefreshCw, ShieldCheck, X } from 'lucide-react';
 import type React from 'react';
-import { formatBytes } from '../../shared/utils/formatters';
+import { Formatters } from '../../shared/utils/formatters';
 import type { FileItem, VerificationResult } from '../types';
 
 /**
@@ -49,7 +49,7 @@ const ReceivedFileGrid: React.FC<ReceivedFileGridProps> = ({
               <h3 className="text-sm font-bold text-gray-200 line-clamp-2 break-all mb-1">
                 {file.name}
               </h3>
-              <p className="text-xs text-gray-500 font-mono">{formatBytes(file.size)}</p>
+              <p className="text-xs text-gray-500 font-mono">{Formatters.bytes(file.size)}</p>
             </div>
 
             <div className="pt-3 border-t border-gray-700/50 flex items-center justify-between gap-2">
