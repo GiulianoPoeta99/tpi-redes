@@ -4,21 +4,48 @@ import BaseModal from './BaseModal';
 import EmptyState from './EmptyState';
 import PeerListItem from './PeerListItem';
 
+/**
+ * Represents a discovered network peer.
+ */
 interface Peer {
   ip: string;
   port?: number;
   hostname?: string;
 }
 
+/**
+ * Props for the ScanModal component.
+ */
 interface ScanModalProps {
+  /**
+   * Whether the modal is open.
+   */
   isOpen: boolean;
+  /**
+   * Callback to close the modal.
+   */
   onClose: () => void;
+  /**
+   * Callback when a peer is selected.
+   */
   onSelect: (peer: Peer) => void;
+  /**
+   * Whether a scan is currently in progress.
+   */
   scanning: boolean;
+  /**
+   * List of discovered peers.
+   */
   peers: Peer[];
+  /**
+   * Optional error message.
+   */
   error?: string;
 }
 
+/**
+ * A modal that displays the status and results of a peer discovery scan.
+ */
 const ScanModal: React.FC<ScanModalProps> = ({
   isOpen,
   onClose,

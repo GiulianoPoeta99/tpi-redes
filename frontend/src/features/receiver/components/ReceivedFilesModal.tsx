@@ -5,11 +5,23 @@ import { useReceivedFiles } from '../hooks/useReceivedFiles';
 import ReceivedFileGrid from './ReceivedFileGrid';
 import ReceivedFileList from './ReceivedFileList';
 
+/**
+ * Props for the ReceivedFilesModal component.
+ */
 interface ReceivedFilesModalProps {
+  /**
+   * Whether the modal is open.
+   */
   isOpen: boolean;
+  /**
+   * Callback to close the modal.
+   */
   onClose: () => void;
 }
 
+/**
+ * A modal that displays all received files, allowing interaction and verification.
+ */
 export const ReceivedFilesModal: React.FC<ReceivedFilesModalProps> = ({ isOpen, onClose }) => {
   const {
     files,

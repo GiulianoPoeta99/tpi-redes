@@ -2,35 +2,39 @@ import { AlertTriangle } from 'lucide-react';
 import type React from 'react';
 import { type ClipboardEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 
+/**
+ * Props for IpInput.
+ */
 interface IpInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
   className?: string;
-  placeholder?: string; // Kept for API compatibility, but less used in segmented
+  placeholder?: string;
 }
 
+/**
+ * A segmented input component for IP v4 addresses.
+ * Handles validation, auto-advancement, and pasting.
+ */
 const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, className = '' }) => {
   const [octets, setOctets] = useState<string[]>(['', '', '', '']);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Sync prop value to local state
   useEffect(() => {
     if (value !== undefined) {
       const parts = value.split('.');
       if (parts.length === 4) {
-        // Avoid redundant updates to preserve cursor/focus if possible
         if (parts.join('.') !== octets.join('.')) {
           setOctets(parts);
         }
       } else if (value === '') {
-        // Reset if parent clears it
         if (octets.some((o) => o !== '')) {
           setOctets(['', '', '', '']);
         }
       }
     }
-  }, [value, octets]); // Depend on the whole array
+  }, [value, octets]);
 
   const updateParent = (newOctets: string[]) => {
     const newValue = newOctets.join('.');
@@ -38,8 +42,8 @@ const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, cl
   };
 
   const handleChange = (index: number, val: string) => {
-    if (!/^\d*$/.test(val)) return; // Numbers only
-    if (val.length > 3) return; // Max 3 digits
+    if (!/^\d*$/.test(val)) return;
+    if (val.length > 3) return;
 
     const num = Number(val);
     if (val !== '' && num > 255) {
@@ -51,7 +55,6 @@ const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, cl
     setOctets(newOctets);
     updateParent(newOctets);
 
-    // Auto-advance
     if (val.length === 3 && index < 3) {
       inputsRef.current[index + 1]?.focus();
       inputsRef.current[index + 1]?.select();
@@ -112,7 +115,6 @@ const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, cl
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {octets.map((octet, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed length array
           <div key={`octet-${i}`} className="flex items-center flex-1">
             <input
               ref={(el) => {

@@ -3,18 +3,45 @@ import type React from 'react';
 import { useState } from 'react';
 import { formatBytes, formatSpeed } from '../../shared/utils/formatters';
 
+/**
+ * Represents a historical data point for throughput.
+ */
 interface HistoryItem {
+  /**
+   * Timestamp of the event.
+   */
   timestamp: number;
+  /**
+   * Name of the file transferred.
+   */
   filename: string;
+  /**
+   * Throughput achieved in bytes/sec.
+   */
   throughput: number;
+  /**
+   * Size of the file in bytes.
+   */
   size: number;
 }
 
+/**
+ * Props for the StatsAnalyticChart component.
+ */
 interface StatsAnalyticChartProps {
+  /**
+   * Array of historical data points.
+   */
   history: HistoryItem[];
+  /**
+   * Maximum throughput value for scaling the Y-axis.
+   */
   maxThroughput: number;
 }
 
+/**
+ * A line chart visualizing throughput history of file transfers.
+ */
 const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThroughput }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -62,7 +89,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
               aria-label="Throughput Chart"
             >
               <title>Throughput History Chart</title>
-              {/* Grid Lines */}
+
               <line
                 x1={padding}
                 y1={padding}
@@ -88,7 +115,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 strokeDasharray="4"
               />
 
-              {/* AXIS LABELS */}
+
               <text x={padding - 5} y={padding + 5} fill="#6B7280" fontSize="10" textAnchor="end">
                 {formatSpeed(maxThroughput)}
               </text>
@@ -102,7 +129,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 0 MB/s
               </text>
 
-              {/* AREA */}
+
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
@@ -111,7 +138,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
               </defs>
               <polygon points={areaPath} fill="url(#chartGradient)" />
 
-              {/* LINE */}
+
               <polyline
                 points={points}
                 fill="none"
@@ -121,7 +148,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 strokeLinejoin="round"
               />
 
-              {/* Hover Line */}
+
               {hoveredIndex !== null && (
                 <line
                   x1={getX(hoveredIndex)}
@@ -162,7 +189,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
               ))}
             </svg>
 
-            {/* TOOLTIP */}
+
             {hoveredIndex !== null && history[hoveredIndex] && (
               <div
                 className="absolute pointer-events-none z-10 bg-gray-900/95 border border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-sm text-xs w-48 transition-all left-0"

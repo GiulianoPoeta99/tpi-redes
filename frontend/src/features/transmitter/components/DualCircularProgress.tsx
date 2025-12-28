@@ -1,18 +1,29 @@
 import type React from 'react';
 import CircularProgress from '../../../shared/components/CircularProgress';
 
+/**
+ * Props for the DualCircularProgress component.
+ */
 interface DualCircularProgressProps {
+  /**
+   * Progress of the overall batch (0-100).
+   */
   batchProgress: number;
+  /**
+   * Progress of the current file (0-100).
+   */
   fileProgress: number;
 }
 
+/**
+ * A combined progress indicator showing both batch and file progress using concentric circles.
+ */
 const DualCircularProgress: React.FC<DualCircularProgressProps> = ({
   batchProgress,
   fileProgress,
 }) => {
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
-      {/* Outer Circle (Batch) */}
       <div className="absolute inset-0">
         <CircularProgress
           size={256}
@@ -22,7 +33,6 @@ const DualCircularProgress: React.FC<DualCircularProgressProps> = ({
         />
       </div>
 
-      {/* Inner Circle (File) */}
       <div className="relative z-10">
         <CircularProgress
           size={128}

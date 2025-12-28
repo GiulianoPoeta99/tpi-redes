@@ -1,11 +1,17 @@
 import type React from 'react';
 
+/**
+ * Props for ProgressBar.
+ */
 interface ProgressBarProps {
-  progress: number; // 0 to 100
+  progress: number;
   label?: string;
   color?: string;
 }
 
+/**
+ * A simple progress bar component.
+ */
 const ProgressBar: React.FC<ProgressBarProps> = ({ progress, label, color = 'blue' }) => {
   return (
     <div className="w-full">

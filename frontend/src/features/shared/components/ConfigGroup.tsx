@@ -1,15 +1,35 @@
 import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the ConfigGroup component.
+ */
 interface ConfigGroupProps {
+  /**
+   * Optional icon to display in the header.
+   */
   icon?: LucideIcon;
+  /**
+   * Optional title to display in the header.
+   */
   title?: string;
   children: React.ReactNode;
+  /**
+   * Tailwind class for the icon background color.
+   * @default 'bg-status-info-bg'
+   */
   iconBgClass?: string;
+  /**
+   * Tailwind class for the icon text color.
+   * @default 'text-status-info-text'
+   */
   iconColorClass?: string;
   className?: string;
 }
 
+/**
+ * A container component for grouping configuration settings with an optional header.
+ */
 const ConfigGroup: React.FC<ConfigGroupProps> = ({
   icon: Icon,
   title,

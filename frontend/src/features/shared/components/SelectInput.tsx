@@ -2,12 +2,18 @@ import { Check, ChevronDown } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Option for SelectInput.
+ */
 export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
 }
 
+/**
+ * Props for SelectInput.
+ */
 interface SelectInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -20,6 +26,9 @@ interface SelectInputProps {
   align?: 'left' | 'right';
 }
 
+/**
+ * A styled dropdown select component.
+ */
 const SelectInput: React.FC<SelectInputProps> = ({
   value,
   onChange,
@@ -34,7 +43,6 @@ const SelectInput: React.FC<SelectInputProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -61,7 +69,6 @@ const SelectInput: React.FC<SelectInputProps> = ({
 
   return (
     <div className={`relative group ${className}`} ref={containerRef}>
-      {/* TRIGGER BUTTON */}
       <button
         type="button"
         onClick={() => !disabled && !loading && setIsOpen(!isOpen)}
@@ -75,7 +82,6 @@ const SelectInput: React.FC<SelectInputProps> = ({
       >
         <span className="truncate block">{loading ? 'Loading...' : displayLabel}</span>
 
-        {/* Start Icon */}
         {icon && (
           <div
             className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors ${disabled ? 'text-gray-500' : 'text-blue-400'}`}
@@ -84,7 +90,6 @@ const SelectInput: React.FC<SelectInputProps> = ({
           </div>
         )}
 
-        {/* End Chevron */}
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
           <ChevronDown
             size={14}
@@ -93,7 +98,6 @@ const SelectInput: React.FC<SelectInputProps> = ({
         </div>
       </button>
 
-      {/* DROPDOWN MENU */}
       {isOpen && !disabled && (
         <div
           className={`absolute top-[calc(100%+4px)] ${align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'} min-w-full w-max z-50 animate-in fade-in zoom-in-95 duration-100`}
@@ -103,7 +107,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
               {placeholder && (
                 <button
                   type="button"
-                  onClick={() => handleSelect('')} // Treating empty string as clear/placeholder value if supported
+                  onClick={() => handleSelect('')}
                   className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-white/5 transition-colors font-mono"
                 >
                   {placeholder}

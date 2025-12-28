@@ -1,12 +1,19 @@
 import type React from 'react';
 import SliderInput from '../../shared/components/SliderInput';
 
+/**
+ * Props for CorruptionSlider.
+ */
 interface CorruptionSliderProps {
-  value: number; // 0.0 - 1.0
+  value: number;
   onChange: (val: number) => void;
   disabled?: boolean;
 }
 
+/**
+ * Slider component to adjust the data corruption rate for MITM.
+ * Includes presets for common corruption levels.
+ */
 const CorruptionSlider: React.FC<CorruptionSliderProps> = ({
   value,
   onChange,

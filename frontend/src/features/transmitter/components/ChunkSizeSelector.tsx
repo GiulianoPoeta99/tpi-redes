@@ -1,12 +1,24 @@
 import type React from 'react';
 import SelectInput from '../../shared/components/SelectInput';
 
+/**
+ * Props for the ChunkSizeSelector component.
+ */
 interface ChunkSizeSelectorProps {
+  /**
+   * Current chunk size in bytes.
+   */
   value: number;
+  /**
+   * Callback to update chunk size.
+   */
   onChange: (value: number) => void;
   disabled?: boolean;
 }
 
+/**
+ * A dropdown selector for predefined chunk sizes.
+ */
 const ChunkSizeSelector: React.FC<ChunkSizeSelectorProps> = ({
   value,
   onChange,

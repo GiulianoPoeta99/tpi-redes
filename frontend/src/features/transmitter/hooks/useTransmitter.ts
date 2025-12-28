@@ -2,13 +2,22 @@ import { useEffect, useRef, useState } from 'react';
 import { StorageService } from '../../shared/services/StorageService';
 import type { SessionItem, TransferStats, TransferStatus } from '../types';
 
+/**
+ * Props for useTransmitter hook.
+ */
 interface UseTransmitterProps {
   setBusy: (busy: boolean) => void;
   addToast: (type: 'success' | 'error' | 'info', title: string, description?: string) => void;
 }
 
+/**
+ * Hook managing the file transmission logic.
+ * Handles configuration, file selection, batch processing, and IPC events from the backend.
+ *
+ * @param props - setBusy callback and toast notifier.
+ */
 export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
-  // Config State
+
   const [ip, setIp] = useState('');
   const [port, setPort] = useState<number | string>(8080);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
@@ -16,16 +25,16 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
   const [chunkSize, setChunkSize] = useState(4096);
   const [netInterface, setNetInterface] = useState<string | null>(null);
 
-  // File State
+
   const [files, setFiles] = useState<string[]>([]);
 
-  // Transfer State
+
   const [status, setStatus] = useState<TransferStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [isBatchActive, setIsBatchActive] = useState(false);
 
-  // Stats
+
   const [transferStats, setTransferStats] = useState<TransferStats>({
     filename: '',
     totalBytes: 0,
@@ -37,10 +46,10 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
   });
   const totalBytesRef = useRef(0);
 
-  // Session Stats
+
   const [sessionHistory, setSessionHistory] = useState<SessionItem[]>([]);
 
-  // Batch Stats Tracking
+
   const batchStatsRef = useRef({
     startTime: 0,
     totalBytes: 0,
@@ -55,7 +64,7 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
     setBusy(status === 'sending' || isBatchActive);
   }, [status, isBatchActive, setBusy]);
 
-  // Handle Python Events
+
   useEffect(() => {
     const cleanup = window.api.onLog((log: string) => {
       try {
@@ -79,9 +88,9 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
               setStatus('sending');
               setProgress(0);
 
-              // Sync React State index for display
+
               if (event.filename) {
-                // Find index by matching filename suffix
+
                 const idx = files.findIndex((f) => f.endsWith(event.filename || ''));
                 if (idx !== -1) setCurrentFileIndex(idx);
               }
@@ -99,7 +108,7 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
                 totalBytesRef.current = event.total;
               }
             } else if (event.status === 'complete') {
-              // Calculate final stats for this file
+
               const now = Date.now();
               const bytes = totalBytesRef.current;
               const duration = (now - startTimeRef.current) / 1000;
@@ -138,20 +147,20 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
                 protocol: protocol.toUpperCase(),
               }));
 
-              // Ensure visual completion
+
               setProgress(100);
 
-              // Advance Batch Ref
+
               currentFileIndexRef.current += 1;
 
-              // Check if Batch Complete
+
               if (currentFileIndexRef.current >= totalBatchFilesRef.current) {
                 setStatus('completed');
                 setProgress(100);
                 addToast('info', 'Batch Complete', `${totalBatchFilesRef.current} files sent.`);
                 setIsBatchActive(false);
               } else {
-                // Remain in 'sending' state
+
               }
             }
           } else if (event.type === 'ERROR') {
@@ -161,13 +170,12 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
           }
         });
       } catch (_e) {
-        // Ignore
       }
     });
     return cleanup;
   }, [protocol, addToast, files]);
 
-  // Native Batch Start
+
   const startBatch = async () => {
     if (!isValid) return;
     setIsBatchActive(true);
@@ -200,13 +208,13 @@ export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
     try {
       await window.api.stopProcess();
 
-      // Log Cancellation
+
       if (files[currentFileIndex]) {
         StorageService.addHistoryItem({
           id: Date.now().toString() + Math.random(),
           timestamp: Date.now(),
           filename: files[currentFileIndex].split('/').pop() || 'unknown',
-          size: totalBytesRef.current, // Might be 0 if cancelled before first progress
+          size: totalBytesRef.current,
           direction: 'sent',
           status: 'cancelled',
           protocol: protocol.toUpperCase(),

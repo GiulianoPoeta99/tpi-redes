@@ -1,15 +1,38 @@
 import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the GradientCard component.
+ */
 interface GradientCardProps {
+  /**
+   * Main title of the card.
+   */
   title: string;
+  /**
+   * Description text corresponding to the card.
+   */
   description: string;
+  /**
+   * Icon to display next to the title.
+   */
   icon: LucideIcon;
+  /**
+   * Tailwind class for the icon color.
+   * @default 'text-white'
+   */
   iconColorClass?: string;
   children?: React.ReactNode;
+  /**
+   * Visual theme variant.
+   * @default 'blue'
+   */
   variant?: 'red' | 'blue' | 'purple';
 }
 
+/**
+ * A visually rich card component with a gradient background.
+ */
 const GradientCard: React.FC<GradientCardProps> = ({
   title,
   description,

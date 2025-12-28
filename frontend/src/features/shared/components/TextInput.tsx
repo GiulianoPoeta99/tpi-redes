@@ -1,10 +1,21 @@
 import type React from 'react';
 
+/**
+ * Props for the TextInput component.
+ * Extends standard HTML input attributes.
+ */
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
+  /**
+   * If true, applies error styling.
+   * @default false
+   */
   error?: boolean;
 }
 
+/**
+ * A styled text input component.
+ */
 const TextInput: React.FC<TextInputProps> = ({ className = '', error, ...props }) => {
   return (
     <input

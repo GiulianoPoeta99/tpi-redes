@@ -7,6 +7,9 @@ import { useDiscovery } from '../shared/hooks/useDiscovery';
 import ActiveAttacks from './components/ActiveAttacks';
 import MitmNetworkConfig from './components/MitmNetworkConfig';
 
+/**
+ * Configuration state for the MITM proxy.
+ */
 interface MitmConfig {
   listenPort: number | string;
   targetIp: string;
@@ -14,6 +17,10 @@ interface MitmConfig {
   corruption: number;
 }
 
+/**
+ * Main view for the Man-in-the-Middle (MITM) mode.
+ * Allows configuring interception, modification parameters, and visualizing attacks.
+ */
 const MitmView: React.FC<{
   setBusy: (busy: boolean) => void;
   setHeaderContent: (content: React.ReactNode) => void;
@@ -28,7 +35,6 @@ const MitmView: React.FC<{
   const isAttacking = isRunning && config.corruption > 0;
   const [stats, setStats] = useState({ intercepted: 0, corrupted: 0 });
 
-  // Discovery
   const discovery = useDiscovery();
 
   useEffect(() => {
@@ -44,7 +50,6 @@ const MitmView: React.FC<{
     discovery.close();
   };
 
-  // Fake Stats Simulation
   useEffect(() => {
     if (!isRunning) return;
     const interval = setInterval(() => {
@@ -56,11 +61,10 @@ const MitmView: React.FC<{
             ? Math.floor(Math.random() * 3) + 1
             : 0),
       }));
-    }, 500); // Update every 500ms
+    }, 500);
     return () => clearInterval(interval);
   }, [isRunning, config.corruption]);
 
-  // Lift Header Content
   useEffect(() => {
     setHeaderContent(
       <HeaderStatusCard
@@ -81,7 +85,7 @@ const MitmView: React.FC<{
       setIsRunning(false);
     } else {
       try {
-        setStats({ intercepted: 0, corrupted: 0 }); // Reset stats
+        setStats({ intercepted: 0, corrupted: 0 });
         await window.api.startProxy({
           listenPort: Number(config.listenPort),
           targetIp: config.targetIp,
@@ -105,7 +109,6 @@ const MitmView: React.FC<{
         peers={discovery.peers}
         error={discovery.error}
       />
-      {/* Network Configuration */}
       <MitmNetworkConfig
         config={config}
         setConfig={setConfig}

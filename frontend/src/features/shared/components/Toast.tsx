@@ -33,11 +33,14 @@ interface ToastProps extends ToastMessage {
   onClose: () => void;
 }
 
+/**
+ * Individual toast component.
+ */
 const Toast: React.FC<ToastProps> = ({ type, title, description, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, 4000); // 4s auto-dismiss
+    }, 4000);
     return () => clearTimeout(timer);
   }, [onClose]);
 

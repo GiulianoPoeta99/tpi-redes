@@ -1,14 +1,21 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 
+/**
+ * Props for IpDisplay.
+ */
 interface IpDisplayProps {
-  ip?: string; // If not provided, will fetch internally
+  ip?: string;
   variant?: 'purple' | 'red' | 'blue' | 'gray';
   size?: 'sm' | 'md';
   className?: string;
   showLabel?: boolean;
 }
 
+/**
+ * Component to display an IP address with a styled container and status dot.
+ * If no IP is provided, it fetches the local IP automatically.
+ */
 const IpDisplay: React.FC<IpDisplayProps> = ({
   ip: providedIp,
   variant = 'purple',
@@ -54,13 +61,13 @@ const IpDisplay: React.FC<IpDisplayProps> = ({
 
   const sizes = {
     sm: {
-      container: 'px-4 py-2 min-h-0', // Compact
+      container: 'px-4 py-2 min-h-0',
       label: 'text-[10px] mb-0.5',
       value: 'text-sm font-bold',
       dot: 'w-1.5 h-1.5',
     },
     md: {
-      container: 'px-4 py-3 min-h-[74px]', // Reduced further
+      container: 'px-4 py-3 min-h-[74px]',
       label: 'text-xs mb-1',
       value: 'text-xl',
       dot: 'w-2 h-2',

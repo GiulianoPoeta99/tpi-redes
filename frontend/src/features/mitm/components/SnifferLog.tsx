@@ -7,6 +7,9 @@ import SnifferControls from './SnifferControls';
 import SnifferPermissionModal from './SnifferPermissionModal';
 import SnifferRawLog from './SnifferRawLog';
 
+/**
+ * Props for SnifferLog.
+ */
 interface SnifferLogProps {
   logs: { id: string; text: string; type?: string }[];
   mode: 'receiver' | 'transmitter' | 'mitm';
@@ -14,12 +17,15 @@ interface SnifferLogProps {
 
 const ITEMS_PER_PAGE = 50;
 
+/**
+ * Component to display trapped network packets in a log or table view.
+ * Handles pagination, auto-scrolling, and packet capture updates.
+ */
 const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
   const [viewMode, setViewMode] = useState<'raw' | 'table'>('table');
   const [currentPage, setCurrentPage] = useState(1);
   const logEndRef = useRef<HTMLDivElement>(null);
 
-  // Lifted Packet State
   const [packets, setPackets] = useState<Packet[]>([]);
   const [paused, setPaused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -36,16 +42,14 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
 
   useEffect(() => {
     const cleanupError = window.api.onSnifferError((err: unknown) => {
-      // Handle error type safely
       console.error(err);
-      setPermissionError(true); // Keep this to show the error modal
+      setPermissionError(true);
     });
     return cleanupError;
   }, []);
 
   const totalPages = Math.max(1, Math.ceil(logs.length / ITEMS_PER_PAGE));
 
-  // Auto-advance page if following tail
   useEffect(() => {
     setCurrentPage((prev) => {
       const prevTotal = Math.ceil(Math.max(0, logs.length - 1) / ITEMS_PER_PAGE);
@@ -54,7 +58,6 @@ const SnifferLog: React.FC<SnifferLogProps> = ({ logs, mode }) => {
     });
   }, [logs.length, totalPages]);
 
-  // Scroll to bottom effect
   useEffect(() => {
     if (viewMode === 'raw' && currentPage === totalPages) {
       logEndRef.current?.scrollIntoView({ behavior: 'smooth' });

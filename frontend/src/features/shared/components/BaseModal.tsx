@@ -2,17 +2,45 @@ import type { LucideIcon } from 'lucide-react';
 import { X } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the BaseModal component.
+ */
 interface BaseModalProps {
+  /**
+   * Whether the modal is currently open.
+   */
   isOpen: boolean;
+  /**
+   * Callback function to handle closing the modal.
+   */
   onClose: () => void;
+  /**
+   * The title displayed in the modal header.
+   */
   title: string;
+  /**
+   * Optional icon to display next to the title.
+   */
   icon?: LucideIcon;
+  /**
+   * Optional description text displayed below the title.
+   */
   description?: string;
+  /**
+   * The width size of the modal.
+   * @default 'md'
+   */
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  /**
+   * Optional custom content to display in the header (e.g., actions).
+   */
   headerContent?: React.ReactNode;
   children: React.ReactNode;
 }
 
+/**
+ * A flexible modal dialog component with a backdrop and standardized header/content layout.
+ */
 const BaseModal: React.FC<BaseModalProps> = ({
   isOpen,
   onClose,
@@ -36,8 +64,6 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      {/* Backdrop */}
       <button
         type="button"
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-default w-full h-full border-0 p-0"
@@ -45,11 +71,9 @@ const BaseModal: React.FC<BaseModalProps> = ({
         aria-label="Close modal"
       />
 
-      {/* Modal Container */}
       <div
         className={`relative w-full ${sizeClasses[size]} bg-gray-900/95 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0 bg-gray-900/50">
           <div className="flex items-center gap-3">
             {Icon && (
@@ -75,7 +99,6 @@ const BaseModal: React.FC<BaseModalProps> = ({
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
       </div>
     </div>

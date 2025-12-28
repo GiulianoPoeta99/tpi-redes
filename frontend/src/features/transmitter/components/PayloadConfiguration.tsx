@@ -4,16 +4,43 @@ import ConfigGroup from '../../shared/components/ConfigGroup';
 import SubmitButton from '../../shared/components/SubmitButton';
 import FileSelectionConfig from './FileSelectionConfig';
 
+/**
+ * Props for the PayloadConfiguration component.
+ */
 interface PayloadConfigurationProps {
+  /**
+   * List of selected files.
+   */
   files: string[];
+  /**
+   * Callback to add new files.
+   */
   addFiles: (files: string[]) => void;
+  /**
+   * Callback to set the entire file list.
+   */
   setFiles: (files: string[]) => void;
+  /**
+   * Callback to open/close the queue modal.
+   */
   setIsQueueOpen: (isOpen: boolean) => void;
+  /**
+   * Current transmission status.
+   */
   status: 'idle' | 'sending' | 'success' | 'error';
+  /**
+   * Callback to start the batch transmission.
+   */
   startBatch: () => void;
+  /**
+   * Whether the configuration is valid to start sending.
+   */
   isValid: boolean;
 }
 
+/**
+ * A configuration form for selecting files and initiating the transfer.
+ */
 const PayloadConfiguration: React.FC<PayloadConfigurationProps> = ({
   files,
   addFiles,
@@ -29,7 +56,6 @@ const PayloadConfiguration: React.FC<PayloadConfigurationProps> = ({
       icon={FileText}
       className="flex-1 min-h-[220px] flex flex-col"
     >
-      {/* DROP ZONE */}
       <FileSelectionConfig
         files={files}
         onFilesAdded={addFiles}

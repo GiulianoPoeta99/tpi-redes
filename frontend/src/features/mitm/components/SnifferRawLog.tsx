@@ -1,11 +1,17 @@
 import type React from 'react';
 
+/**
+ * Props for SnifferRawLog.
+ */
 interface SnifferRawLogProps {
   logs: { id: string; text: string }[];
   visible: boolean;
   logEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
+/**
+ * Helper to strip ANSI escape codes from log strings.
+ */
 function stripAnsi(str: string): string {
   // eslint-disable-next-line no-control-regex
   // biome-ignore lint/complexity/useRegexLiterals: Avoiding control characters in regex literal lint

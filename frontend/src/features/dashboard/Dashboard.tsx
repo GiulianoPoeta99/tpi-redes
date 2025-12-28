@@ -13,7 +13,11 @@ import HistoryModal from './components/HistoryModal';
 import StatsPanel from './components/StatsPanel';
 import DashboardLayout from './DashboardLayout';
 
-// Dashboard "Desktop" Layout with 3 modes + Persistent Sidebars
+/**
+ * Dashboard "Desktop" Layout with 3 modes + Persistent Sidebars.
+ * Orchestrates the main application state, mode switching, global event listeners (logs, stats),
+ * and layout composition.
+ */
 const Dashboard: React.FC = () => {
   const [mode, setMode] = useState<'receiver' | 'transmitter' | 'mitm'>('receiver');
   const [stats, setStats] = useState<AppStats>(StorageService.loadStats());
@@ -29,16 +33,14 @@ const Dashboard: React.FC = () => {
       const id = Math.random().toString(36).substr(2, 9);
       setToasts((prev) => {
         const newToasts = [{ id, type, title, description }, ...prev];
-        return newToasts.slice(0, 3); // Keep only first 3 (newest)
+        return newToasts.slice(0, 3);
       });
     },
     [],
   );
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  // Listen for stats and logs globally
   useEffect(() => {
-    // Stats Listener
     const cleanupStats = window.api.onStatsUpdate((data: unknown) => {
       const newStats = data as { total_sent?: number; bytes_sent?: number; delta_bytes?: number };
       setStats((prev) => {
@@ -57,21 +59,17 @@ const Dashboard: React.FC = () => {
       });
     });
 
-    // Global Log Listener for Toasts & Sniffer
-    // We filter specific events that deserve a global toast
     const cleanupLog = window.api.onLog((log: string) => {
       try {
         const parsed = JSON.parse(log);
         const events = Array.isArray(parsed) ? parsed : [parsed];
 
-        // Flatten batched events into individual log strings for SnifferLog
-        // Filter out high-frequency events that have their own UI components (PacketTable, StatsPanel)
         const newLogLines = events
           .filter((e: unknown) => {
             if (typeof e === 'object' && e !== null && 'type' in e && typeof e.type === 'string') {
               return !['PACKET_CAPTURE', 'STATS', 'WINDOW_UPDATE'].includes(e.type);
             }
-            return true; // Include if type is not a string or not present
+            return true;
           })
           .map((e: unknown) => ({
             id: crypto.randomUUID(),
@@ -84,7 +82,6 @@ const Dashboard: React.FC = () => {
         }
 
         events.forEach((json: unknown) => {
-          // Type guard or cast logic would go here, currently casting loosely for refactor
           const event = json as {
             type?: string;
             message?: string;
@@ -107,12 +104,10 @@ const Dashboard: React.FC = () => {
           }
         });
       } catch (_e) {
-        // Fallback for non-JSON logs or parse errors
         setLogs((prev) => [...prev, { id: crypto.randomUUID(), text: log, type: 'RAW' }]);
       }
     });
 
-    // Packet Listener for Real-time Stats
     const cleanupPackets = window.api.onPacketCapture((data) => {
       const packet = data as Packet;
       setStats((prev) => {
@@ -137,7 +132,6 @@ const Dashboard: React.FC = () => {
     };
   }, [addToast, mode]);
 
-  // Switching modes should hard-kill previous process to free ports
   const handleModeSwitch = async (newMode: 'receiver' | 'transmitter' | 'mitm') => {
     if (isBusy) {
       addToast('info', 'Action Required', 'Stop current operation before switching.');
@@ -145,10 +139,8 @@ const Dashboard: React.FC = () => {
     }
     if (mode === newMode) return;
 
-    // Clear Logs on mode switch (Optional, but cleaner)
     setLogs([]);
 
-    // Stop current backend process
     try {
       await window.api.stopProcess();
       console.log('Stopped background process.');
@@ -196,7 +188,6 @@ const Dashboard: React.FC = () => {
       }
       sideContent={
         <>
-          {/* Statistics Widget */}
           <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center shrink-0">
             <h3 className="text-gray-400 text-sm font-semibold mb-2 uppercase tracking-wider">
               Network Stats
@@ -204,7 +195,6 @@ const Dashboard: React.FC = () => {
             <StatsPanel stats={stats} />
           </div>
 
-          {/* Packet Sniffer */}
           <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-0">
             <SnifferLog logs={logs} mode={mode} />
           </div>

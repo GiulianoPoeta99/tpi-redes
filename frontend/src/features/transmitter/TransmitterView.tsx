@@ -13,12 +13,19 @@ import TransferCompleteOverlay from './components/TransferCompleteOverlay';
 import TransferProgressOverlay from './components/TransferProgressOverlay';
 import { useTransmitter } from './hooks/useTransmitter';
 
+/**
+ * Props for TransmitterView.
+ */
 interface TransmitterViewProps {
   setBusy: (busy: boolean) => void;
   addToast: (type: 'success' | 'error' | 'info', title: string, description?: string) => void;
   setHeaderContent: (content: React.ReactNode) => void;
 }
 
+/**
+ * Main view for the Transmitter (Sender) mode.
+ * Manages configuration, file queue, and transmission status.
+ */
 const TransmitterView: React.FC<TransmitterViewProps> = ({
   setBusy,
   addToast,
@@ -27,11 +34,9 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
   const { state, actions } = useTransmitter({ setBusy, addToast });
   const discovery = useDiscovery();
 
-  // UI Specific State
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
-  // Sync Header
   useEffect(() => {
     setHeaderContent(
       <HeaderStatusCard
@@ -76,12 +81,9 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
         error={discovery.error}
       />
 
-      {/* MAIN LAYOUT */}
       {state.status === 'idle' && (
         <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pb-2">
-          {/* Row 1: Network & Advanced Params */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[320px]">
-            {/* Network Config */}
             <NetworkConfiguration
               ip={state.ip}
               setIp={actions.setIp}
@@ -95,7 +97,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
               setNetInterface={actions.setNetInterface}
             />
 
-            {/* Advanced Params */}
             <AdvancedOptions
               delay={state.delay}
               setDelay={actions.setDelay}
@@ -105,7 +106,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
             />
           </div>
 
-          {/* Row 2: Payload Selection - Flexible Bottom */}
           <PayloadConfiguration
             files={state.files}
             addFiles={actions.addFiles}
@@ -118,7 +118,6 @@ const TransmitterView: React.FC<TransmitterViewProps> = ({
         </div>
       )}
 
-      {/* SHOW SENDING UI if actually sending OR if waiting for next batch file */}
       {(state.status === 'sending' || (state.isBatchActive && state.status === 'completed')) && (
         <TransferProgressOverlay
           progress={state.progress}

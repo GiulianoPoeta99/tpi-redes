@@ -2,6 +2,9 @@ import { FileText, List, Plus, X } from 'lucide-react';
 import type React from 'react';
 import { useRef, useState } from 'react';
 
+/**
+ * Props for FileDropInput.
+ */
 interface FileDropInputProps {
   files: string[];
   onFilesAdded: (files: string[]) => void;
@@ -11,6 +14,10 @@ interface FileDropInputProps {
   className?: string;
 }
 
+/**
+ * A drag-and-drop file input area.
+ * Supports multiple file selection and displays summary of selected files.
+ */
 const FileDropInput: React.FC<FileDropInputProps> = ({
   files,
   onFilesAdded,
@@ -30,7 +37,6 @@ const FileDropInput: React.FC<FileDropInputProps> = ({
       if (paths.length > 0) {
         onFilesAdded(paths);
       }
-      // Reset input so same files can be selected again if needed
       e.target.value = '';
     }
   };

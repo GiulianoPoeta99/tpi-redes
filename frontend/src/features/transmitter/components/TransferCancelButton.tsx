@@ -1,9 +1,18 @@
 import type React from 'react';
 
+/**
+ * Props for the TransferCancelButton component.
+ */
 interface TransferCancelButtonProps {
+  /**
+   * Callback to cancel the transfer.
+   */
   onCancel: () => void;
 }
 
+/**
+ * A styled button to cancel an active file transfer batch.
+ */
 const TransferCancelButton: React.FC<TransferCancelButtonProps> = ({ onCancel }) => {
   return (
     <button

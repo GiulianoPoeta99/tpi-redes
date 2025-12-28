@@ -7,10 +7,19 @@ import EmptyState from '../../shared/components/EmptyState';
 import FileListItem from '../../shared/components/FileListItem';
 import { StorageService, type TransferHistoryItem } from '../../shared/services/StorageService';
 
+/**
+ * Props for the HistoryModal component.
+ */
 interface HistoryModalProps {
+  /**
+   * Callback to close the modal.
+   */
   onClose: () => void;
 }
 
+/**
+ * A modal that displays logged transfer history (sent and received files).
+ */
 const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
   const [history, setHistory] = useState<TransferHistoryItem[]>([]);
 

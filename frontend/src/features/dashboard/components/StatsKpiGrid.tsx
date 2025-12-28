@@ -3,13 +3,31 @@ import type React from 'react';
 import { formatBytes, formatSpeed } from '../../../features/shared/utils/formatters';
 import KpiCard from '../../shared/components/KpiCard';
 
+/**
+ * Props for the StatsKpiGrid component.
+ */
 interface StatsKpiGridProps {
+  /**
+   * Total number of files processed.
+   */
   totalFiles: number;
+  /**
+   * Total bytes processed.
+   */
   totalBytes: number;
+  /**
+   * Total duration of activity in seconds.
+   */
   totalDuration: number;
+  /**
+   * Average throughput achieved.
+   */
   avgThroughput: number;
 }
 
+/**
+ * A grid of Key Performance Indicator (KPI) cards summarizing transfer statistics.
+ */
 const StatsKpiGrid: React.FC<StatsKpiGridProps> = ({
   totalFiles,
   totalBytes,

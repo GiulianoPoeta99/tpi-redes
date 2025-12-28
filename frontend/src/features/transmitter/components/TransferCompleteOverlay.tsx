@@ -1,12 +1,27 @@
 import { Check } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the TransferCompleteOverlay component.
+ */
 interface TransferCompleteOverlayProps {
+  /**
+   * Total number of files transferred.
+   */
   totalFiles: number;
+  /**
+   * Status to show statistics.
+   */
   onShowStats: () => void;
+  /**
+   * Callback to reset and start over.
+   */
   onReset: () => void;
 }
 
+/**
+ * An overlay displayed when a file transfer batch completes successfully.
+ */
 const TransferCompleteOverlay: React.FC<TransferCompleteOverlayProps> = ({
   totalFiles,
   onShowStats,

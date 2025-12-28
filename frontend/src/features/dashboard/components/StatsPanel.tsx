@@ -2,10 +2,19 @@ import { Activity, ArrowDownCircle, ArrowUpCircle, HardDrive } from 'lucide-reac
 import type React from 'react';
 import type { AppStats } from '../../shared/services/StorageService';
 
+/**
+ * Props for the StatsPanel component.
+ */
 interface StatsPanelProps {
+  /**
+   * Application statistics.
+   */
   stats: AppStats;
 }
 
+/**
+ * A reusable card component for displaying a single statistic.
+ */
 const StatCard: React.FC<{
   label: string;
   value: string | number;
@@ -56,6 +65,9 @@ const StatCard: React.FC<{
   );
 };
 
+/**
+ * A side panel displaying summary cards for network packets and data volume.
+ */
 const StatsPanel: React.FC<StatsPanelProps> = ({ stats }) => {
   const formatBytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 

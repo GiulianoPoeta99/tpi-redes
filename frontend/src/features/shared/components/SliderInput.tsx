@@ -1,5 +1,10 @@
 import type React from 'react';
 
+import ControlContainer from './ControlContainer';
+
+/**
+ * Props for SliderInput.
+ */
 interface SliderInputProps {
   value: number;
   min: number;
@@ -14,11 +19,9 @@ interface SliderInputProps {
   accentColor?: 'blue' | 'red';
 }
 
-import ControlContainer from './ControlContainer';
-
-// ... (props interface kept in file, just hidden in diff) Since I am replacing the whole return block and imports I need to be careful.
-// Actually, let's just use replace on the whole file or the return block + import.
-
+/**
+ * A styled range input slider component with header and footer support.
+ */
 const SliderInput: React.FC<SliderInputProps> = ({
   value,
   min,

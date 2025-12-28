@@ -3,14 +3,35 @@ import DualCircularProgress from './DualCircularProgress';
 import TransferCancelButton from './TransferCancelButton';
 import TransferStatusInfo from './TransferStatusInfo';
 
+/**
+ * Props for the TransferProgressOverlay component.
+ */
 interface TransferProgressOverlayProps {
+  /**
+   * Current file progress (0-100).
+   */
   progress: number;
+  /**
+   * Index of the current file being transferred.
+   */
   currentFileIndex: number;
+  /**
+   * Total number of files.
+   */
   totalFiles: number;
+  /**
+   * Name of the current file.
+   */
   currentFilename: string;
+  /**
+   * Callback to cancel the transfer.
+   */
   onCancel: () => void;
 }
 
+/**
+ * An overlay displayed during file transmission, showing detailed progress.
+ */
 const TransferProgressOverlay: React.FC<TransferProgressOverlayProps> = ({
   progress,
   currentFileIndex,

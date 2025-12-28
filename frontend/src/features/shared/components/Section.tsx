@@ -1,14 +1,33 @@
 import type React from 'react';
 
+/**
+ * Props for the Section component.
+ */
 interface SectionProps {
+  /**
+   * Title of the section.
+   */
   title?: string;
+  /**
+   * Description or helper text.
+   */
   description?: string;
   children: React.ReactNode;
+  /**
+   * Optional controls or content for the header area.
+   */
   headerContent?: React.ReactNode;
   className?: string;
+  /**
+   * If true, removes padding from the content area.
+   * @default false
+   */
   noPadding?: boolean;
 }
 
+/**
+ * A composite container usually comprising a title/header and a Main content area.
+ */
 const Section: React.FC<SectionProps> = ({
   title,
   description,

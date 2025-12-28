@@ -1,12 +1,18 @@
 import type React from 'react';
 import SliderInput from '../../shared/components/SliderInput';
 
+/**
+ * Props for DelaySlider.
+ */
 interface DelaySliderProps {
-  value: number; // ms
+  value: number;
   onChange: (val: number) => void;
   disabled?: boolean;
 }
 
+/**
+ * Slider component for adjusting transmission delay in milliseconds.
+ */
 const DelaySlider: React.FC<DelaySliderProps> = ({ value, onChange, disabled }) => {
   return (
     <SliderInput

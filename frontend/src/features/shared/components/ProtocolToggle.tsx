@@ -1,13 +1,25 @@
 import type React from 'react';
 import BinarySwitch from './BinarySwitch';
 
+/**
+ * Props for the ProtocolToggle component.
+ */
 interface ProtocolToggleProps {
+  /**
+   * The selected protocol.
+   */
   protocol: 'tcp' | 'udp';
+  /**
+   * Callback when protocol changes.
+   */
   onChange: (p: 'tcp' | 'udp') => void;
   disabled?: boolean;
   className?: string;
 }
 
+/**
+ * A toggle switch specifically for selecting between TCP and UDP protocols.
+ */
 const ProtocolToggle: React.FC<ProtocolToggleProps> = ({
   protocol,
   onChange,

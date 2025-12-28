@@ -1,13 +1,30 @@
 import type React from 'react';
 
+/**
+ * Props for the Badge component.
+ */
 interface BadgeProps {
   children: React.ReactNode;
+  /**
+   * The visual style variant of the badge.
+   * @default 'neutral'
+   */
   variant?: 'success' | 'error' | 'warning' | 'info' | 'neutral' | 'glass';
+  /**
+   * The size of the badge.
+   * @default 'md'
+   */
   size?: 'sm' | 'md';
   className?: string;
+  /**
+   * Optional icon to display before the content.
+   */
   icon?: React.ReactNode;
 }
 
+/**
+ * A styled badge component for displaying status, labels, or tags.
+ */
 const Badge: React.FC<BadgeProps> = ({
   children,
   variant = 'neutral',

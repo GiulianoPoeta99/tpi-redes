@@ -1,14 +1,32 @@
 import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the EmptyState component.
+ */
 interface EmptyStateProps {
+  /**
+   * Optional icon to display.
+   */
   icon?: LucideIcon;
+  /**
+   * Main title to display.
+   */
   title: string;
+  /**
+   * Optional detailed description.
+   */
   description?: string;
+  /**
+   * Optional action button or element.
+   */
   action?: React.ReactNode;
   className?: string;
 }
 
+/**
+ * A component to display when there is no data or content to show.
+ */
 const EmptyState: React.FC<EmptyStateProps> = ({
   icon: Icon,
   title,

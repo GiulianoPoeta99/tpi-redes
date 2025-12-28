@@ -1,17 +1,41 @@
 import { FileText } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Represents statistics for a single file transfer.
+ */
 interface Stats {
+  /**
+   * Name of the file.
+   */
   filename: string;
+  /**
+   * Time taken in seconds.
+   */
   timeTaken: number;
+  /**
+   * Throughput in MB/s.
+   */
   throughput: number;
+  /**
+   * Protocol used (e.g., 'tcp', 'udp').
+   */
   protocol: string;
 }
 
+/**
+ * Props for the StatsLatestTransfer component.
+ */
 interface StatsLatestTransferProps {
+  /**
+   * The statistics object to display.
+   */
   stats: Stats;
 }
 
+/**
+ * A component displaying a summary row for the most recent file transfer.
+ */
 const StatsLatestTransfer: React.FC<StatsLatestTransferProps> = ({ stats }) => {
   return (
     <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10 relative overflow-hidden group shrink-0">

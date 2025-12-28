@@ -1,16 +1,36 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the NumberInput component.
+ */
 interface NumberInputProps {
+  /**
+   * The current numeric value or empty string.
+   */
   value: number | string;
+  /**
+   * Callback on change.
+   */
   onChange: (value: number | string) => void;
+  /**
+   * Minimum value allowed.
+   * @default 1
+   */
   min?: number;
+  /**
+   * Maximum value allowed.
+   * @default 65535
+   */
   max?: number;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
 }
 
+/**
+ * A customized numeric input with increment/decrement buttons.
+ */
 const NumberInput: React.FC<NumberInputProps> = ({
   value,
   onChange,

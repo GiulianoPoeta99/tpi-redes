@@ -1,12 +1,30 @@
 import type React from 'react';
 
+/**
+ * Props for the TransferStatusInfo component.
+ */
 interface TransferStatusInfoProps {
+  /**
+   * Current file index (0-based).
+   */
   currentFileIndex: number;
+  /**
+   * Total number of files.
+   */
   totalFiles: number;
+  /**
+   * Current file name.
+   */
   currentFilename: string;
+  /**
+   * Overall batch progress percentage (0-100).
+   */
   batchProgress: number;
 }
 
+/**
+ * Displays text information about the current transfer status.
+ */
 const TransferStatusInfo: React.FC<TransferStatusInfoProps> = ({
   currentFileIndex,
   totalFiles,

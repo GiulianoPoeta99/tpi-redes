@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FileItem, VerificationResult } from '../types';
 
+/**
+ * Hook to manage the listed of received files in the download directory.
+ *
+ * @param isOpen - Boolean indicating if the view is open, triggering a refresh.
+ * @returns Object with files list, loading state, verification state, and actions.
+ */
 export const useReceivedFiles = (isOpen: boolean) => {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -15,7 +21,6 @@ export const useReceivedFiles = (isOpen: boolean) => {
     try {
       const dir = await window.api.getDownloadsDir();
       const list = await window.api.listFiles(dir);
-      // Sort by newest first
       setFiles(list.sort((a, b) => b.mtime - a.mtime));
     } catch (error) {
       console.error('Failed to list files:', error);

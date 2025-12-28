@@ -4,13 +4,31 @@ import BaseModal from '../../shared/components/BaseModal';
 import EmptyState from '../../shared/components/EmptyState';
 import FileListItem from '../../shared/components/FileListItem';
 
+/**
+ * Props for the FilesQueueModal component.
+ */
 interface FilesQueueModalProps {
+  /**
+   * Whether the modal is open.
+   */
   isOpen: boolean;
+  /**
+   * Callback to close the modal.
+   */
   onClose: () => void;
+  /**
+   * List of files in the queue.
+   */
   files: string[];
+  /**
+   * Callback to remove a file by index.
+   */
   onRemove: (index: number) => void;
 }
 
+/**
+ * A modal that displays the list of files selected for transmission.
+ */
 const FilesQueueModal: React.FC<FilesQueueModalProps> = ({ isOpen, onClose, files, onRemove }) => {
   return (
     <BaseModal

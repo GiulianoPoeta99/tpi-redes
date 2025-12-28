@@ -1,14 +1,32 @@
 import { Monitor } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the PeerListItem component.
+ */
 interface PeerListItemProps {
+  /**
+   * IP address of the peer.
+   */
   ip: string;
+  /**
+   * Optional port number.
+   */
   port?: number;
+  /**
+   * Hostname if available.
+   */
   hostname?: string;
+  /**
+   * Callback when the peer is selected.
+   */
   onSelect?: () => void;
   className?: string;
 }
 
+/**
+ * A list item representing a discovered network peer.
+ */
 const PeerListItem: React.FC<PeerListItemProps> = ({ ip, port, hostname, onSelect }) => {
   return (
     <button

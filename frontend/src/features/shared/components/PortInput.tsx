@@ -2,6 +2,9 @@ import { AlertTriangle } from 'lucide-react';
 import type React from 'react';
 import NumberInput from './NumberInput';
 
+/**
+ * Props for PortInput.
+ */
 interface PortInputProps {
   value: number | string;
   onChange: (value: number | string) => void;
@@ -10,6 +13,10 @@ interface PortInputProps {
   className?: string;
 }
 
+/**
+ * A specialized numeric input for network ports.
+ * Highlights system ports (1-1023) with a warning badge.
+ */
 const PortInput: React.FC<PortInputProps> = ({
   value,
   onChange,
@@ -31,7 +38,6 @@ const PortInput: React.FC<PortInputProps> = ({
         className={isSystemPort ? 'border-yellow-500/50 focus:border-yellow-500' : ''}
       />
 
-      {/* System Port Warning */}
       {isSystemPort && !disabled && (
         <div className="absolute -top-2 -right-1 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1 backdrop-blur-sm shadow-sm pointer-events-none">
           <AlertTriangle size={10} />

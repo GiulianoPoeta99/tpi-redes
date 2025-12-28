@@ -4,16 +4,40 @@ import InterfaceSelector from './InterfaceSelector';
 import PortInput from './PortInput';
 import ProtocolToggle from './ProtocolToggle';
 
+/**
+ * Props for the PortProtocolConfig component.
+ */
 interface PortProtocolConfigProps {
+  /**
+   * The current port value.
+   */
   port: number | string;
+  /**
+   * Callback to update the port.
+   */
   setPort: (val: number | string) => void;
+  /**
+   * The current protocol (TCP/UDP).
+   */
   protocol: 'tcp' | 'udp';
+  /**
+   * Callback to update the protocol.
+   */
   setProtocol: (val: 'tcp' | 'udp') => void;
+  /**
+   * The selected network interface.
+   */
   interfaceVal: string | null;
+  /**
+   * Callback to update the interface.
+   */
   setInterfaceVal: (val: string | null) => void;
   disabled?: boolean;
 }
 
+/**
+ * A composite component for configuring port, protocol, and network interface settings.
+ */
 const PortProtocolConfig: React.FC<PortProtocolConfigProps> = ({
   port,
   setPort,

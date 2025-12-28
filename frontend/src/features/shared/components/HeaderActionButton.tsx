@@ -2,13 +2,31 @@ import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 import Button from './Button';
 
+/**
+ * Props for the HeaderActionButton component.
+ */
 interface HeaderActionButtonProps {
+  /**
+   * The text label for the button.
+   */
   label: string;
+  /**
+   * The icon component to display.
+   */
   icon: LucideIcon;
+  /**
+   * Callback function when clicked.
+   */
   onClick?: () => void;
+  /**
+   * The color theme of the button.
+   */
   color: 'blue' | 'purple';
 }
 
+/**
+ * A specialized action button usually placed in the header area.
+ */
 const HeaderActionButton: React.FC<HeaderActionButtonProps> = ({
   label,
   icon: Icon,

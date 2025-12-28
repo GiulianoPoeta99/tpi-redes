@@ -1,5 +1,8 @@
 import type React from 'react';
 
+/**
+ * Props for the BinarySwitch component.
+ */
 export interface BinarySwitchProps<T extends string> {
   value: T;
   options: [T, T];
@@ -10,6 +13,9 @@ export interface BinarySwitchProps<T extends string> {
   activeColor?: (value: T) => string;
 }
 
+/**
+ * A toggle switch component that allows selecting between two options.
+ */
 const BinarySwitch = <T extends string>({
   value,
   options,
@@ -30,8 +36,8 @@ const BinarySwitch = <T extends string>({
           className={`flex-1 py-1.5 text-sm rounded font-medium transition-all font-mono ${
             value === option
               ? activeColor
-                ? activeColor(option) // Custom active style
-                : 'bg-blue-600 text-white shadow-lg' // Default active style
+                ? activeColor(option)
+                : 'bg-blue-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-gray-200'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >

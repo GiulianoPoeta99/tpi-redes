@@ -4,15 +4,39 @@ import HeaderActionButton from '../../shared/components/HeaderActionButton';
 import IpDisplay from '../../shared/components/IpDisplay';
 import ModeSelector from '../../shared/components/ModeSelector';
 
+/**
+ * Props for the DashboardHeader component.
+ */
 interface DashboardHeaderProps {
+  /**
+   * Current active mode.
+   */
   mode: 'receiver' | 'transmitter' | 'mitm';
+  /**
+   * Callback to change the active mode.
+   */
   onModeChange: (mode: 'receiver' | 'transmitter' | 'mitm') => void;
+  /**
+   * Whether the dashboard is performing a blocking operation.
+   */
   isBusy: boolean;
+  /**
+   * Callback to show the files modal.
+   */
   onShowFiles: () => void;
+  /**
+   * Callback to show the history modal.
+   */
   onShowHistory: () => void;
+  /**
+   * Additional content to render in the header.
+   */
   headerContent: React.ReactNode;
 }
 
+/**
+ * The top navigation bar containing branding, mode selection, and global actions.
+ */
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   mode,
   onModeChange,
@@ -23,7 +47,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 }) => {
   return (
     <header className="bg-white/5 border-b border-white/10 backdrop-blur-md p-4 flex items-center justify-between z-10 sticky top-0">
-      {/* Left: Brand & Modes */}
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-3 group cursor-default">
           <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300 group-hover:scale-105">
@@ -39,7 +62,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </div>
         </div>
 
-        {/* Segmented Control */}
         <ModeSelector currentMode={mode} onModeChange={onModeChange} isBusy={isBusy} />
 
         <div className="w-px h-8 bg-white/10" />
@@ -51,7 +73,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Header Content & Actions */}
       <div className="flex items-stretch gap-4">
         <IpDisplay variant="gray" className="h-full" />
         {headerContent}

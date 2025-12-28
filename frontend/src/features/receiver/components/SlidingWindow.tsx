@@ -1,13 +1,31 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 
+/**
+ * Represents the state of the sliding window for flow control visualization.
+ */
 interface WindowState {
+  /**
+   * Sequence number of the window base (oldest unacknowledged byte).
+   */
   base: number;
+  /**
+   * Sequence number of the next byte to be sent.
+   */
   next_seq: number;
+  /**
+   * Size of the sliding window in bytes.
+   */
   window_size: number;
+  /**
+   * Total bytes to transfer.
+   */
   total: number;
 }
 
+/**
+ * A real-time visualizer for the sliding window flow control mechanism.
+ */
 const SlidingWindow: React.FC = () => {
   const [state, setState] = useState<WindowState | null>(null);
 
@@ -34,7 +52,6 @@ const SlidingWindow: React.FC = () => {
     <div className="w-full h-full flex flex-col p-4">
       <h3 className="text-lg font-semibold text-gray-200 mb-6">Sliding Window Visualizer</h3>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         <StatBox label="Window Base (ACKed)" value={state.base} color="text-green-400" />
         <StatBox label="Next Seq Num" value={state.next_seq} color="text-yellow-400" />
@@ -45,15 +62,12 @@ const SlidingWindow: React.FC = () => {
         />
       </div>
 
-      {/* Visual Representation */}
       <div className="relative w-full h-12 bg-gray-800 rounded-lg overflow-hidden border border-gray-700 mb-2">
-        {/* Progress (Sent) */}
         <div
           className="absolute top-0 left-0 h-full bg-green-900/30 transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
         ></div>
 
-        {/* The Window itself */}
         <div
           className="absolute top-0 h-full border-2 border-blue-500 bg-blue-500/10 transition-all duration-300 ease-out flex items-center justify-center"
           style={{

@@ -4,13 +4,28 @@ import Button from '../../shared/components/Button';
 import InputGroup from '../../shared/components/InputGroup';
 import IpInput from '../../shared/components/IpInput';
 
+/**
+ * Props for the TargetConfig component.
+ */
 interface TargetConfigProps {
+  /**
+   * Destination IP address.
+   */
   ip: string;
+  /**
+   * Callback to update IP.
+   */
   setIp: (val: string) => void;
+  /**
+   * Callback to initiate a network scan.
+   */
   onScan: () => void;
   disabled?: boolean;
 }
 
+/**
+ * A configuration control for entering or scanning for the target IP address.
+ */
 const TargetConfig: React.FC<TargetConfigProps> = ({ ip, setIp, onScan, disabled = false }) => {
   return (
     <InputGroup label="Target Config" indicatorColor="bg-blue-500">

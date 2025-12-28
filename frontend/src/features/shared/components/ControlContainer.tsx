@@ -1,12 +1,25 @@
 import type React from 'react';
 
+/**
+ * Props for the ControlContainer component.
+ */
 interface ControlContainerProps {
   children: React.ReactNode;
   className?: string;
+  /**
+   * Tailwind class for padding.
+   * @default 'p-4'
+   */
   padding?: string;
+  /**
+   * Optional title content displayed at the top.
+   */
   title?: React.ReactNode;
 }
 
+/**
+ * A container styled for grouping UI controls.
+ */
 const ControlContainer: React.FC<ControlContainerProps> = ({
   children,
   className = '',

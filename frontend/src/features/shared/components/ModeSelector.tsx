@@ -2,13 +2,19 @@ import type React from 'react';
 
 type Mode = 'receiver' | 'transmitter' | 'mitm';
 
+/**
+ * Props for ModeSelector.
+ */
 interface ModeSelectorProps {
   currentMode: Mode;
   onModeChange: (mode: Mode) => void;
   isBusy: boolean;
-  className?: string; // Allow passing external styles if needed for positioning
+  className?: string;
 }
 
+/**
+ * Component to switch between application modes (Receiver, Transmitter, MITM).
+ */
 const ModeSelector: React.FC<ModeSelectorProps> = ({
   currentMode,
   onModeChange,

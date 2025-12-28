@@ -4,17 +4,47 @@ import ConfigGroup from '../../shared/components/ConfigGroup';
 import PortProtocolConfig from '../../shared/components/PortProtocolConfig';
 import SubmitButton from '../../shared/components/SubmitButton';
 
+/**
+ * Props for the ListenerConfig component.
+ */
 interface ListenerConfigProps {
+  /**
+   * The port to listen on.
+   */
   port: number | string;
+  /**
+   * Callback to update the port.
+   */
   setPort: (port: number | string) => void;
+  /**
+   * The protocol to use (TCP/UDP).
+   */
   protocol: 'tcp' | 'udp';
+  /**
+   * Callback to update the protocol.
+   */
   setProtocol: (protocol: 'tcp' | 'udp') => void;
+  /**
+   * The network interface to bind to.
+   */
   netInterface: string | null;
+  /**
+   * Callback to update the network interface.
+   */
   setNetInterface: (val: string | null) => void;
+  /**
+   * Whether the server is currently running.
+   */
   isConnected: boolean;
+  /**
+   * Callback to start/stop the server.
+   */
   toggleServer: () => void;
 }
 
+/**
+ * Configuration form for setting up the listener (receiver) server.
+ */
 const ListenerConfig: React.FC<ListenerConfigProps> = ({
   port,
   setPort,
@@ -28,7 +58,6 @@ const ListenerConfig: React.FC<ListenerConfigProps> = ({
   return (
     <ConfigGroup title="Listener Config" icon={Settings}>
       <div className="flex flex-col gap-6">
-        {/* Row 1: Port & Protocol Group */}
         <PortProtocolConfig
           port={port}
           setPort={setPort}

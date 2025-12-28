@@ -1,16 +1,22 @@
 import { Activity, type LucideIcon } from 'lucide-react';
 import type React from 'react';
 
+/**
+ * Props for the HeaderStatusCard.
+ */
 interface HeaderStatusCardProps {
   title: string;
   subtitle: string;
   icon: LucideIcon;
   status?: 'active' | 'idle' | 'success' | 'error' | 'warning';
   statusLabel: string;
-  variant: 'blue' | 'purple' | 'red'; // Corresponds to modes
+  variant: 'blue' | 'purple' | 'red';
   className?: string;
 }
 
+/**
+ * A status card component displayed in the header, showing current mode and status.
+ */
 const HeaderStatusCard: React.FC<HeaderStatusCardProps> = ({
   title,
   subtitle,

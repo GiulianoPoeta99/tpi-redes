@@ -3,15 +3,40 @@ import type React from 'react';
 import FileListItem from '../../shared/components/FileListItem';
 import SlidingWindow from './SlidingWindow';
 
+/**
+ * Props for the ReceiverStatus component.
+ */
 interface ReceiverStatusProps {
+  /**
+   * Whether the server is running.
+   */
   isConnected: boolean;
+  /**
+   * Whether a file transfer is currently active.
+   */
   transferActive: boolean;
+  /**
+   * Local IP address.
+   */
   localIp: string;
+  /**
+   * Local port.
+   */
   port: number | string;
+  /**
+   * Active protocol.
+   */
   protocol: 'tcp' | 'udp';
+  /**
+   * Name of the last received file.
+   */
   lastFile: string | null;
 }
 
+/**
+ * Displays the current status of the receiver (server), including online/offline state,
+ * listening details, and visual feedback during data reception.
+ */
 const ReceiverStatus: React.FC<ReceiverStatusProps> = ({
   isConnected,
   transferActive,
@@ -41,7 +66,6 @@ const ReceiverStatus: React.FC<ReceiverStatusProps> = ({
           </div>
         ) : transferActive ? (
           <div className="w-full h-full p-4 relative">
-            {/* Visualizer replaces logic when active */}
             <SlidingWindow />
             <div className="absolute bottom-4 left-0 right-0 text-center text-green-400 animate-pulse font-mono text-sm bg-black/50 py-1 backdrop-blur-md border-y border-green-500/20">
               RECEIVING DATA STREAM...

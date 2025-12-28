@@ -3,13 +3,20 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import SelectInput from './SelectInput';
 
+/**
+ * Props for InterfaceSelector.
+ */
 interface InterfaceSelectorProps {
   value: string | null;
   onChange: (value: string | null) => void;
   disabled?: boolean;
-  className?: string; // Allow container to control width
+  className?: string;
 }
 
+/**
+ * Component to select a network interface from the list of available interfaces.
+ * Fetches interfaces from the backend on mount.
+ */
 const InterfaceSelector: React.FC<InterfaceSelectorProps> = ({
   value,
   onChange,

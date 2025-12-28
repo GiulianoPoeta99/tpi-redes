@@ -3,15 +3,39 @@ import type React from 'react';
 import { formatBytes, formatDate } from '../../shared/utils/formatters';
 import type { FileItem, VerificationResult } from '../types';
 
+/**
+ * Props for the ReceivedFileList component.
+ */
 interface ReceivedFileListProps {
+  /**
+   * List of files to display.
+   */
   files: FileItem[];
+  /**
+   * Status results for file verification.
+   */
   verificationResults: Record<string, VerificationResult>;
+  /**
+   * Name of the file currently being verified, if any.
+   */
   verifying: string | null;
+  /**
+   * Callback to verify a file's integrity.
+   */
   onVerify: (file: FileItem) => void;
+  /**
+   * Callback to open a file.
+   */
   onOpen: (path: string) => void;
+  /**
+   * Callback to show a file in its folder.
+   */
   onOpenFolder: (path: string) => void;
 }
 
+/**
+ * A tabular layout for displaying received files with detailed information and actions.
+ */
 const ReceivedFileList: React.FC<ReceivedFileListProps> = ({
   files,
   verificationResults,
