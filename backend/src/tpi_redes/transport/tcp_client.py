@@ -3,9 +3,8 @@ import socket
 import time
 from pathlib import Path
 
+from tpi_redes.core.protocol import ProtocolHandler
 from tpi_redes.transfer.integrity import IntegrityVerifier
-
-from .protocol import ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
 
@@ -28,11 +27,11 @@ class TCPClient:
 
         logger.info(f"Connecting to {ip}:{port}...")
 
-        from tpi_redes.networking.packet_logger import PacketLogger
+        from tpi_redes.observability.packet_logger import PacketLogger
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((ip, port))
-            local_ip, local_port = s.getsockname()
+            _local_ip, _local_port = s.getsockname()
 
             # Log Handshake (Simulated) - REMOVED for Strict Mode
 

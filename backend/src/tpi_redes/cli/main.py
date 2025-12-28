@@ -86,7 +86,7 @@ def cli(debug: bool):
 @click.option("--interface", default=None)
 def sniffer_service(port: int, interface: str | None):
     """(Internal) Privileged sniffer process."""
-    from tpi_redes.networking.sniffer import PacketSniffer
+    from tpi_redes.observability.sniffer import PacketSniffer
 
     sniffer = PacketSniffer(interface=interface, port=port)
     sniffer.start_stdout_mode()
@@ -103,13 +103,19 @@ def sniffer_service(port: int, interface: str | None):
 @click.option(
     "--save-dir", default="./received_files", help="Directory to save received files"
 )
-@click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root permissions)")
+@click.option(
+    "--sniff",
+    is_flag=True,
+    help="Enable packet sniffer (requires root permissions)",
+)
 @click.option("--interface", default=None, help="Network interface to sniff")
-def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface: str | None):
+def start_server(
+    port: int, protocol: str, save_dir: str, sniff: bool, interface: str | None
+):
     """Start the file receiver server."""
     sniffer_process = None
     discovery = None
-    
+
     # Thread to read sniffer output
     import subprocess
     import threading
@@ -122,14 +128,14 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
             import os
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
-            
+
             # Preserve GUI environment for pkexec prompt
             env_vars = ["env", f"PYTHONPATH={src_path}"]
             if "DISPLAY" in os.environ:
                 env_vars.append(f"DISPLAY={os.environ['DISPLAY']}")
             if "XAUTHORITY" in os.environ:
                 env_vars.append(f"XAUTHORITY={os.environ['XAUTHORITY']}")
-            
+
             cmd = [
                 "pkexec",
                 *env_vars,
@@ -142,9 +148,9 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
             ]
             if interface:
                 cmd.extend(["--interface", interface])
-            
+
             logger.info("Requesting root privileges for Sniffer...")
-            
+
             try:
                 sniffer_process = subprocess.Popen(
                     cmd,
@@ -153,7 +159,7 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
                     text=True,
                     bufsize=1 # Line buffered
                 )
-                
+
                 sniffer_ready_event = threading.Event()
 
                 def forward_sniffer_output():
@@ -162,23 +168,22 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
                     for line in sniffer_process.stdout:
                         # DEBUG: Log raw sniffer output to stderr via logger
                         if line.strip():
-                            # Avoid double printing JSON if we log it, but user wants to SEE logs.
-                            # We use console.print or just stderr write.
-                            # Let's use stderr write to avoid interfering with stdout JSON
+                            # Avoid double printing JSON if we log it.
+                            # We use stderr write to avoid interfering with stdout JSON
                             sys.stderr.write(f"[SNIFFER_SUB] {line}")
                             sys.stderr.flush()
 
                         if "SNIFFER_READY" in line:
                             sniffer_ready_event.set()
-                        
+
                         # Forward to stdout (for Electron)
                         print(line, end="", flush=True)
 
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
                 t.start()
-                
+
                 # Wait for user to enter password and sniffer to start
-                # This ensures we don't start the server/transfer until 
+                # This ensures we don't start the server/transfer until
                 # we have confirmed root access (or user cancellation).
                 # Wait loop with early exit if process dies (cancellation)
                 import time
@@ -193,10 +198,12 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
                             "message": "Sniffer startup timed out."
                         }), flush=True)
                         break
-                    
+
                     if sniffer_process.poll() is not None:
                          # Process exited (User cancelled or error)
-                         logger.warning("Sniffer authentication cancelled or process died.")
+                         logger.warning(
+                             "Sniffer authentication cancelled or process died."
+                         )
                          # Emit error so UI hides/disables sniffer view
                          print(json.dumps({
                             "type": "SNIFFER_ERROR",
@@ -204,18 +211,9 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
                             "message": "Sniffer authentication cancelled."
                          }), flush=True)
                          break
-                    
+
                     time.sleep(0.1)
-                
-            except Exception as e:
-                 logger.error(f"Failed to spawn sniffer: {e}")
-                 # Emit error so UI knows
-                 print(json.dumps({
-                    "type": "SNIFFER_ERROR",
-                    "code": "SPAWN_FAILED",
-                    "message": str(e)
-                 }), flush=True)
-                
+
             except Exception as e:
                  logger.error(f"Failed to spawn sniffer: {e}")
                  # Emit error so UI knows
@@ -225,8 +223,10 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
                     "message": str(e)
                  }), flush=True)
 
+
+
         # Start Discovery Service Listener
-        from tpi_redes.networking.discovery import DiscoveryService
+        from tpi_redes.services.discovery import DiscoveryService
 
         discovery = DiscoveryService()
         try:
@@ -244,12 +244,12 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
         )
 
         if protocol == "tcp":
-            from tpi_redes.networking.tcp_server import TCPServer
+            from tpi_redes.transport.tcp_server import TCPServer
 
             server = TCPServer(host="0.0.0.0", port=port, save_dir=save_dir)
             server.start()
         else:
-            from tpi_redes.networking.udp_server import UDPServer
+            from tpi_redes.transport.udp_server import UDPServer
 
             server = UDPServer(host="0.0.0.0", port=port, save_dir=save_dir)
             server.start()
@@ -279,7 +279,11 @@ def start_server(port: int, protocol: str, save_dir: str, sniff: bool, interface
     default="tcp",
     help="Protocol to use",
 )
-@click.option("--sniff", is_flag=True, help="Enable packet sniffer (requires root permissions)")
+@click.option(
+    "--sniff",
+    is_flag=True,
+    help="Enable packet sniffer (requires root permissions)",
+)
 @click.option("--interface", default=None, help="Network interface to sniff")
 @click.option("--delay", default=0.0, help="Delay between chunks in seconds")
 @click.option("--chunk-size", default=4096, help="Buffer size in bytes")
@@ -303,7 +307,7 @@ def send_file(
     from pathlib import Path
 
     file_paths = [Path(f) for f in files]
-    
+
     sniffer_process = None
 
     try:
@@ -333,7 +337,7 @@ def send_file(
             ]
             if interface:
                 cmd.extend(["--interface", interface])
-            
+
             try:
                 sniffer_process = subprocess.Popen(
                     cmd,
@@ -342,9 +346,9 @@ def send_file(
                     text=True,
                     bufsize=1
                 )
-                
+
                 sniffer_ready_event = threading.Event()
-                
+
                 def forward_sniffer_output():
                     if not sniffer_process or not sniffer_process.stdout:
                         return
@@ -360,7 +364,7 @@ def send_file(
 
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
                 t.start()
-                
+
                 # Block until Sniffer is READY or Cancelled
                 import time
                 wait_start = time.time()
@@ -368,19 +372,21 @@ def send_file(
                     if time.time() - wait_start > 30:
                         logger.error("Sniffer startup timed out.")
                         break
-                    
+
                     if sniffer_process.poll() is not None:
                          # Process exited (User cancelled or error)
-                         logger.warning("Sniffer authentication cancelled or process died.")
+                         logger.warning(
+                             "Sniffer authentication cancelled or process died."
+                         )
                          print(json.dumps({
                             "type": "SNIFFER_ERROR",
                             "code": "PERMISSION_DENIED",
                             "message": "Sniffer authentication cancelled."
                          }), flush=True)
                          break
-                    
+
                     time.sleep(0.1)
-                         
+
             except Exception as e:
                  logger.error(f"Failed to spawn sniffer: {e}")
                  print(json.dumps({
@@ -390,12 +396,12 @@ def send_file(
                  }), flush=True)
 
         if protocol == "tcp":
-            from tpi_redes.networking.tcp_client import TCPClient
+            from tpi_redes.transport.tcp_client import TCPClient
 
             client = TCPClient()
             client.send_files(file_paths, ip, port, delay, chunk_size)
         else:
-            from tpi_redes.networking.udp_client import UDPClient
+            from tpi_redes.transport.udp_client import UDPClient
 
             client = UDPClient()
             client.send_files(file_paths, ip, port, delay, chunk_size)
@@ -421,7 +427,7 @@ def start_proxy(
     listen_port: int, target_ip: str, target_port: int, corruption_rate: float
 ):
     """Start a MITM Proxy Server."""
-    from tpi_redes.networking.proxy import ProxyServer
+    from tpi_redes.services.proxy import ProxyServer
 
     console.print(f"[bold red]Starting MITM Proxy on port {listen_port}...[/bold red]")
     console.print(f"Target: {target_ip}:{target_port}")
@@ -437,7 +443,7 @@ def start_proxy(
 @cli.command()
 def scan_network():
     """Scan for active peers on the local network."""
-    from tpi_redes.networking.discovery import DiscoveryService
+    from tpi_redes.services.discovery import DiscoveryService
     # ... logic mostly same but cleaner output
 
     # We keep print(json) for Electron, using console(stderr) for logs

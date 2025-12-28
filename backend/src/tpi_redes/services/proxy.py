@@ -3,7 +3,7 @@ import random
 import socket
 import threading
 
-from tpi_redes.networking.packet_logger import PacketLogger
+from tpi_redes.observability.packet_logger import PacketLogger
 
 logger = logging.getLogger("tpi-redes")
 

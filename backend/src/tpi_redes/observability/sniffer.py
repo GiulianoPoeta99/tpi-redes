@@ -1,8 +1,8 @@
 import logging
 from typing import Any
 
-from scapy.layers.inet import IP, TCP, UDP  # type: ignore
-from scapy.sendrecv import AsyncSniffer  # type: ignore
+from scapy.layers.inet import IP, TCP, UDP
+from scapy.sendrecv import AsyncSniffer
 
 logger = logging.getLogger("tpi-redes")
 
@@ -16,9 +16,8 @@ class PacketSniffer:
 
     def start(self):
         """Start the background sniffer (requires root)."""
-        import os
         import json
-        import sys
+        import os
 
         if os.geteuid() != 0:
             logger.warning("Sniffer requires root privileges. Packet capture disabled.")
@@ -33,8 +32,9 @@ class PacketSniffer:
             return
 
         filter_str = f"tcp port {self.port} or udp port {self.port}"
+        iface_name = self.interface or "default"
         logger.info(
-            f"Starting Sniffer on {self.interface or 'default'} with filter '{filter_str}'..."  # noqa: E501
+            f"Starting Sniffer on {iface_name} with filter '{filter_str}'..."
         )
 
         self.sniffer = AsyncSniffer(
@@ -51,8 +51,8 @@ class PacketSniffer:
 
     def start_stdout_mode(self):
         """Start sniffer in stdout mode (for piped execution)."""
-        import os
         import json
+        import os
         import sys
         import time
 
@@ -71,9 +71,9 @@ class PacketSniffer:
             sys.exit(1)
 
         filter_str = f"tcp port {self.port} or udp port {self.port}"
-        
+
         try:
-            from scapy.all import AsyncSniffer, get_if_list, conf
+            from scapy.all import AsyncSniffer
         except ImportError:
             sys.exit(1)
 
@@ -88,7 +88,7 @@ class PacketSniffer:
 
         # Signal readiness
         print(json.dumps({"type": "SNIFFER_READY"}), flush=True)
-        
+
         # Keep process alive
         try:
             while True:
@@ -118,8 +118,7 @@ class PacketSniffer:
         try:
             import json
             import time
-            import sys
-            
+
 
             # Legacy summary for internal storage
             summary = pkt.summary()

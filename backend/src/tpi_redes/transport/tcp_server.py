@@ -4,9 +4,8 @@ import socket
 from pathlib import Path
 from typing import Any
 
-from .base import BaseServer
-from .packet_logger import PacketLogger
-from .protocol import ProtocolHandler
+from tpi_redes.core.base import BaseServer
+from tpi_redes.core.protocol import ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
 

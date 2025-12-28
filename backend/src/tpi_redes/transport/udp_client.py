@@ -4,9 +4,8 @@ import socket
 import time
 from pathlib import Path
 
+from tpi_redes.core.protocol import ProtocolHandler
 from tpi_redes.transfer.integrity import IntegrityVerifier
-
-from .protocol import ProtocolHandler
 
 logger = logging.getLogger("tpi-redes")
 
@@ -26,7 +25,7 @@ class UDPClient:
         if not valid_files:
             raise FileNotFoundError("No valid files to send")
 
-        from tpi_redes.networking.packet_logger import PacketLogger
+        from tpi_redes.observability.packet_logger import PacketLogger
 
         logger.info(f"Sending {len(valid_files)} files to {ip}:{port} via UDP...")
 

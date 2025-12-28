@@ -3,9 +3,9 @@ import socket
 from dataclasses import dataclass
 from pathlib import Path
 
-from .base import BaseServer
-from .packet_logger import PacketLogger
-from .protocol import Header, ProtocolHandler
+from tpi_redes.core.base import BaseServer
+from tpi_redes.core.protocol import Header, ProtocolHandler
+from tpi_redes.observability.packet_logger import PacketLogger
 
 logger = logging.getLogger("tpi-redes")
 
@@ -86,11 +86,18 @@ class UDPServer(BaseServer):
         # Existing session logic
         try:
             if session.state == "WAITING_METADATA":
+                if not session.header:
+                    logger.error(
+                        f"[{addr}] Session missing header in WAITING_METADATA state."
+                    )
+                    del self.sessions[addr]
+                    return
+
                 # Expecting Name + Hash
-                expected_len = session.header.name_len + session.header.hash_len  # type: ignore
+                expected_len = session.header.name_len + session.header.hash_len
                 if len(data) == expected_len:
-                    name_bytes = data[: session.header.name_len]  # type: ignore
-                    hash_bytes = data[session.header.name_len :]  # type: ignore
+                    name_bytes = data[: session.header.name_len]
+                    hash_bytes = data[session.header.name_len :]
 
                     session.filename = name_bytes.decode("utf-8")
                     session.file_hash = hash_bytes.decode("utf-8")
@@ -125,7 +132,10 @@ class UDPServer(BaseServer):
                     f"[{addr}] Chunk {len(data)} bytes. Total: {session.received_bytes}"
                 )
 
-                if session.received_bytes >= session.header.file_size:  # type: ignore
+                if (
+                    session.header
+                    and session.received_bytes >= session.header.file_size
+                ):
                     # Save hash file for verification
                     if session.file_hash and session.file_path:
                         hash_path = Path(f"{session.file_path}.sha256")
