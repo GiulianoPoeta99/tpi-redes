@@ -51,7 +51,9 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
           <BarChart3 size={16} className="text-gray-400" />
           Throughput History
         </h3>
-        <span className="text-xs font-mono text-gray-500">Peak: {Formatters.speed(maxThroughput)}</span>
+        <span className="text-xs font-mono text-gray-500">
+          Peak: {Formatters.speed(maxThroughput)}
+        </span>
       </div>
 
       <div className="relative flex-1 w-full bg-black/20 rounded-xl border border-white/10 overflow-hidden group min-h-0">
@@ -91,7 +93,6 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 strokeDasharray="4"
               />
 
-
               <text x={padding - 5} y={padding + 5} fill="#6B7280" fontSize="10" textAnchor="end">
                 {Formatters.speed(maxThroughput)}
               </text>
@@ -105,7 +106,6 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 0 MB/s
               </text>
 
-
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
@@ -113,7 +113,6 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 </linearGradient>
               </defs>
               <polygon points={areaPath} fill="url(#chartGradient)" />
-
 
               <polyline
                 points={points}
@@ -123,7 +122,6 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-
 
               {hoveredIndex !== null && (
                 <line
@@ -164,7 +162,6 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
                 />
               ))}
             </svg>
-
 
             {hoveredIndex !== null && history[hoveredIndex] && (
               <div

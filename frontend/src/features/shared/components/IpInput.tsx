@@ -124,6 +124,7 @@ const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, cl
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {octets.map((octet, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Index is stable identifier for octet position
           <div key={`octet-${i}`} className="flex items-center flex-1">
             <input
               ref={(el) => {

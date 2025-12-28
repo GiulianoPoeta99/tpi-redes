@@ -12,6 +12,7 @@ def get_free_port():
         s.bind(("", 0))
         return s.getsockname()[1]
 
+
 class TestEndToEndTransfer:
     def test_tcp_file_transfer(self, tmp_path):
         """Test end-to-end TCP file transfer.
@@ -34,7 +35,9 @@ class TestEndToEndTransfer:
 
         send_file.write_bytes(original_data)
 
-        server = TCPServer(host="127.0.0.1", port=server_port, save_dir=str(receive_dir))
+        server = TCPServer(
+            host="127.0.0.1", port=server_port, save_dir=str(receive_dir)
+        )
 
         server_thread = threading.Thread(target=server.start, daemon=True)
         server_thread.start()

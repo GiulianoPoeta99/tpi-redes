@@ -3,7 +3,7 @@ import SnifferLog from '../mitm/components/SnifferLog';
 import MitmView from '../mitm/MitmView';
 import { ReceivedFilesModal } from '../receiver/components/ReceivedFilesModal';
 import ReceiverView from '../receiver/ReceiverView';
-import type { ToastMessage } from '../shared/components/Toast';
+import type { ToastMessage } from '../shared/types';
 import type { AppStats } from '../shared/services/StorageService';
 import { StorageService } from '../shared/services/StorageService';
 import type { Packet } from '../shared/types';

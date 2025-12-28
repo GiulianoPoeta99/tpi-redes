@@ -35,7 +35,7 @@ class UDPClient:
             files: List of file paths to transmit.
             ip: Destination IP address.
             port: Destination port number.
-            delay: Optional delay in seconds between packets (useful for flow control/testing).
+            delay: Optional delay (seconds) between packets for flow control.
             chunk_size: Size of data payload per packet (default: 4096 bytes).
 
         Raises:

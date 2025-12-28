@@ -44,7 +44,6 @@ interface StatsModalProps {
  * A full-screen modal displaying detailed transfer analytics, charts, and history.
  */
 const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history }) => {
-
   const totalFiles = history.length;
   const totalBytes = history.reduce((acc, h) => acc + h.size, 0);
   const maxThroughput = Math.max(...history.map((h) => h.throughput), 1);

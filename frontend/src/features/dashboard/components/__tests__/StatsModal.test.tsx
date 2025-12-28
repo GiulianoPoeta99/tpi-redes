@@ -17,14 +17,7 @@ describe('StatsModal', () => {
   };
 
   it('renders correctly', () => {
-    render(
-      <StatsModal
-        isOpen={true}
-        onClose={mockOnClose}
-        stats={mockStats}
-        history={[]}
-      />,
-    );
+    render(<StatsModal isOpen={true} onClose={mockOnClose} stats={mockStats} history={[]} />);
 
     expect(screen.getByText('Transfer Analytics')).toBeInTheDocument();
     expect(screen.getByTestId('mock-chart')).toBeInTheDocument();

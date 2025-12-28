@@ -34,7 +34,6 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
     setHistory([]);
   };
 
-
   return (
     <BaseModal
       isOpen={true}

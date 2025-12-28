@@ -1,10 +1,9 @@
 import { Loader2, Radio, Wifi } from 'lucide-react';
 import type React from 'react';
+import type { Peer } from '../types';
 import BaseModal from './BaseModal';
 import EmptyState from './EmptyState';
 import PeerListItem from './PeerListItem';
-
-import { type Peer } from '../types';
 
 /**
  * Props for the ScanModal component.

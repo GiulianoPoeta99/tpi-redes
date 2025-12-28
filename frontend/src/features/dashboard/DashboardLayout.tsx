@@ -1,5 +1,6 @@
 import type React from 'react';
-import ToastContainer, { type ToastMessage } from '../shared/components/Toast';
+import ToastContainer from '../shared/components/Toast';
+import type { ToastMessage } from '../shared/types';
 
 /**
  * Props for the DashboardLayout component.

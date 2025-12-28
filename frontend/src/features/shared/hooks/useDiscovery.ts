@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { type Peer } from '../types';
+import type { Peer } from '../types';
 
 /**
  * Hook to manage network discovery scanning.

@@ -29,7 +29,6 @@ class TestProtocolHandler:
 
         packed = ProtocolHandler.pack_header(op_code, filename, file_size, file_hash)
 
-
         expected_struct = struct.pack(
             "!cHQH3s", op_code, name_len, file_size, hash_len, b"\x00\x00\x00"
         )

@@ -2,7 +2,7 @@ import { Check, ChevronDown } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-import { type SelectOption } from '../types';
+import type { SelectOption } from '../types';
 
 /**
  * Props for SelectInput.

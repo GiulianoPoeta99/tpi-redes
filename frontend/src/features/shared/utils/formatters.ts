@@ -1,6 +1,7 @@
 /**
  * Utility class for formatting common data types.
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern preferred for grouping static formatters
 export class Formatters {
   /**
    * Formats a number of bytes into a human-readable string (e.g., "1.5 MB").

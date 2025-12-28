@@ -24,11 +24,9 @@ const ReceiverView: React.FC<ReceiverViewProps> = ({ setBusy, setHeaderContent }
   const [netInterface, setNetInterface] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-
   const [transferActive, setTransferActive] = useState(false);
   const [lastFile, setLastFile] = useState<string | null>(null);
   const [localIp, setLocalIp] = useState<string>('Loading...');
-
 
   useEffect(() => {
     setHeaderContent(
@@ -45,7 +43,6 @@ const ReceiverView: React.FC<ReceiverViewProps> = ({ setBusy, setHeaderContent }
   }, [isConnected, setHeaderContent]);
 
   useEffect(() => {
-
     window.api
       .getLocalIp()
       .then(setLocalIp)
@@ -69,7 +66,6 @@ const ReceiverView: React.FC<ReceiverViewProps> = ({ setBusy, setHeaderContent }
           if (event.type === 'SERVER_READY') {
             setIsConnected(true);
             setBusy(true);
-
           } else if (event.type === 'TRANSFER_UPDATE') {
             if (event.status === 'start') setTransferActive(true);
             if (event.status === 'complete') {
@@ -85,18 +81,14 @@ const ReceiverView: React.FC<ReceiverViewProps> = ({ setBusy, setHeaderContent }
                 status: 'success',
                 protocol: protocol.toUpperCase(),
               });
-
-
             }
           } else if (event.type === 'ERROR') {
             setIsConnected(false);
             setTransferActive(false);
             setBusy(false);
-
           }
         });
-      } catch (_e) {
-      }
+      } catch (_e) {}
     });
 
     return cleanup;

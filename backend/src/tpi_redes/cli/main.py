@@ -13,7 +13,6 @@ console = Console(stderr=True)
 logger = logging.getLogger("tpi-redes")
 
 
-
 debug_mode = False
 
 
@@ -32,7 +31,6 @@ def handle_exception(exc_type: Any, exc_value: Any, exc_traceback: Any):
     console.print(f"[bold red]Error:[/bold red] {exc_value}")
 
     sys.exit(1)
-
 
 
 install(show_locals=True)
@@ -116,9 +114,9 @@ def start_server(
     try:
         if sniff:
             import os
+
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
-
 
             env_vars = ["env", f"PYTHONPATH={src_path}"]
             if "DISPLAY" in os.environ:
@@ -134,7 +132,7 @@ def start_server(
                 "tpi_redes.cli.main",
                 "sniffer-service",
                 "--port",
-                str(port)
+                str(port),
             ]
             if interface:
                 cmd.extend(["--interface", interface])
@@ -163,33 +161,48 @@ def start_server(
                 while not sniffer_ready_event.is_set():
                     if time.time() - wait_start > 30:
                         logger.error("Sniffer startup timed out.")
-                        print(json.dumps({
-                            "type": "SNIFFER_ERROR",
-                            "code": "TIMEOUT",
-                            "message": "Sniffer startup timed out."
-                        }), flush=True)
+                        print(
+                            json.dumps(
+                                {
+                                    "type": "SNIFFER_ERROR",
+                                    "code": "TIMEOUT",
+                                    "message": "Sniffer startup timed out.",
+                                }
+                            ),
+                            flush=True,
+                        )
                         break
 
                     if sniffer_process.poll() is not None:
-                         logger.warning(
-                             "Sniffer authentication cancelled or process died."
-                         )
-                         print(json.dumps({
-                            "type": "SNIFFER_ERROR",
-                            "code": "PERMISSION_DENIED",
-                            "message": "Sniffer authentication cancelled."
-                         }), flush=True)
-                         break
+                        logger.warning(
+                            "Sniffer authentication cancelled or process died."
+                        )
+                        print(
+                            json.dumps(
+                                {
+                                    "type": "SNIFFER_ERROR",
+                                    "code": "PERMISSION_DENIED",
+                                    "message": "Sniffer authentication cancelled.",
+                                }
+                            ),
+                            flush=True,
+                        )
+                        break
 
                     time.sleep(0.1)
 
             except Exception as e:
-                 logger.error(f"Failed to spawn sniffer: {e}")
-                 print(json.dumps({
-                    "type": "SNIFFER_ERROR",
-                    "code": "SPAWN_FAILED",
-                    "message": str(e)
-                 }), flush=True)
+                logger.error(f"Failed to spawn sniffer: {e}")
+                print(
+                    json.dumps(
+                        {
+                            "type": "SNIFFER_ERROR",
+                            "code": "SPAWN_FAILED",
+                            "message": str(e),
+                        }
+                    ),
+                    flush=True,
+                )
         from tpi_redes.services.discovery import DiscoveryService
 
         discovery = DiscoveryService()
@@ -280,9 +293,9 @@ def send_file(
         if sniff:
             logger.info("Requesting root privileges for Sniffer...")
             import os
+
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
-
 
             env_vars = ["env", f"PYTHONPATH={src_path}"]
             if "DISPLAY" in os.environ:
@@ -298,18 +311,14 @@ def send_file(
                 "tpi_redes.cli.main",
                 "sniffer-service",
                 "--port",
-                str(port)
+                str(port),
             ]
             if interface:
                 cmd.extend(["--interface", interface])
 
             try:
                 sniffer_process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=sys.stderr,
-                    text=True,
-                    bufsize=1
+                    cmd, stdout=subprocess.PIPE, stderr=sys.stderr, text=True, bufsize=1
                 )
 
                 sniffer_ready_event = threading.Event()
@@ -329,6 +338,7 @@ def send_file(
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
                 t.start()
                 import time
+
                 wait_start = time.time()
                 while not sniffer_ready_event.is_set():
                     if time.time() - wait_start > 30:
@@ -336,26 +346,35 @@ def send_file(
                         break
 
                     if sniffer_process.poll() is not None:
-
-                         logger.warning(
-                             "Sniffer authentication cancelled or process died."
-                         )
-                         print(json.dumps({
-                            "type": "SNIFFER_ERROR",
-                            "code": "PERMISSION_DENIED",
-                            "message": "Sniffer authentication cancelled."
-                         }), flush=True)
-                         break
+                        logger.warning(
+                            "Sniffer authentication cancelled or process died."
+                        )
+                        print(
+                            json.dumps(
+                                {
+                                    "type": "SNIFFER_ERROR",
+                                    "code": "PERMISSION_DENIED",
+                                    "message": "Sniffer authentication cancelled.",
+                                }
+                            ),
+                            flush=True,
+                        )
+                        break
 
                     time.sleep(0.1)
 
             except Exception as e:
-                 logger.error(f"Failed to spawn sniffer: {e}")
-                 print(json.dumps({
-                    "type": "SNIFFER_ERROR",
-                    "code": "SPAWN_FAILED",
-                    "message": str(e)
-                 }), flush=True)
+                logger.error(f"Failed to spawn sniffer: {e}")
+                print(
+                    json.dumps(
+                        {
+                            "type": "SNIFFER_ERROR",
+                            "code": "SPAWN_FAILED",
+                            "message": str(e),
+                        }
+                    ),
+                    flush=True,
+                )
 
         if protocol == "tcp":
             from tpi_redes.transport.tcp_client import TCPClient
@@ -389,7 +408,7 @@ def start_proxy(
 ):
     """Start a MITM Proxy Server.
 
-    Requires setting up the client to connect to this proxy port instead of the real server.
+    Requires client setup to connect to this proxy port instead of real server.
     """
     from tpi_redes.services.proxy import ProxyServer
 
@@ -436,6 +455,7 @@ def list_interfaces():
     """List available network interfaces using Scapy."""
     try:
         from scapy.all import get_if_list
+
         interfaces = get_if_list()
         print(json.dumps(interfaces))
     except Exception as e:

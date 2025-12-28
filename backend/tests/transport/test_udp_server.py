@@ -41,7 +41,6 @@ class TestUDPServer:
 
         server.process_datagram(content, addr)
 
-
         saved_file = save_dir / filename
         assert saved_file.exists()
         assert saved_file.read_bytes() == content

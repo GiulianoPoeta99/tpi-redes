@@ -50,9 +50,9 @@ describe('Dashboard', () => {
     expect(screen.getByText('Receiver')).toBeInTheDocument();
     expect(screen.getByText('Transmitter')).toBeInTheDocument();
     expect(screen.getByText('Mitm')).toBeInTheDocument();
-    
+
     expect(screen.getByText('Mitm')).toBeInTheDocument();
-    
+
     expect(screen.getByTestId('receiver-view')).toBeInTheDocument();
   });
 

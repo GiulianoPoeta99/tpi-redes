@@ -6,7 +6,7 @@ class TestTCPClient:
     def test_send_files(self, tmp_path):
         """Test sending multiple files via TCP.
 
-        Verifies that files are correctly packetized (header, metadata, content) and concatenated.
+        Verifies packetization (header, metadata, content) and concatenation.
 
         Args:
             tmp_path: Pytest fixture for source files.

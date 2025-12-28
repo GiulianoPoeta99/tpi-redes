@@ -19,7 +19,6 @@ class TestProxyServer:
         data = b"Hello"
         corrupted = proxy.corrupt_data(data)
 
-
         assert len(corrupted) == len(data)
         assert corrupted != data
 
@@ -58,12 +57,9 @@ class TestProxyServer:
 
         mock_socket_cls.return_value = mock_target_socket
 
-
         proxy.handle_client(mock_client_socket)
 
-
         mock_target_socket.connect.assert_called_with(("target", 8080))
-
 
         assert mock_thread.call_count == 2
         mock_thread.return_value.start.assert_called()

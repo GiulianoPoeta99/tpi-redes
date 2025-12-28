@@ -1,8 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import HistoryModal from '../HistoryModal';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import type { TransferHistoryItem } from '../../../shared/services/StorageService';
-
+import HistoryModal from '../HistoryModal';
 
 const mockLoadHistory = vi.fn().mockReturnValue([]);
 const mockClearHistory = vi.fn();
@@ -10,8 +9,8 @@ const mockClearHistory = vi.fn();
 vi.mock('../../../shared/services/StorageService', () => ({
   StorageService: {
     loadHistory: () => mockLoadHistory(),
-    clearHistory: () => mockClearHistory()
-  }
+    clearHistory: () => mockClearHistory(),
+  },
 }));
 
 describe('HistoryModal', () => {
@@ -20,7 +19,7 @@ describe('HistoryModal', () => {
   it('renders nothing when history is empty', () => {
     mockLoadHistory.mockReturnValue([]);
     render(<HistoryModal onClose={mockOnClose} />);
-    
+
     expect(screen.getByText('Transfer History')).toBeInTheDocument();
     expect(screen.getByText('No transfer history yet')).toBeInTheDocument();
   });
@@ -34,7 +33,7 @@ describe('HistoryModal', () => {
         size: 1024,
         status: 'success',
         direction: 'sent',
-        protocol: 'TCP'
+        protocol: 'TCP',
       },
       {
         id: '2',
@@ -43,8 +42,8 @@ describe('HistoryModal', () => {
         size: 500,
         status: 'failed',
         direction: 'received',
-        protocol: 'UDP'
-      }
+        protocol: 'UDP',
+      },
     ];
     mockLoadHistory.mockReturnValue(mockHistory);
 
@@ -57,10 +56,20 @@ describe('HistoryModal', () => {
   });
 
   it('calls clearHistory when Clear button is clicked', () => {
-    mockLoadHistory.mockReturnValue([{ id: '1', filename: 'foo', timestamp: 0, size: 0, status: 'success', direction: 'sent', protocol: 'TCP' }]);
-    
+    mockLoadHistory.mockReturnValue([
+      {
+        id: '1',
+        filename: 'foo',
+        timestamp: 0,
+        size: 0,
+        status: 'success',
+        direction: 'sent',
+        protocol: 'TCP',
+      },
+    ]);
+
     render(<HistoryModal onClose={mockOnClose} />);
-    
+
     const clearBtn = screen.getByTitle('Clear History');
     fireEvent.click(clearBtn);
     expect(mockClearHistory).toHaveBeenCalled();

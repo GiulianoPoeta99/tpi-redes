@@ -15,8 +15,8 @@ class PacketSniffer:
     """Captures and analyzes network packets using Scapy.
 
     Can run in two modes:
-    1. Background thread (via `start`): Captures packets alongside the application.
-    2. Stdout mode (via `start_stdout_mode`): Runs as a dedicated process outputting JSON.
+    1. Background thread (via `start`): Captures packets alongside application.
+    2. Stdout mode (via `start_stdout_mode`): Dedicated process outputting JSON.
 
     Requires root privileges (sudo) to capture packets on Linux interfaces.
     """
@@ -25,7 +25,7 @@ class PacketSniffer:
         """Initialize sniffer configuration.
 
         Args:
-            interface: Network interface to bind to (e.g., 'eth0', 'wlan0'). None for default.
+            interface: Bind interface (e.g., 'eth0'). None for default.
             port: Port to filter logic for (captures 'tcp port X or udp port X').
         """
         self.interface = interface
@@ -42,20 +42,20 @@ class PacketSniffer:
         if os.geteuid() != 0:
             logger.warning("Sniffer requires root privileges. Packet capture disabled.")
             print(
-                json.dumps({
-                    "type": "SNIFFER_ERROR",
-                    "code": "PERMISSION_DENIED",
-                    "message": "Root privileges required for packet capture."
-                }),
-                flush=True
+                json.dumps(
+                    {
+                        "type": "SNIFFER_ERROR",
+                        "code": "PERMISSION_DENIED",
+                        "message": "Root privileges required for packet capture.",
+                    }
+                ),
+                flush=True,
             )
             return
 
         filter_str = f"tcp port {self.port} or udp port {self.port}"
         iface_name = self.interface or "default"
-        logger.info(
-            f"Starting Sniffer on {iface_name} with filter '{filter_str}'..."
-        )
+        logger.info(f"Starting Sniffer on {iface_name} with filter '{filter_str}'...")
 
         self.sniffer = AsyncSniffer(
             iface=self.interface,
@@ -78,12 +78,14 @@ class PacketSniffer:
         """
         if os.geteuid() != 0:
             print(
-                json.dumps({
-                    "type": "SNIFFER_ERROR",
-                    "code": "PERMISSION_DENIED",
-                    "message": "Root privileges required."
-                }),
-                flush=True
+                json.dumps(
+                    {
+                        "type": "SNIFFER_ERROR",
+                        "code": "PERMISSION_DENIED",
+                        "message": "Root privileges required.",
+                    }
+                ),
+                flush=True,
             )
             sys.exit(1)
 
@@ -91,6 +93,7 @@ class PacketSniffer:
 
         try:
             from scapy.all import AsyncSniffer as ScapyAsyncSniffer
+
             assert ScapyAsyncSniffer
         except ImportError:
             sys.exit(1)
