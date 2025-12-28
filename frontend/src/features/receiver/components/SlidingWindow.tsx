@@ -13,7 +13,7 @@ const SlidingWindow: React.FC = () => {
 
   useEffect(() => {
     window.api.onWindowUpdate((data) => {
-      setState(data);
+      setState(data as WindowState);
     });
   }, []);
 
