@@ -10,6 +10,12 @@ logger = logging.getLogger("tpi-redes")
 
 
 class TCPClient:
+    """Client for sending files to a TCP server.
+
+    Establishes a connection to a specific IP and port, and sequentially
+    transmits the provided files adhering to the custom binary protocol.
+    """
+
     def send_files(
         self,
         files: list[Path],
@@ -18,9 +24,22 @@ class TCPClient:
         delay: float = 0.0,
         chunk_size: int = 4096,
     ):
-        """Send multiple files to a remote TCP server over a single connection."""
+        """Send multiple files to a remote TCP server.
 
-        # Filter existing files
+        Established a single TCP connection and reuses it for all files in the list.
+        Calculates SHA-256 for integrity verification before sending.
+
+        Args:
+            files: List of file paths to transmit.
+            ip: Destination IP address.
+            port: Destination port number.
+            delay: Optional delay in seconds between sending chunks (for testing).
+            chunk_size: Size of data chunks to read/send (default: 4096 bytes).
+
+        Raises:
+            FileNotFoundError: If no valid existing files are provided.
+            ConnectionError: If the connection to the server fails.
+        """
         valid_files = [f for f in files if f.exists()]
         if not valid_files:
             raise FileNotFoundError("No valid files to send")
@@ -33,11 +52,7 @@ class TCPClient:
             s.connect((ip, port))
             _local_ip, _local_port = s.getsockname()
 
-            # Log Handshake (Simulated) - REMOVED for Strict Mode
-
-
             for file_path in valid_files:
-                # 1. Calculate Hash & Prepare Metadata
                 logger.info(f"Calculating hash for {file_path}...")
                 verifier = IntegrityVerifier(file_path)
                 file_hash = verifier.calculate_hash()
@@ -45,13 +60,11 @@ class TCPClient:
                 file_size = file_path.stat().st_size
                 filename = file_path.name
 
-                # 2. Pack Header
                 header = ProtocolHandler.pack_header(
                     b"F", filename, file_size, file_hash
                 )
                 metadata = filename.encode("utf-8") + file_hash.encode("utf-8")
 
-                # 3. Send Header & Metadata
                 s.sendall(header)
                 s.sendall(metadata)
                 logger.info(f"Sending content for '{filename}'...")
@@ -67,7 +80,6 @@ class TCPClient:
                 total_bytes = file_size
                 bytes_sent = 0
 
-                # Setup Sequence Number for this file transfer
                 current_seq = 1 + len(header) + len(metadata)
 
                 with open(file_path, "rb") as f:
@@ -80,11 +92,8 @@ class TCPClient:
                         chunk_len = len(chunk)
                         bytes_sent += chunk_len
 
-                        # Log Packet - REMOVED for Strict Mode
-
                         current_seq += chunk_len
 
-                        # Emit progress (Buffered by PacketLogger)
                         if chunk_len > 0:
                             PacketLogger.log_progress(
                                 {

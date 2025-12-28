@@ -11,8 +11,18 @@ logger = logging.getLogger("tpi-redes")
 
 
 class TCPServer(BaseServer):
+    """TCP implementation of the file transfer server.
+
+    Handles TCP connections, complying with the custom `ProtocolHandler`.
+    Emits JSON events to stdout for IPC interaction with the frontend.
+    """
+
     def start(self):
-        """Start listening for TCP connections."""
+        """Start listening for TCP connections.
+
+        Blocks the calling thread until a `KeyboardInterrupt` occurs.
+        Accepts connections and processes them sequentially via `handle_client`.
+        """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((self.host, self.port))
@@ -24,29 +34,32 @@ class TCPServer(BaseServer):
                     conn, addr = s.accept()
                     with conn:
                         logger.info(f"Connected by {addr}")
-                        # App-Level Packet Log - REMOVED for Strict Mode
-                        # client_ip, client_port = addr
-                        # local_ip, local_port = conn.getsockname()
-
                         self.handle_client(conn, addr)
             except KeyboardInterrupt:
                 logger.info("Server stopping...")
 
     def stop(self):
+        """Placeholder for stop logic (handled via process termination)."""
         pass
 
     def handle_client(self, conn: Any, addr: Any):
-        """Handle a single client connection."""
+        """Handle a single client connection session.
+
+        Receives files sequentially over the established socket connection.
+        Follows the protocol: Header -> Metadata -> Content.
+
+        Args:
+            conn: The accepted socket object.
+            addr: The client address tuple (IP, Port).
+        """
         try:
             while True:
-                # 1. Receive Header
                 header_data = self._recv_exact(conn, ProtocolHandler.HEADER_SIZE)
                 if not header_data:
                     break
 
                 header = ProtocolHandler.unpack_header(header_data)
 
-                # 2. Receive Metadata
                 filename_bytes = self._recv_exact(conn, header.name_len)
                 filename = filename_bytes.decode("utf-8")
 
@@ -67,7 +80,6 @@ class TCPServer(BaseServer):
                     flush=True,
                 )
 
-                # 3. Receive Content & Save
                 save_path = Path(self.save_dir) / filename
                 save_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -81,15 +93,6 @@ class TCPServer(BaseServer):
                         f.write(chunk)
                         received_bytes += len(chunk)
 
-                        # App-Level Packet Log - REMOVED for Strict Mode
-
-
-                        # Emit progress (optional: throttle this if too frequent)
-                        # For now only start/end to keep it simple, or every 1MB?
-                        # Let's emit every chunk for local smoothing,
-                        # UI handles throttling
-                        # Actually, emitting every 4KB is too much for stdout -> IPC
-                        # Let's emit every ~100KB or 10%
                         if (
                             received_bytes % (1024 * 100) < 4096
                             or received_bytes == header.file_size
@@ -107,7 +110,6 @@ class TCPServer(BaseServer):
                                 flush=True,
                             )
 
-                # Save hash file for verification
                 hash_path = Path(f"{save_path}.sha256")
                 with open(hash_path, "w") as f:
                     f.write(file_hash)
@@ -124,13 +126,19 @@ class TCPServer(BaseServer):
                     flush=True,
                 )
 
-                # TODO: Verify Hash
-
         except Exception as e:
             logger.error(f"Error handling client {addr}: {e}")
 
     def _recv_exact(self, conn: Any, n: int) -> bytes:
-        """Helper to receive exactly n bytes."""
+        """Receive exactly n bytes from the socket.
+
+        Args:
+            conn: The socket object.
+            n: Number of bytes to receive.
+
+        Returns:
+            bytes: The received data, or empty bytes if EOF is reached.
+        """
         data = b""
         while len(data) < n:
             packet = conn.recv(n - len(data))

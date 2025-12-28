@@ -11,6 +11,13 @@ logger = logging.getLogger("tpi-redes")
 
 
 class UDPClient:
+    """Client for sending files to a UDP server (Best Effort).
+
+    Uses a stateless "fire-and-forget" approach to send file datagrams.
+    No retransmission or reliability guarantees are implemented at this layer,
+    relying on the local network reliability.
+    """
+
     def send_files(
         self,
         files: list[Path],
@@ -19,8 +26,21 @@ class UDPClient:
         delay: float = 0.0,
         chunk_size: int = 4096,
     ):
-        """Send multiple files to a remote UDP server (Best Effort)."""
+        """Send multiple files to a remote UDP server.
 
+        Files are sent sequentially using specific datagrams for:
+        Header -> Metadata -> Content Chunks.
+
+        Args:
+            files: List of file paths to transmit.
+            ip: Destination IP address.
+            port: Destination port number.
+            delay: Optional delay in seconds between packets (useful for flow control/testing).
+            chunk_size: Size of data payload per packet (default: 4096 bytes).
+
+        Raises:
+            FileNotFoundError: If no valid existing files are provided.
+        """
         valid_files = [f for f in files if f.exists()]
         if not valid_files:
             raise FileNotFoundError("No valid files to send")
@@ -34,7 +54,6 @@ class UDPClient:
             local_ip, local_port = s.getsockname()
 
             for file_path in valid_files:
-                # 1. Calculate Hash & Prepare Metadata
                 logger.info(f"Calculating hash for {file_path}...")
                 verifier = IntegrityVerifier(file_path)
                 file_hash = verifier.calculate_hash()
@@ -42,15 +61,12 @@ class UDPClient:
                 file_size = file_path.stat().st_size
                 filename = file_path.name
 
-                # 2. Pack Header
                 header = ProtocolHandler.pack_header(
                     b"F", filename, file_size, file_hash
                 )
 
-                # 3. Send Datagrams
                 logger.info(f"Processing {filename}...")
 
-                # Send Header
                 s.sendto(header, addr)
                 PacketLogger.emit_packet(
                     src_ip=local_ip,
@@ -62,9 +78,8 @@ class UDPClient:
                     size=len(header),
                     info=f"Header: {filename} ({file_size} bytes)",
                 )
-                time.sleep(0.001)  # Small delay to help receiver process
+                time.sleep(0.001)
 
-                # Send Metadata
                 metadata = filename.encode("utf-8") + file_hash.encode("utf-8")
                 s.sendto(metadata, addr)
                 PacketLogger.emit_packet(
@@ -91,7 +106,6 @@ class UDPClient:
                     flush=True,
                 )
 
-                # Send Content in Chunks
                 sent_bytes = 0
                 start_transfer = time.time()
                 last_stats_time = start_transfer
@@ -115,12 +129,8 @@ class UDPClient:
                             info=f"Chunk ({len(chunk)}B) - {sent_bytes}/{file_size}",
                         )
 
-                        # Progress Emission (throttled)
                         current_time = time.time()
                         if current_time - last_stats_time >= 0.1:
-                            # Not sending throughput stats for UDP in loop
-                            # to avoid noise,
-                            # or just minimal updates. Keeping minimal.
                             print(
                                 json.dumps(
                                     {
