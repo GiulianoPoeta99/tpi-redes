@@ -1,4 +1,4 @@
-from tpi_redes.networking.udp_server import UDPServer
+from tpi_redes.transport.udp_server import UDPServer
 
 
 class TestUDPServer:
@@ -13,7 +13,7 @@ class TestUDPServer:
         save_dir.mkdir()
         server = UDPServer(host="127.0.0.1", port=0, save_dir=str(save_dir))
 
-        from tpi_redes.networking.protocol import ProtocolHandler
+        from tpi_redes.core.protocol import ProtocolHandler
 
         filename = "udp_test.txt"
         content = b"Hello UDP!"

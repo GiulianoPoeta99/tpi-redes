@@ -1,4 +1,4 @@
-from tpi_redes.networking.tcp_server import TCPServer
+from tpi_redes.transport.tcp_server import TCPServer
 
 
 class TestTCPServer:
@@ -37,7 +37,7 @@ class TestTCPServer:
                 return ("127.0.0.1", 12345)
 
         # Prepare data: File 1 + File 2
-        from tpi_redes.networking.protocol import ProtocolHandler
+        from tpi_redes.core.protocol import ProtocolHandler
 
         # File 1
         f1_name = "file1.txt"

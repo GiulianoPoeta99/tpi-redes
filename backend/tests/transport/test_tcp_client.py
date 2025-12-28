@@ -1,5 +1,5 @@
-from tpi_redes.networking.protocol import ProtocolHandler
-from tpi_redes.networking.tcp_client import TCPClient
+from tpi_redes.core.protocol import ProtocolHandler
+from tpi_redes.transport.tcp_client import TCPClient
 
 
 class TestTCPClient:

@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from tpi_redes.networking.tcp_client import TCPClient
-from tpi_redes.networking.udp_client import UDPClient
+from tpi_redes.transport.tcp_client import TCPClient
+from tpi_redes.transport.udp_client import UDPClient
 
 
 @pytest.fixture

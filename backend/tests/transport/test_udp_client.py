@@ -1,5 +1,5 @@
-from tpi_redes.networking.protocol import ProtocolHandler
-from tpi_redes.networking.udp_client import UDPClient
+from tpi_redes.core.protocol import ProtocolHandler
+from tpi_redes.transport.udp_client import UDPClient
 
 
 class TestUDPClient:

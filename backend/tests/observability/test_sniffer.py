@@ -1,11 +1,12 @@
 from unittest.mock import MagicMock, patch
 
-from tpi_redes.networking.sniffer import PacketSniffer
+from tpi_redes.observability.sniffer import PacketSniffer
 
 
 class TestPacketSniffer:
-    @patch("tpi_redes.networking.sniffer.AsyncSniffer")
-    def test_start_stop(self, mock_sniffer_cls):
+    @patch("os.geteuid", return_value=0)
+    @patch("tpi_redes.observability.sniffer.AsyncSniffer")
+    def test_start_stop(self, mock_sniffer_cls, mock_geteuid):
         # Setup mock
         mock_sniffer_instance = MagicMock()
         mock_sniffer_cls.return_value = mock_sniffer_instance
@@ -22,7 +23,7 @@ class TestPacketSniffer:
         sniffer.stop()
         mock_sniffer_instance.stop.assert_called_once()
 
-    @patch("tpi_redes.networking.sniffer.AsyncSniffer")
+    @patch("tpi_redes.observability.sniffer.AsyncSniffer")
     def test_callback_logic(self, _):
         # Use real Scapy packets to avoid Mock serialization issues with json.dumps
         from scapy.layers.inet import IP, TCP

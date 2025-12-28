@@ -2,7 +2,7 @@ import struct
 
 import pytest
 
-from tpi_redes.networking.protocol import ProtocolHandler
+from tpi_redes.core.protocol import ProtocolHandler
 
 
 class TestProtocolHandler:
