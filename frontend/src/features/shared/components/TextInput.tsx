@@ -3,13 +3,12 @@ import type React from 'react';
 /**
  * Props for the TextInput component.
  * Extends standard HTML input attributes.
+ *
+ * @property className - Optional additional CSS classes.
+ * @property error - If true, applies error styling. Defaults to false.
  */
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
-  /**
-   * If true, applies error styling.
-   * @default false
-   */
   error?: boolean;
 }
 

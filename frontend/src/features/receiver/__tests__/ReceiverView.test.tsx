@@ -13,7 +13,6 @@ window.api = {
   getDownloadsDir: vi.fn().mockResolvedValue('/tmp'),
 };
 
-// Mock async components to avoid act warnings
 vi.mock('../../shared/components/InterfaceSelector', () => ({
   default: () => <div data-testid="interface-selector">MockInterfaceSelector</div>,
 }));

@@ -3,23 +3,17 @@ import type React from 'react';
 
 /**
  * Props for the EmptyState component.
+ *
+ * @property icon - Optional icon to display.
+ * @property title - Main title to display.
+ * @property description - Optional detailed description.
+ * @property action - Optional action button or element.
+ * @property className - Optional additional CSS classes.
  */
 interface EmptyStateProps {
-  /**
-   * Optional icon to display.
-   */
   icon?: LucideIcon;
-  /**
-   * Main title to display.
-   */
   title: string;
-  /**
-   * Optional detailed description.
-   */
   description?: string;
-  /**
-   * Optional action button or element.
-   */
   action?: React.ReactNode;
   className?: string;
 }

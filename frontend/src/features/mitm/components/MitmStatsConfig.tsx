@@ -3,18 +3,16 @@ import ControlContainer from '../../shared/components/ControlContainer';
 
 /**
  * Props for MitmStatsConfig.
+ *
+ * @property stats - Current statistics (intercepted and corrupted packets/chunks).
+ * @property isActive - Whether the MITM is active (unused in rendering currently).
+ * @property className - Optional CSS class.
  */
 interface MitmStatsConfigProps {
-  /**
-   * Current statistics (intercepted and corrupted packets/chunks).
-   */
   stats: {
     intercepted: number;
     corrupted: number;
   };
-  /**
-   * Whether the MITM is active (unused in rendering currently).
-   */
   isActive: boolean;
   className?: string;
 }

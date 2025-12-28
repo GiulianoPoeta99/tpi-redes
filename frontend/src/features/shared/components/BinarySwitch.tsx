@@ -2,6 +2,14 @@ import type React from 'react';
 
 /**
  * Props for the BinarySwitch component.
+ *
+ * @property value - The currently selected value.
+ * @property options - Tuple of two options to toggle between.
+ * @property onChange - Callback when selection changes.
+ * @property disabled - Whether the switch is interactive.
+ * @property className - Optional additional CSS classes.
+ * @property formatLabel - Optional function to format the label text.
+ * @property activeColor - Optional function to determine active color based on value.
  */
 export interface BinarySwitchProps<T extends string> {
   value: T;

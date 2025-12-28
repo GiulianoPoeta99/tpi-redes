@@ -5,31 +5,20 @@ import SlidingWindow from './SlidingWindow';
 
 /**
  * Props for the ReceiverStatus component.
+ *
+ * @property isConnected - Whether the server is running.
+ * @property transferActive - Whether a file transfer is currently active.
+ * @property localIp - Local IP address.
+ * @property port - Local port.
+ * @property protocol - Active protocol.
+ * @property lastFile - Name of the last received file.
  */
 interface ReceiverStatusProps {
-  /**
-   * Whether the server is running.
-   */
   isConnected: boolean;
-  /**
-   * Whether a file transfer is currently active.
-   */
   transferActive: boolean;
-  /**
-   * Local IP address.
-   */
   localIp: string;
-  /**
-   * Local port.
-   */
   port: number | string;
-  /**
-   * Active protocol.
-   */
   protocol: 'tcp' | 'udp';
-  /**
-   * Name of the last received file.
-   */
   lastFile: string | null;
 }
 

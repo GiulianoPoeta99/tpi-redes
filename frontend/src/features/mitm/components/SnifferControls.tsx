@@ -12,51 +12,30 @@ import type React from 'react';
 
 /**
  * Props for SnifferControls.
+ *
+ * @property viewMode - Current view mode (Table or Raw log).
+ * @property setViewMode - Callback to switch view mode.
+ * @property packetCount - Total number of captured packet objects.
+ * @property logCount - Total number of raw log entries.
+ * @property paused - Whether the capture is currently paused.
+ * @property setPaused - Callback to toggle pause state.
+ * @property onClear - Callback to clear all logs.
+ * @property onExpand - Callback to open the expanded modal.
+ * @property currentPage - Current page number (for Raw mode pagination).
+ * @property totalPages - Total pages available (for Raw mode pagination).
+ * @property setCurrentPage - Callback to update current page.
  */
 interface SnifferControlsProps {
-  /**
-   * Current view mode (Table or Raw log).
-   */
   viewMode: 'raw' | 'table';
-  /**
-   * Callback to switch view mode.
-   */
   setViewMode: (mode: 'raw' | 'table') => void;
-  /**
-   * Total number of captured packet objects.
-   */
   packetCount: number;
-  /**
-   * Total number of raw log entries.
-   */
   logCount: number;
-  /**
-   * Whether the capture is currently paused.
-   */
   paused: boolean;
-  /**
-   * Callback to toggle pause state.
-   */
   setPaused: (paused: boolean) => void;
-  /**
-   * Callback to clear all logs.
-   */
   onClear: () => void;
-  /**
-   * Callback to open the expanded modal.
-   */
   onExpand: () => void;
-  /**
-   * Current page number (for Raw mode pagination).
-   */
   currentPage: number;
-  /**
-   * Total pages available (for Raw mode pagination).
-   */
   totalPages: number;
-  /**
-   * Callback to update current page.
-   */
   setCurrentPage: (page: number | ((prev: number) => number)) => void;
 }
 

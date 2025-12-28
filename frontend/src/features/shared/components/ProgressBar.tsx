@@ -2,6 +2,10 @@ import type React from 'react';
 
 /**
  * Props for ProgressBar.
+ *
+ * @property progress - The progress percentage (0-100).
+ * @property label - Optional label text to display above the bar.
+ * @property color - Tailwind color name (e.g., 'blue', 'green'). Defaults to 'blue'.
  */
 interface ProgressBarProps {
   progress: number;

@@ -4,6 +4,13 @@ import { useRef, useState } from 'react';
 
 /**
  * Props for FileDropInput.
+ *
+ * @property files - Array of currently selected file paths.
+ * @property onFilesAdded - Callback when new files are selected or dropped.
+ * @property onFilesCleared - Callback to clear the file selection.
+ * @property onShowQueue - Callback to open the file queue modal.
+ * @property disabled - Whether the input interactions are disabled.
+ * @property className - Optional additional CSS classes.
  */
 interface FileDropInputProps {
   files: string[];

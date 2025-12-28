@@ -3,30 +3,20 @@ import type React from 'react';
 
 /**
  * Props for the GradientCard component.
+ *
+ * @property title - Main title of the card.
+ * @property description - Description text corresponding to the card.
+ * @property icon - Icon to display next to the title.
+ * @property iconColorClass - Tailwind class for the icon color. Defaults to 'text-white'.
+ * @property children - Optional children content.
+ * @property variant - Visual theme variant. Defaults to 'blue'.
  */
 interface GradientCardProps {
-  /**
-   * Main title of the card.
-   */
   title: string;
-  /**
-   * Description text corresponding to the card.
-   */
   description: string;
-  /**
-   * Icon to display next to the title.
-   */
   icon: LucideIcon;
-  /**
-   * Tailwind class for the icon color.
-   * @default 'text-white'
-   */
   iconColorClass?: string;
   children?: React.ReactNode;
-  /**
-   * Visual theme variant.
-   * @default 'blue'
-   */
   variant?: 'red' | 'blue' | 'purple';
 }
 

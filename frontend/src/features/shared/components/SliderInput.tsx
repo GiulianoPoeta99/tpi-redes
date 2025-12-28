@@ -4,6 +4,18 @@ import ControlContainer from './ControlContainer';
 
 /**
  * Props for SliderInput.
+ *
+ * @property value - Current numeric value of the slider.
+ * @property min - Minimum value for the range.
+ * @property max - Maximum value for the range.
+ * @property step - Increment step value.
+ * @property onChange - Callback when value changes.
+ * @property label - Optional text label.
+ * @property headerRight - Optional element to display on the right side of the header.
+ * @property footer - Optional element to display below the slider.
+ * @property disabled - Whether the slider is disabled.
+ * @property className - Optional additional CSS classes.
+ * @property accentColor - Visual accent color ('blue' or 'red'). Defaults to 'blue'.
  */
 interface SliderInputProps {
   value: number;

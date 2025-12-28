@@ -5,49 +5,30 @@ import Button from './Button';
 
 /**
  * Props for the FileListItem component.
+ *
+ * @property filename - The name of the file to display.
+ * @property size - The size of the file (number in bytes or string).
+ * @property status - Current status of the file operation.
+ * @property progress - Progress percentage (0-100) if applicable.
+ * @property onRemove - Callback to remove the file.
+ * @property onClick - Callback when the item is clicked.
+ * @property className - Optional additional CSS classes.
+ * @property action - Custom action element to display.
+ * @property icon - Custom icon to display.
+ * @property details - Additional detailed information to display.
+ * @property iconClassName - Tailwind class for the icon style. Defaults to 'bg-blue-500/10 text-blue-400'.
  */
 interface FileListItemProps {
-  /**
-   * The name of the file to display.
-   */
   filename: string;
-  /**
-   * The size of the file (number in bytes or string).
-   */
   size?: number | string;
-  /**
-   * Current status of the file operation.
-   */
   status?: string;
-  /**
-   * Progress percentage (0-100) if applicable.
-   */
   progress?: number;
-  /**
-   * Callback to remove the file.
-   */
   onRemove?: () => void;
-  /**
-   * Callback when the item is clicked.
-   */
   onClick?: () => void;
   className?: string;
-  /**
-   * Custom action element to display.
-   */
   action?: React.ReactNode;
-  /**
-   * Custom icon to display.
-   */
   icon?: React.ReactNode;
-  /**
-   * Additional detailed information to display.
-   */
   details?: React.ReactNode;
-  /**
-   * Tailwind class for the icon style.
-   * @default 'bg-blue-500/10 text-blue-400'
-   */
   iconClassName?: string;
 }
 

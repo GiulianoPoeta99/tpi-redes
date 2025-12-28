@@ -4,42 +4,24 @@ import BaseModal from './BaseModal';
 import EmptyState from './EmptyState';
 import PeerListItem from './PeerListItem';
 
-/**
- * Represents a discovered network peer.
- */
-interface Peer {
-  ip: string;
-  port?: number;
-  hostname?: string;
-}
+import { type Peer } from '../types';
 
 /**
  * Props for the ScanModal component.
+ *
+ * @property isOpen - Whether the modal is open.
+ * @property onClose - Callback to close the modal.
+ * @property onSelect - Callback when a peer is selected.
+ * @property scanning - Whether a scan is currently in progress.
+ * @property peers - List of discovered peers.
+ * @property error - Optional error message.
  */
 interface ScanModalProps {
-  /**
-   * Whether the modal is open.
-   */
   isOpen: boolean;
-  /**
-   * Callback to close the modal.
-   */
   onClose: () => void;
-  /**
-   * Callback when a peer is selected.
-   */
   onSelect: (peer: Peer) => void;
-  /**
-   * Whether a scan is currently in progress.
-   */
   scanning: boolean;
-  /**
-   * List of discovered peers.
-   */
   peers: Peer[];
-  /**
-   * Optional error message.
-   */
   error?: string;
 }
 

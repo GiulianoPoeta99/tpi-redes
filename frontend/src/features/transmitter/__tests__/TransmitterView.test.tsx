@@ -1,4 +1,4 @@
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import TransmitterView from '../TransmitterView';
 
@@ -11,7 +11,6 @@ window.api = {
   scanNetwork: vi.fn().mockResolvedValue([]),
 };
 
-// Mock InterfaceSelector to avoid async act warnings
 vi.mock('../../shared/components/InterfaceSelector', () => ({
   default: () => <div data-testid="interface-selector">MockInterfaceSelector</div>,
 }));

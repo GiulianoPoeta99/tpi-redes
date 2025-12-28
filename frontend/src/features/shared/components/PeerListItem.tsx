@@ -3,23 +3,17 @@ import type React from 'react';
 
 /**
  * Props for the PeerListItem component.
+ *
+ * @property ip - IP address of the peer.
+ * @property port - Optional port number.
+ * @property hostname - Hostname if available.
+ * @property onSelect - Callback when the peer is selected.
+ * @property className - Optional additional CSS classes.
  */
 interface PeerListItemProps {
-  /**
-   * IP address of the peer.
-   */
   ip: string;
-  /**
-   * Optional port number.
-   */
   port?: number;
-  /**
-   * Hostname if available.
-   */
   hostname?: string;
-  /**
-   * Callback when the peer is selected.
-   */
   onSelect?: () => void;
   className?: string;
 }

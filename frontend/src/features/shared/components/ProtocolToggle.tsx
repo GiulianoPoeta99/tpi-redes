@@ -3,15 +3,14 @@ import BinarySwitch from './BinarySwitch';
 
 /**
  * Props for the ProtocolToggle component.
+ *
+ * @property protocol - The selected protocol.
+ * @property onChange - Callback when protocol changes.
+ * @property disabled - Whether the toggle is disabled.
+ * @property className - Optional additional CSS classes.
  */
 interface ProtocolToggleProps {
-  /**
-   * The selected protocol.
-   */
   protocol: 'tcp' | 'udp';
-  /**
-   * Callback when protocol changes.
-   */
   onChange: (p: 'tcp' | 'udp') => void;
   disabled?: boolean;
   className?: string;

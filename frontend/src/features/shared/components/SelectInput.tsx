@@ -2,17 +2,20 @@ import { Check, ChevronDown } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-/**
- * Option for SelectInput.
- */
-export interface SelectOption {
-  value: string;
-  label: string;
-  disabled?: boolean;
-}
+import { type SelectOption } from '../types';
 
 /**
  * Props for SelectInput.
+ *
+ * @property value - Currently selected value.
+ * @property onChange - Callback when value changes.
+ * @property options - List of available options.
+ * @property disabled - Whether the input is disabled.
+ * @property placeholder - Placeholder text when no value is selected.
+ * @property icon - Optional icon to display on the left.
+ * @property className - Optional additional CSS classes.
+ * @property loading - Whether to show a loading state.
+ * @property align - Dropdown alignment ('left' or 'right'). Defaults to 'left'.
  */
 interface SelectInputProps {
   value: string;

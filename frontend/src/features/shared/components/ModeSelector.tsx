@@ -4,6 +4,11 @@ type Mode = 'receiver' | 'transmitter' | 'mitm';
 
 /**
  * Props for ModeSelector.
+ *
+ * @property currentMode - The currently active mode.
+ * @property onModeChange - Callback when a mode is selected.
+ * @property isBusy - Whether the mode switching is disabled due to active processes.
+ * @property className - Optional additional CSS classes.
  */
 interface ModeSelectorProps {
   currentMode: Mode;

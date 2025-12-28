@@ -3,13 +3,13 @@ import Button from './Button';
 
 /**
  * Props for the SubmitButton component.
+ *
+ * @property icon - Optional icon to display.
+ * @property variant - Visual theme variant. Defaults to 'primary'.
+ * @property isLoading - Whether the button is in a loading state.
  */
 interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: React.ReactNode;
-  /**
-   * Visual theme variant.
-   * @default 'primary'
-   */
   variant?: 'primary' | 'secondary' | 'danger' | 'success';
   isLoading?: boolean;
 }

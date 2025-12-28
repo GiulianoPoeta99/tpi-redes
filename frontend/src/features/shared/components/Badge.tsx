@@ -2,23 +2,18 @@ import type React from 'react';
 
 /**
  * Props for the Badge component.
+ *
+ * @property children - The content to verify.
+ * @property variant - The visual style variant of the badge. Defaults to 'neutral'.
+ * @property size - The size of the badge. Defaults to 'md'.
+ * @property className - Optional additional CSS classes.
+ * @property icon - Optional icon to display before the content.
  */
 interface BadgeProps {
   children: React.ReactNode;
-  /**
-   * The visual style variant of the badge.
-   * @default 'neutral'
-   */
   variant?: 'success' | 'error' | 'warning' | 'info' | 'neutral' | 'glass';
-  /**
-   * The size of the badge.
-   * @default 'md'
-   */
   size?: 'sm' | 'md';
   className?: string;
-  /**
-   * Optional icon to display before the content.
-   */
   icon?: React.ReactNode;
 }
 

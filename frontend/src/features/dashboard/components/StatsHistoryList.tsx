@@ -1,40 +1,14 @@
 import { History } from 'lucide-react';
 import type React from 'react';
 import { formatBytes, formatSpeed } from '../../shared/utils/formatters';
-
-/**
- * Represents a logged history item for a file transfer.
- */
-interface HistoryItem {
-  /**
-   * Timestamp of the transfer.
-   */
-  timestamp: number;
-  /**
-   * Name of the file.
-   */
-  filename: string;
-  /**
-   * Speed of transfer in bytes/sec.
-   */
-  throughput: number;
-  /**
-   * Size of the file in bytes.
-   */
-  size: number;
-  /**
-   * Duration of transfer in milliseconds.
-   */
-  duration?: number;
-}
+import type { HistoryItem } from '../types';
 
 /**
  * Props for the StatsHistoryList component.
+ *
+ * @property history - List of history items to display.
  */
 interface StatsHistoryListProps {
-  /**
-   * List of history items to display.
-   */
   history: HistoryItem[];
 }
 

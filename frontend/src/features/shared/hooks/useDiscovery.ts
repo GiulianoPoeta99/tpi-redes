@@ -1,12 +1,5 @@
 import { useState } from 'react';
-
-/**
- * Represents a discovered network peer.
- */
-interface Peer {
-  ip: string;
-  port?: number;
-}
+import { type Peer } from '../types';
 
 /**
  * Hook to manage network discovery scanning.

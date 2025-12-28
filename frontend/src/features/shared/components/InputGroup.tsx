@@ -4,16 +4,15 @@ import ControlContainer from './ControlContainer';
 
 /**
  * Props for the InputGroup component.
+ *
+ * @property label - Title label for the group.
+ * @property children - The content of the input group.
+ * @property indicatorColor - Optional color class for a small indicator dot.
+ * @property className - Optional additional CSS classes.
  */
 interface InputGroupProps {
-  /**
-   * Title label for the group.
-   */
   label: string;
   children: React.ReactNode;
-  /**
-   * Optional color class for a small indicator dot.
-   */
   indicatorColor?: string;
   className?: string;
 }

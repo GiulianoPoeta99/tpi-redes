@@ -5,23 +5,16 @@ import KpiCard from '../../shared/components/KpiCard';
 
 /**
  * Props for the StatsKpiGrid component.
+ *
+ * @property totalFiles - Total number of files processed.
+ * @property totalBytes - Total bytes processed.
+ * @property totalDuration - Total duration of activity in seconds.
+ * @property avgThroughput - Average throughput achieved.
  */
 interface StatsKpiGridProps {
-  /**
-   * Total number of files processed.
-   */
   totalFiles: number;
-  /**
-   * Total bytes processed.
-   */
   totalBytes: number;
-  /**
-   * Total duration of activity in seconds.
-   */
   totalDuration: number;
-  /**
-   * Average throughput achieved.
-   */
   avgThroughput: number;
 }
 

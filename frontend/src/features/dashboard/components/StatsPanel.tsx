@@ -4,11 +4,10 @@ import type { AppStats } from '../../shared/services/StorageService';
 
 /**
  * Props for the StatsPanel component.
+ *
+ * @property stats - Application statistics.
  */
 interface StatsPanelProps {
-  /**
-   * Application statistics.
-   */
   stats: AppStats;
 }
 
@@ -30,8 +29,6 @@ const StatCard: React.FC<{
 
   const getFontSizeClass = (val: string | number) => {
     const str = String(val);
-    // "100.00 MB" is 9 chars -> text-sm
-    // "10000" is 5 chars -> text-lg
     if (str.length >= 9) return 'text-sm';
     if (str.length >= 6) return 'text-base';
     if (str.length >= 4) return 'text-lg';

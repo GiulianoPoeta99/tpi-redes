@@ -4,19 +4,14 @@ import PortInput from '../../shared/components/PortInput';
 
 /**
  * Props for MitmProxyConfig.
+ *
+ * @property listenPort - The port the proxy should listen on.
+ * @property onChange - Callback to update the listening port.
+ * @property disabled - Whether the input is disabled (e.g. while running).
  */
 interface MitmProxyConfigProps {
-  /**
-   * The port the proxy should listen on.
-   */
   listenPort: number | string;
-  /**
-   * Callback to update the listening port.
-   */
   onChange: (val: number | string) => void;
-  /**
-   * Whether the input is disabled (e.g. while running).
-   */
   disabled?: boolean;
 }
 

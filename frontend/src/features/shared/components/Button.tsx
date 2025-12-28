@@ -4,26 +4,16 @@ import type React from 'react';
 /**
  * Props for the Button component.
  * Extends standard HTML button attributes.
+ *
+ * @property variant - The visual style variant of the button. Defaults to 'primary'.
+ * @property size - The size of the button. Defaults to 'md'.
+ * @property isLoading - If true, shows a loading spinner instead of the icon. Defaults to false.
+ * @property icon - Optional icon to display before the children (or replaced by loader if loading).
  */
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /**
-   * The visual style variant of the button.
-   * @default 'primary'
-   */
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'glass' | 'success';
-  /**
-   * The size of the button.
-   * @default 'md'
-   */
   size?: 'sm' | 'md' | 'lg' | 'icon';
-  /**
-   * If true, shows a loading spinner instead of the icon.
-   * @default false
-   */
   isLoading?: boolean;
-  /**
-   * Optional icon to display before the children (or replaced by loader if loading).
-   */
   icon?: React.ReactNode;
 }
 

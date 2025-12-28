@@ -3,25 +3,19 @@ import type React from 'react';
 
 /**
  * Props for the NumberInput component.
+ *
+ * @property value - The current numeric value or empty string.
+ * @property onChange - Callback on change.
+ * @property min - Minimum value allowed. Defaults to 1.
+ * @property max - Maximum value allowed. Defaults to 65535.
+ * @property placeholder - Optional placeholder text.
+ * @property disabled - Whether the input is disabled.
+ * @property className - Optional additional CSS classes.
  */
 interface NumberInputProps {
-  /**
-   * The current numeric value or empty string.
-   */
   value: number | string;
-  /**
-   * Callback on change.
-   */
   onChange: (value: number | string) => void;
-  /**
-   * Minimum value allowed.
-   * @default 1
-   */
   min?: number;
-  /**
-   * Maximum value allowed.
-   * @default 65535
-   */
   max?: number;
   placeholder?: string;
   disabled?: boolean;

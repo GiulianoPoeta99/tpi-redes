@@ -1,27 +1,7 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 
-/**
- * Represents the state of the sliding window for flow control visualization.
- */
-interface WindowState {
-  /**
-   * Sequence number of the window base (oldest unacknowledged byte).
-   */
-  base: number;
-  /**
-   * Sequence number of the next byte to be sent.
-   */
-  next_seq: number;
-  /**
-   * Size of the sliding window in bytes.
-   */
-  window_size: number;
-  /**
-   * Total bytes to transfer.
-   */
-  total: number;
-}
+import type { WindowState } from '../types';
 
 /**
  * A real-time visualizer for the sliding window flow control mechanism.

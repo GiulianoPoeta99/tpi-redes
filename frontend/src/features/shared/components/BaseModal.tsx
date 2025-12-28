@@ -4,36 +4,23 @@ import type React from 'react';
 
 /**
  * Props for the BaseModal component.
+ *
+ * @property isOpen - Whether the modal is currently open.
+ * @property onClose - Callback function to handle closing the modal.
+ * @property title - The title displayed in the modal header.
+ * @property icon - Optional icon to display next to the title.
+ * @property description - Optional description text displayed below the title.
+ * @property size - The width size of the modal. Defaults to 'md'.
+ * @property headerContent - Optional custom content to display in the header (e.g., actions).
+ * @property children - The content of the modal.
  */
 interface BaseModalProps {
-  /**
-   * Whether the modal is currently open.
-   */
   isOpen: boolean;
-  /**
-   * Callback function to handle closing the modal.
-   */
   onClose: () => void;
-  /**
-   * The title displayed in the modal header.
-   */
   title: string;
-  /**
-   * Optional icon to display next to the title.
-   */
   icon?: LucideIcon;
-  /**
-   * Optional description text displayed below the title.
-   */
   description?: string;
-  /**
-   * The width size of the modal.
-   * @default 'md'
-   */
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
-  /**
-   * Optional custom content to display in the header (e.g., actions).
-   */
   headerContent?: React.ReactNode;
   children: React.ReactNode;
 }

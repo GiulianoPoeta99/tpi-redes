@@ -4,6 +4,12 @@ import NumberInput from './NumberInput';
 
 /**
  * Props for PortInput.
+ *
+ * @property value - Current port value.
+ * @property onChange - Callback when port changes.
+ * @property disabled - Whether the input is disabled.
+ * @property placeholder - Placeholder text.
+ * @property className - Optional additional CSS classes.
  */
 interface PortInputProps {
   value: number | string;

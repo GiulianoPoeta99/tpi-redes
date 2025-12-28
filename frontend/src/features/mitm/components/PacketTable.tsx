@@ -5,11 +5,10 @@ import type { Packet } from '../../shared/types';
 
 /**
  * Props for PacketTable.
+ *
+ * @property packets - List of captured packets to display.
  */
 interface PacketTableProps {
-  /**
-   * List of captured packets to display.
-   */
   packets: Packet[];
 }
 

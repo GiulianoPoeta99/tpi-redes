@@ -2,50 +2,24 @@ import { PlayCircle, ShieldAlert, StopCircle } from 'lucide-react';
 import type React from 'react';
 import ConfigGroup from '../../shared/components/ConfigGroup';
 import SubmitButton from '../../shared/components/SubmitButton';
+import type { MitmConfig, MitmStats } from '../types';
 import CorruptionSlider from './CorruptionSlider';
 import MitmStatsConfig from './MitmStatsConfig';
 
 /**
- * Configuration for the MITM attack parameters.
- */
-interface MitmConfig {
-  listenPort: number | string;
-  targetIp: string;
-  targetPort: number | string;
-  corruption: number;
-}
-
-/**
- * Statistics for the MITM attack session.
- */
-interface MitmStats {
-  intercepted: number;
-  corrupted: number;
-}
-
-/**
  * Props for the ActiveAttacks component.
+ *
+ * @property config - Current MITM configuration.
+ * @property setConfig - Callback to update configuration.
+ * @property isRunning - Whether the MITM proxy is currently running.
+ * @property stats - Current attack statistics.
+ * @property toggleMitm - Callback to toggle the MITM proxy start/stop state.
  */
 interface ActiveAttacksProps {
-  /**
-   * Current MITM configuration.
-   */
   config: MitmConfig;
-  /**
-   * Callback to update configuration.
-   */
   setConfig: (config: MitmConfig) => void;
-  /**
-   * Whether the MITM proxy is currently running.
-   */
   isRunning: boolean;
-  /**
-   * Current attack statistics.
-   */
   stats: MitmStats;
-  /**
-   * Callback to toggle the MITM proxy start/stop state.
-   */
   toggleMitm: () => void;
 }
 

@@ -5,6 +5,11 @@ import SelectInput from './SelectInput';
 
 /**
  * Props for InterfaceSelector.
+ *
+ * @property value - Currently selected interface value.
+ * @property onChange - Callback when selection changes.
+ * @property disabled - Whether the selector interaction is disabled.
+ * @property className - Optional additional CSS classes.
  */
 interface InterfaceSelectorProps {
   value: string | null;

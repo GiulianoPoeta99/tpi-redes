@@ -4,23 +4,16 @@ import Button from './Button';
 
 /**
  * Props for the HeaderActionButton component.
+ *
+ * @property label - The text label for the button.
+ * @property icon - The icon component to display.
+ * @property onClick - Callback function when clicked.
+ * @property color - The color theme of the button.
  */
 interface HeaderActionButtonProps {
-  /**
-   * The text label for the button.
-   */
   label: string;
-  /**
-   * The icon component to display.
-   */
   icon: LucideIcon;
-  /**
-   * Callback function when clicked.
-   */
   onClick?: () => void;
-  /**
-   * The color theme of the button.
-   */
   color: 'blue' | 'purple';
 }
 

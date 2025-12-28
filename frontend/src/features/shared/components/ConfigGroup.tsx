@@ -3,26 +3,19 @@ import type React from 'react';
 
 /**
  * Props for the ConfigGroup component.
+ *
+ * @property icon - Optional icon to display in the header.
+ * @property title - Optional title to display in the header.
+ * @property children - The content of the group.
+ * @property iconBgClass - Tailwind class for the icon background color. Defaults to 'bg-status-info-bg'.
+ * @property iconColorClass - Tailwind class for the icon text color. Defaults to 'text-status-info-text'.
+ * @property className - Optional additional CSS classes.
  */
 interface ConfigGroupProps {
-  /**
-   * Optional icon to display in the header.
-   */
   icon?: LucideIcon;
-  /**
-   * Optional title to display in the header.
-   */
   title?: string;
   children: React.ReactNode;
-  /**
-   * Tailwind class for the icon background color.
-   * @default 'bg-status-info-bg'
-   */
   iconBgClass?: string;
-  /**
-   * Tailwind class for the icon text color.
-   * @default 'text-status-info-text'
-   */
   iconColorClass?: string;
   className?: string;
 }

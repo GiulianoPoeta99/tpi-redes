@@ -2,30 +2,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect } from 'react';
-
-export type ToastType = 'success' | 'error' | 'info';
-
-/**
- * Represents a single toast notification message.
- */
-export interface ToastMessage {
-  id: string;
-  type: ToastType;
-  title: string;
-  description?: string;
-}
+import type { ToastMessage } from '../types';
 
 /**
  * Props for the ToastContainer.
+ *
+ * @property toasts - List of active toast messages to display.
+ * @property removeToast - Callback to remove a toast by ID.
  */
 interface ToastContainerProps {
-  /**
-   * List of active toast messages to display.
-   */
   toasts: ToastMessage[];
-  /**
-   * Callback to remove a toast by ID.
-   */
   removeToast: (id: string) => void;
 }
 
@@ -47,11 +33,10 @@ const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, removeToast }) 
 
 /**
  * Props for the individual Toast component.
+ *
+ * @property onClose - Callback to close/dismiss this specific toast.
  */
 interface ToastProps extends ToastMessage {
-  /**
-   * Callback to close/dismiss this specific toast.
-   */
   onClose: () => void;
 }
 

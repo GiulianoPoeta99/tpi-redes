@@ -6,31 +6,21 @@ import ProtocolToggle from './ProtocolToggle';
 
 /**
  * Props for the PortProtocolConfig component.
+ *
+ * @property port - The current port value.
+ * @property setPort - Callback to update the port.
+ * @property protocol - The current protocol (TCP/UDP).
+ * @property setProtocol - Callback to update the protocol.
+ * @property interfaceVal - The selected network interface.
+ * @property setInterfaceVal - Callback to update the interface.
+ * @property disabled - Whether the configuration inputs are disabled.
  */
 interface PortProtocolConfigProps {
-  /**
-   * The current port value.
-   */
   port: number | string;
-  /**
-   * Callback to update the port.
-   */
   setPort: (val: number | string) => void;
-  /**
-   * The current protocol (TCP/UDP).
-   */
   protocol: 'tcp' | 'udp';
-  /**
-   * Callback to update the protocol.
-   */
   setProtocol: (val: 'tcp' | 'udp') => void;
-  /**
-   * The selected network interface.
-   */
   interfaceVal: string | null;
-  /**
-   * Callback to update the interface.
-   */
   setInterfaceVal: (val: string | null) => void;
   disabled?: boolean;
 }

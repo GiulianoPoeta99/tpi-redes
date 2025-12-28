@@ -2,18 +2,16 @@ import type React from 'react';
 
 /**
  * Props for the ControlContainer component.
+ *
+ * @property children - The content of the container.
+ * @property className - Optional additional CSS classes.
+ * @property padding - Tailwind class for padding. Defaults to 'p-4'.
+ * @property title - Optional title content displayed at the top.
  */
 interface ControlContainerProps {
   children: React.ReactNode;
   className?: string;
-  /**
-   * Tailwind class for padding.
-   * @default 'p-4'
-   */
   padding?: string;
-  /**
-   * Optional title content displayed at the top.
-   */
   title?: React.ReactNode;
 }
 

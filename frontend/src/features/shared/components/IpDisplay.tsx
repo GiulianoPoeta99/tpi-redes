@@ -3,6 +3,12 @@ import { useEffect, useState } from 'react';
 
 /**
  * Props for IpDisplay.
+ *
+ * @property ip - IP address to display. Automatically fetches local IP if undefined.
+ * @property variant - Visual color variant. Defaults to 'purple'.
+ * @property size - Size of the display component ('sm' or 'md').
+ * @property className - Optional additional CSS classes.
+ * @property showLabel - Whether to show the 'MY IP ADDRESS' label.
  */
 interface IpDisplayProps {
   ip?: string;

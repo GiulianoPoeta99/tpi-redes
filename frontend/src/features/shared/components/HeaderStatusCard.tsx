@@ -3,6 +3,14 @@ import type React from 'react';
 
 /**
  * Props for the HeaderStatusCard.
+ *
+ * @property title - The main title of the status card.
+ * @property subtitle - Subtitle text describing the current state.
+ * @property icon - Icon to display in the header.
+ * @property status - Current functional status (e.g., 'active', 'idle').
+ * @property statusLabel - Text label explaining the status.
+ * @property variant - Visual color variant ('blue', 'purple', 'red').
+ * @property className - Optional additional CSS classes.
  */
 interface HeaderStatusCardProps {
   title: string;

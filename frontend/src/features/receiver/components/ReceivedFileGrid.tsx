@@ -5,31 +5,20 @@ import type { FileItem, VerificationResult } from '../types';
 
 /**
  * Props for the ReceivedFileGrid component.
+ *
+ * @property files - List of files to display.
+ * @property verificationResults - Status results for file verification.
+ * @property verifying - Name of the file currently being verified, if any.
+ * @property onVerify - Callback to verify a file's integrity.
+ * @property onOpen - Callback to open a file.
+ * @property onOpenFolder - Callback to show a file in its folder.
  */
 interface ReceivedFileGridProps {
-  /**
-   * List of files to display.
-   */
   files: FileItem[];
-  /**
-   * Status results for file verification.
-   */
   verificationResults: Record<string, VerificationResult>;
-  /**
-   * Name of the file currently being verified, if any.
-   */
   verifying: string | null;
-  /**
-   * Callback to verify a file's integrity.
-   */
   onVerify: (file: FileItem) => void;
-  /**
-   * Callback to open a file.
-   */
   onOpen: (path: string) => void;
-  /**
-   * Callback to show a file in its folder.
-   */
   onOpenFolder: (path: string) => void;
 }
 

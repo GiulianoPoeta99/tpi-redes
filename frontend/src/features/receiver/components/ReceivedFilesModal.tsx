@@ -7,15 +7,12 @@ import ReceivedFileList from './ReceivedFileList';
 
 /**
  * Props for the ReceivedFilesModal component.
+ *
+ * @property isOpen - Whether the modal is open.
+ * @property onClose - Callback to close the modal.
  */
 interface ReceivedFilesModalProps {
-  /**
-   * Whether the modal is open.
-   */
   isOpen: boolean;
-  /**
-   * Callback to close the modal.
-   */
   onClose: () => void;
 }
 

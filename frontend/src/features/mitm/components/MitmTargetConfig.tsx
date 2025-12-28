@@ -7,31 +7,20 @@ import PortInput from '../../shared/components/PortInput';
 
 /**
  * Props for MitmTargetConfig.
+ *
+ * @property targetIp - The destination IP address to forward traffic to.
+ * @property targetPort - The destination port to forward traffic to.
+ * @property onIpChange - Callback to update the target IP.
+ * @property onPortChange - Callback to update the target port.
+ * @property onScanClick - Callback to trigger network scan.
+ * @property disabled - Whether inputs are disabled.
  */
 interface MitmTargetConfigProps {
-  /**
-   * The destination IP address to forward traffic to.
-   */
   targetIp: string;
-  /**
-   * The destination port to forward traffic to.
-   */
   targetPort: number | string;
-  /**
-   * Callback to update the target IP.
-   */
   onIpChange: (val: string) => void;
-  /**
-   * Callback to update the target port.
-   */
   onPortChange: (val: number | string) => void;
-  /**
-   * Callback to trigger network scan.
-   */
   onScanClick: () => void;
-  /**
-   * Whether inputs are disabled.
-   */
   disabled?: boolean;
 }
 

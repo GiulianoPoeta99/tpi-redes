@@ -1,42 +1,24 @@
 import { Network } from 'lucide-react';
 import type React from 'react';
 import ConfigGroup from '../../shared/components/ConfigGroup';
+import type { MitmConfig } from '../types';
 import MitmProxyConfig from './MitmProxyConfig';
 import MitmTargetConfig from './MitmTargetConfig';
 
 /**
- * Configuration for MITM network settings.
- */
-interface MitmConfig {
-  listenPort: number | string;
-  targetIp: string;
-  targetPort: number | string;
-  corruption: number;
-}
-
-/**
  * Props for MitmNetworkConfig.
+ *
+ * @property config - Current MITM network configuration.
+ * @property setConfig - Callback to update configuration.
+ * @property isRunning - Whether the MITM proxy is currently running.
+ * @property isAttacking - Whether an attack (corruption) is active.
+ * @property openScan - Callback to open the network scan modal.
  */
 interface MitmNetworkConfigProps {
-  /**
-   * Current MITM network configuration.
-   */
   config: MitmConfig;
-  /**
-   * Callback to update configuration.
-   */
   setConfig: (config: MitmConfig) => void;
-  /**
-   * Whether the MITM proxy is currently running.
-   */
   isRunning: boolean;
-  /**
-   * Whether an attack (corruption) is active.
-   */
   isAttacking: boolean;
-  /**
-   * Callback to open the network scan modal.
-   */
   openScan: () => void;
 }
 

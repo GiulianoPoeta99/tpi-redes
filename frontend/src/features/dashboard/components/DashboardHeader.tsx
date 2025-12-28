@@ -6,31 +6,20 @@ import ModeSelector from '../../shared/components/ModeSelector';
 
 /**
  * Props for the DashboardHeader component.
+ *
+ * @property mode - Current active mode.
+ * @property onModeChange - Callback to change the active mode.
+ * @property isBusy - Whether the dashboard is performing a blocking operation.
+ * @property onShowFiles - Callback to show the files modal.
+ * @property onShowHistory - Callback to show the history modal.
+ * @property headerContent - Additional content to render in the header.
  */
 interface DashboardHeaderProps {
-  /**
-   * Current active mode.
-   */
   mode: 'receiver' | 'transmitter' | 'mitm';
-  /**
-   * Callback to change the active mode.
-   */
   onModeChange: (mode: 'receiver' | 'transmitter' | 'mitm') => void;
-  /**
-   * Whether the dashboard is performing a blocking operation.
-   */
   isBusy: boolean;
-  /**
-   * Callback to show the files modal.
-   */
   onShowFiles: () => void;
-  /**
-   * Callback to show the history modal.
-   */
   onShowHistory: () => void;
-  /**
-   * Additional content to render in the header.
-   */
   headerContent: React.ReactNode;
 }
 

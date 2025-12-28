@@ -2,26 +2,20 @@ import type React from 'react';
 
 /**
  * Props for the Section component.
+ *
+ * @property title - Title of the section.
+ * @property description - Description or helper text.
+ * @property children - The content of the section.
+ * @property headerContent - Optional controls or content for the header area.
+ * @property className - Optional additional CSS classes.
+ * @property noPadding - If true, removes padding from the content area. Defaults to false.
  */
 interface SectionProps {
-  /**
-   * Title of the section.
-   */
   title?: string;
-  /**
-   * Description or helper text.
-   */
   description?: string;
   children: React.ReactNode;
-  /**
-   * Optional controls or content for the header area.
-   */
   headerContent?: React.ReactNode;
   className?: string;
-  /**
-   * If true, removes padding from the content area.
-   * @default false
-   */
   noPadding?: boolean;
 }
 

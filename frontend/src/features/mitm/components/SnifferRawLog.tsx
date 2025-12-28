@@ -2,19 +2,14 @@ import type React from 'react';
 
 /**
  * Props for SnifferRawLog.
+ *
+ * @property logs - List of raw log entries to display.
+ * @property visible - Whether this view is currently visible.
+ * @property logEndRef - Ref to the end of the log list, for auto-scrolling.
  */
 interface SnifferRawLogProps {
-  /**
-   * List of raw log entries to display.
-   */
   logs: { id: string; text: string }[];
-  /**
-   * Whether this view is currently visible.
-   */
   visible: boolean;
-  /**
-   * Ref to the end of the log list, for auto-scrolling.
-   */
   logEndRef: React.RefObject<HTMLDivElement | null>;
 }
 

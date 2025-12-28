@@ -2,40 +2,16 @@ import { BarChart3 } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { formatBytes, formatSpeed } from '../../shared/utils/formatters';
-
-/**
- * Represents a historical data point for throughput.
- */
-interface HistoryItem {
-  /**
-   * Timestamp of the event.
-   */
-  timestamp: number;
-  /**
-   * Name of the file transferred.
-   */
-  filename: string;
-  /**
-   * Throughput achieved in bytes/sec.
-   */
-  throughput: number;
-  /**
-   * Size of the file in bytes.
-   */
-  size: number;
-}
+import type { HistoryItem } from '../types';
 
 /**
  * Props for the StatsAnalyticChart component.
+ *
+ * @property history - Array of historical data points.
+ * @property maxThroughput - Maximum throughput value for scaling the Y-axis.
  */
 interface StatsAnalyticChartProps {
-  /**
-   * Array of historical data points.
-   */
   history: HistoryItem[];
-  /**
-   * Maximum throughput value for scaling the Y-axis.
-   */
   maxThroughput: number;
 }
 

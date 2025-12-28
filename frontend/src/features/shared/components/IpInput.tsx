@@ -4,13 +4,16 @@ import { type ClipboardEvent, type KeyboardEvent, useEffect, useRef, useState } 
 
 /**
  * Props for IpInput.
+ *
+ * @property value - The full IP address string (e.g., "192.168.1.1").
+ * @property onChange - Callback fired when the IP address changes.
+ * @property disabled - Whether the input is disabled.
+ * @property className - Optional CSS class names.
+ * @property placeholder - Optional placeholder text.
  */
 interface IpInputProps {
-  /** The full IP address string (e.g., "192.168.1.1"). */
   value: string;
-  /** Callback fired when the IP address changes. */
   onChange: (value: string) => void;
-  /** Whether the input is disabled. */
   disabled?: boolean;
   className?: string;
   placeholder?: string;

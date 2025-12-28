@@ -2,15 +2,12 @@ import type React from 'react';
 
 /**
  * Props for SnifferPermissionModal.
+ *
+ * @property isOpen - Whether the modal is open (visible).
+ * @property onDismiss - Callback to dismiss the modal.
  */
 interface SnifferPermissionModalProps {
-  /**
-   * Whether the modal is open (visible).
-   */
   isOpen: boolean;
-  /**
-   * Callback to dismiss the modal.
-   */
   onDismiss: () => void;
 }
 
