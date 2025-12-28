@@ -5,6 +5,9 @@ import { useEffect } from 'react';
 
 export type ToastType = 'success' | 'error' | 'info';
 
+/**
+ * Represents a single toast notification message.
+ */
 export interface ToastMessage {
   id: string;
   type: ToastType;
@@ -12,11 +15,24 @@ export interface ToastMessage {
   description?: string;
 }
 
+/**
+ * Props for the ToastContainer.
+ */
 interface ToastContainerProps {
+  /**
+   * List of active toast messages to display.
+   */
   toasts: ToastMessage[];
+  /**
+   * Callback to remove a toast by ID.
+   */
   removeToast: (id: string) => void;
 }
 
+/**
+ * Container component that manages the positioning and list rendering of toast notifications.
+ * Renders in a fixed position (top-right) and handles animations.
+ */
 const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, removeToast }) => {
   return (
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 pointer-events-none w-80">
@@ -29,7 +45,13 @@ const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, removeToast }) 
   );
 };
 
+/**
+ * Props for the individual Toast component.
+ */
 interface ToastProps extends ToastMessage {
+  /**
+   * Callback to close/dismiss this specific toast.
+   */
   onClose: () => void;
 }
 

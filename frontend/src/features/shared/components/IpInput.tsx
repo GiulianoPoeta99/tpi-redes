@@ -6,8 +6,11 @@ import { type ClipboardEvent, type KeyboardEvent, useEffect, useRef, useState } 
  * Props for IpInput.
  */
 interface IpInputProps {
+  /** The full IP address string (e.g., "192.168.1.1"). */
   value: string;
+  /** Callback fired when the IP address changes. */
   onChange: (value: string) => void;
+  /** Whether the input is disabled. */
   disabled?: boolean;
   className?: string;
   placeholder?: string;
@@ -36,6 +39,9 @@ const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, cl
     }
   }, [value, octets]);
 
+  /**
+   * Updates parent component with new IP string.
+   */
   const updateParent = (newOctets: string[]) => {
     const newValue = newOctets.join('.');
     onChange(newValue);
