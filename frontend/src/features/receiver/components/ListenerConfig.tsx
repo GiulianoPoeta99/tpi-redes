@@ -6,39 +6,24 @@ import SubmitButton from '../../shared/components/SubmitButton';
 
 /**
  * Props for the ListenerConfig component.
+ *
+ * @property port - The port to listen on.
+ * @property setPort - Callback to update the port.
+ * @property protocol - The protocol to use (TCP/UDP).
+ * @property setProtocol - Callback to update the protocol.
+ * @property netInterface - The network interface to bind to.
+ * @property setNetInterface - Callback to update the network interface.
+ * @property isConnected - Whether the server is currently running.
+ * @property toggleServer - Callback to start/stop the server.
  */
 interface ListenerConfigProps {
-  /**
-   * The port to listen on.
-   */
   port: number | string;
-  /**
-   * Callback to update the port.
-   */
   setPort: (port: number | string) => void;
-  /**
-   * The protocol to use (TCP/UDP).
-   */
   protocol: 'tcp' | 'udp';
-  /**
-   * Callback to update the protocol.
-   */
   setProtocol: (protocol: 'tcp' | 'udp') => void;
-  /**
-   * The network interface to bind to.
-   */
   netInterface: string | null;
-  /**
-   * Callback to update the network interface.
-   */
   setNetInterface: (val: string | null) => void;
-  /**
-   * Whether the server is currently running.
-   */
   isConnected: boolean;
-  /**
-   * Callback to start/stop the server.
-   */
   toggleServer: () => void;
 }
 
