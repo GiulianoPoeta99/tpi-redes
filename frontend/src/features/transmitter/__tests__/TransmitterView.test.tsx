@@ -17,12 +17,12 @@ describe('TransmitterView', () => {
   const addToast = vi.fn();
   const setHeaderContent = vi.fn();
 
-  it('renders form elements correctly', () => {
+  it('renders form elements correctly', async () => {
     render(
       <TransmitterView setBusy={setBusy} addToast={addToast} setHeaderContent={setHeaderContent} />,
     );
 
-    expect(screen.getByText('Destination IP')).toBeInTheDocument();
+    expect(await screen.findByText('Destination IP')).toBeInTheDocument();
   });
 
   it('validates input before sending', async () => {
