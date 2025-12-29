@@ -42,9 +42,8 @@ class ProxyServer:
         self.interface = interface
         self.protocol = protocol.lower()
         self.running = False
-        
-        # UDP Forwarding State
-        self.udp_sessions = {}  # (client_ip, client_port) -> target_socket
+
+        self.udp_sessions: dict[tuple[str, int], socket.socket] = {}
         self.udp_sessions_lock = threading.Lock()
 
     def start(self):
@@ -60,6 +59,7 @@ class ProxyServer:
         """Start TCP Proxy Listener."""
         self.running = True
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             server_socket.bind(("0.0.0.0", self.listen_port))
             server_socket.listen(5)
             logger.info(
@@ -85,6 +85,7 @@ class ProxyServer:
         """Start UDP Proxy Listener."""
         self.running = True
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             server_socket.bind(("0.0.0.0", self.listen_port))
             logger.info(
                 f"MITM UDP Proxy listening on port {self.listen_port}, "
@@ -126,10 +127,12 @@ class ProxyServer:
         finally:
             client_socket.close()
 
-    def handle_client_udp(self, server_socket: socket.socket, data: bytes, addr):
+    def handle_client_udp(
+        self, server_socket: socket.socket, data: bytes, addr: tuple[str, int]
+    ):
         """Handle incoming UDP packet from client."""
         client_key = addr
-        
+
         with self.udp_sessions_lock:
             target_socket = self.udp_sessions.get(client_key)
             if not target_socket:
@@ -138,12 +141,12 @@ class ProxyServer:
                     # Bind to ephemeral
                     target_socket.connect((self.target_ip, self.target_port))
                     self.udp_sessions[client_key] = target_socket
-                    
+
                     # Start listener for replies
                     threading.Thread(
-                        target=self.forward_udp_reply, 
+                        target=self.forward_udp_reply,
                         args=(server_socket, target_socket, addr),
-                        daemon=True
+                        daemon=True,
                     ).start()
                     logger.info(f"New UDP session for {addr}")
                 except Exception as e:
@@ -162,32 +165,38 @@ class ProxyServer:
 
             target_socket.send(data)
 
-            # Log
-            try:
+            from contextlib import suppress
+
+            with suppress(Exception):
                 PacketLogger.emit_packet(
-                    addr[0], addr[1],
-                    self.target_ip, self.target_port,
+                    addr[0],
+                    addr[1],
+                    self.target_ip,
+                    self.target_port,
                     "UDP",
                     f"MITM Forward{info_tag} Len={len(data)}",
                     size=len(data),
                     flags="",
-                    seq=0, ack=0
+                    seq=0,
+                    ack=0,
                 )
-            except Exception:
-                pass
         except Exception as e:
             logger.error(f"UDP Send Error: {e}")
 
-    def forward_udp_reply(self, server_socket: socket.socket, target_socket: socket.socket, client_addr):
+    def forward_udp_reply(
+        self,
+        server_socket: socket.socket,
+        target_socket: socket.socket,
+        client_addr: tuple[str, int],
+    ):
         """Listen for replies from target and forward back to client."""
         try:
             while self.running:
                 data = target_socket.recv(65535)
                 if not data:
                     break
-                
-                # Forward Target -> Client (No corruption on reply usually, or symmetric?)
-                # Implementing symmetric corruption for consistency
+
+                # Forward Target -> Client (symmetric corruption)
                 if self.corruption_rate > 0:
                     original = data
                     data = self.corrupt_data(data)
@@ -197,19 +206,21 @@ class ProxyServer:
 
                 server_socket.sendto(data, client_addr)
 
-                try:
-                    # Log Reply
+                from contextlib import suppress
+
+                with suppress(Exception):
                     PacketLogger.emit_packet(
-                         self.target_ip, self.target_port,
-                         client_addr[0], client_addr[1],
-                         "UDP",
-                         f"MITM Reply{info_tag} Len={len(data)}",
-                         size=len(data),
-                         flags="",
-                         seq=0, ack=0
+                        self.target_ip,
+                        self.target_port,
+                        client_addr[0],
+                        client_addr[1],
+                        "UDP",
+                        f"MITM Reply{info_tag} Len={len(data)}",
+                        size=len(data),
+                        flags="",
+                        seq=0,
+                        ack=0,
                     )
-                except Exception:
-                    pass
         except Exception:
             # Socket closed or error
             pass
@@ -219,7 +230,9 @@ class ProxyServer:
                     del self.udp_sessions[client_addr]
             target_socket.close()
 
-    def forward_tcp(self, source: socket.socket, destination: socket.socket, corrupt: bool):
+    def forward_tcp(
+        self, source: socket.socket, destination: socket.socket, corrupt: bool
+    ):
         """Forward data from source to destination socket."""
         try:
             while self.running:

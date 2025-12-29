@@ -33,14 +33,9 @@ class TestEndToEndTransfer:
         original_data = b"Hello World" * 1000
         send_file.write_bytes(original_data)
 
-        send_file.write_bytes(original_data)
-
         server = TCPServer(
             host="127.0.0.1", port=server_port, save_dir=str(receive_dir)
         )
-
-        server_thread = threading.Thread(target=server.start, daemon=True)
-        server_thread.start()
 
         server_thread = threading.Thread(target=server.start, daemon=True)
         server_thread.start()
@@ -51,14 +46,9 @@ class TestEndToEndTransfer:
             client = TCPClient()
             client.send_files([send_file], "127.0.0.1", server_port)
 
-            client.send_files([send_file], "127.0.0.1", server_port)
-
             time.sleep(0.5)
 
             received_file = receive_dir / "test_file.bin"
-            assert received_file.exists()
-            assert received_file.read_bytes() == original_data
-
             assert received_file.exists()
             assert received_file.read_bytes() == original_data
 

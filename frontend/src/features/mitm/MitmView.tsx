@@ -8,14 +8,11 @@ import ActiveAttacks from './components/ActiveAttacks';
 import MitmNetworkConfig from './components/MitmNetworkConfig';
 import type { MitmConfig } from './types';
 
-/**
- * Main view for the Man-in-the-Middle (MITM) mode.
- * Allows configuring interception, modification parameters, and visualizing attacks.
- */
 const MitmView: React.FC<{
   setBusy: (busy: boolean) => void;
   setHeaderContent: (content: React.ReactNode) => void;
-}> = ({ setBusy, setHeaderContent }) => {
+  addToast: (type: 'success' | 'error' | 'info', title: string, description?: string) => void;
+}> = ({ setBusy, setHeaderContent, addToast }) => {
   const [config, setConfig] = useState<MitmConfig>({
     listenPort: 8081,
     targetIp: '127.0.0.1',
@@ -44,18 +41,22 @@ const MitmView: React.FC<{
 
   useEffect(() => {
     if (!isRunning) return;
-    const interval = setInterval(() => {
-      setStats((prev) => ({
-        intercepted: prev.intercepted + Math.floor(Math.random() * 8) + 2,
-        corrupted:
-          prev.corrupted +
-          (config.corruption > 0 && Math.random() < config.corruption
-            ? Math.floor(Math.random() * 3) + 1
-            : 0),
-      }));
-    }, 500);
-    return () => clearInterval(interval);
-  }, [isRunning, config.corruption]);
+
+    const cleanupPacket = window.api.onPacketCapture(() => {
+      setStats((prev) => ({ ...prev, intercepted: prev.intercepted + 1 }));
+    });
+
+    const cleanupLog = window.api.onLog?.((log: string) => {
+      if (log.includes('Corrupting') || log.includes('Corrupted')) {
+        setStats((prev) => ({ ...prev, corrupted: prev.corrupted + 1 }));
+      }
+    });
+
+    return () => {
+      cleanupPacket();
+      cleanupLog?.();
+    };
+  }, [isRunning]);
 
   useEffect(() => {
     setHeaderContent(
@@ -71,6 +72,19 @@ const MitmView: React.FC<{
     return () => setHeaderContent(null);
   }, [isRunning, setHeaderContent]);
 
+  useEffect(() => {
+    const cleanupExit = window.api.onProcessExit?.((data: { code: number }) => {
+      if (isRunning) {
+        setIsRunning(false);
+        if (data.code !== 0) {
+          addToast('error', 'Proxy Stopped', `Process exited (Code: ${data.code}). Check ports.`);
+        }
+      }
+    });
+
+    return () => cleanupExit?.();
+  }, [isRunning, addToast]);
+
   const toggleMitm = async () => {
     if (isRunning) {
       await window.api.stopProcess();
@@ -81,7 +95,6 @@ const MitmView: React.FC<{
         await window.api.startProxy({
           listenPort: Number(config.listenPort),
           targetIp: config.targetIp,
-
           targetPort: Number(config.targetPort),
           corruptionRate: config.corruption,
           interfaceName: config.interface,
@@ -90,6 +103,7 @@ const MitmView: React.FC<{
         setIsRunning(true);
       } catch (e) {
         console.error(e);
+        addToast('error', 'Start Failed', 'Failed to start proxy engine.');
       }
     }
   };
@@ -104,6 +118,7 @@ const MitmView: React.FC<{
         peers={discovery.peers}
         error={discovery.error}
       />
+
       <MitmNetworkConfig
         config={config}
         setConfig={setConfig}

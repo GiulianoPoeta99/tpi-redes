@@ -66,7 +66,8 @@ class DiscoveryService:
                                 "port": response.get("port", 8080),
                             }
                             if not any(
-                                (p["ip"] == peer["ip"]) for p in discovered_peers
+                                (p["ip"] == peer["ip"] and p["port"] == peer["port"])
+                                for p in discovered_peers
                             ):
                                 discovered_peers.append(peer)
                                 hostname = peer.get("hostname", "Unknown")

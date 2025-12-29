@@ -302,6 +302,9 @@ function spawnPythonProcess(args: string[]) {
 
   pythonProcess.on('exit', (code: number, signal: string) => {
     console.log(`Python process exited with code ${code} and signal ${signal}`);
+    if (mainWindow) {
+      mainWindow.webContents.send('process-exit', { code, signal });
+    }
     pythonProcess = null;
   });
 

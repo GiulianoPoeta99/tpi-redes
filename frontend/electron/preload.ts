@@ -32,6 +32,12 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('sniffer-error', subscription);
     return () => ipcRenderer.removeListener('sniffer-error', subscription);
   },
+  onProcessExit: (callback: (data: { code: number; signal: string }) => void) => {
+    const subscription = (_event: unknown, value: unknown) =>
+      callback(value as { code: number; signal: string });
+    ipcRenderer.on('process-exit', subscription);
+    return () => ipcRenderer.removeListener('process-exit', subscription);
+  },
   getFilePath: (file: File) => webUtils.getPathForFile(file),
   // File System
   getDownloadsDir: () => ipcRenderer.invoke('get-downloads-dir'),

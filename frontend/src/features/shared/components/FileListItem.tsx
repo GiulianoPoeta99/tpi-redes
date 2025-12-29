@@ -57,12 +57,21 @@ const FileListItem: React.FC<FileListItemProps> = ({
     return `${Number.parseFloat((s / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: has role, tabIndex and keyboard handler
     <div
       className={`group bg-glass-surface backdrop-blur-sm border border-white/5 p-3 rounded-lg flex items-center justify-between transition-colors w-full text-left relative ${
         onClick ? 'hover:bg-glass-hover cursor-pointer' : ''
       } ${className}`}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >

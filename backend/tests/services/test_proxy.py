@@ -57,7 +57,7 @@ class TestProxyServer:
 
         mock_socket_cls.return_value = mock_target_socket
 
-        proxy.handle_client(mock_client_socket)
+        proxy.handle_client_tcp(mock_client_socket)
 
         mock_target_socket.connect.assert_called_with(("target", 8080))
 

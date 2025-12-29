@@ -137,10 +137,7 @@ def start_server(
 
             try:
                 sniffer_process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    text=True,
-                    bufsize=1
+                    cmd, stdout=subprocess.PIPE, text=True, bufsize=1
                 )
 
                 sniffer_ready_event = threading.Event()
@@ -176,15 +173,13 @@ def start_server(
 
                     if sniffer_process.poll() is not None:
                         exit_code = sniffer_process.poll()
-                        logger.warning(
-                            f"Sniffer process exited. Code: {exit_code}"
-                        )
+                        logger.warning(f"Sniffer process exited. Code: {exit_code}")
                         print(
                             json.dumps(
                                 {
                                     "type": "SNIFFER_ERROR",
                                     "code": "PERMISSION_DENIED",
-                                    "message": f"Sniffer process died (Code {exit_code}).",
+                                    "message": f"Sniffer died (Code {exit_code}).",
                                 }
                             ),
                             flush=True,
@@ -426,55 +421,92 @@ def start_proxy(
     If --interface is specified, attempts to escalate privileges to support sniffing.
     """
     import os
-    import sys
     import subprocess
+    import sys
+    import threading
 
-    # If interface is provided and we are not root, try to escalate
-    if interface and os.geteuid() != 0:
-        console.print("[yellow]Interface specified. Requesting root privileges...[/yellow]")
-        
+    sniffer_process = None
+    discovery = None
+
+    if interface:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         src_path = os.path.abspath(os.path.join(current_dir, "../.."))
-        
-        env_vars = ["env", f"PYTHONPATH={src_path}"]
-        
+
         cmd = [
             "pkexec",
-            *env_vars,
+            "env",
+            f"PYTHONPATH={src_path}",
             sys.executable,
             "-m",
             "tpi_redes.cli.main",
-            "start-proxy",
-            "--listen-port", str(listen_port),
-            "--target-ip", target_ip,
-            "--target-port", str(target_port),
-            "--corruption-rate", str(corruption_rate),
-            "--interface", interface,
-            "--protocol", protocol,
+            "sniffer-service",
+            "--port",
+            str(listen_port),
+            "--interface",
+            interface,
         ]
-        
-        try:
-            # Replace current process with privileged one
-            os.execvp("pkexec", cmd)
-        except OSError as e:
-            console.print(f"[bold red]Failed to escalate privileges: {e}[/bold red]")
-            sys.exit(1)
 
+        logger.info("Requesting root privileges for Sniffer...")
+
+        try:
+            sniffer_process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, text=True, bufsize=1
+            )
+
+            def forward_sniffer_output():
+                try:
+                    if not sniffer_process or not sniffer_process.stdout:
+                        return
+                    for line in sniffer_process.stdout:
+                        print(line, end="", flush=True)
+                except Exception as e:
+                    logger.error(f"Sniffer output forwarding failed: {e}")
+
+            threading.Thread(target=forward_sniffer_output, daemon=True).start()
+
+        except Exception as e:
+            logger.error(f"Failed to start sniffer: {e}")
+
+    from tpi_redes.services.discovery import DiscoveryService
     from tpi_redes.services.proxy import ProxyServer
 
-    console.print(f"[bold red]Starting MITM Proxy ({protocol.upper()}) on port {listen_port}...[/bold red]")
+    console.print(
+        f"[bold red]Starting MITM Proxy ({protocol.upper()}) "
+        f"on port {listen_port}...[/bold red]"
+    )
     console.print(f"Target: {target_ip}:{target_port}")
     if interface:
-        console.print(f"Interface: {interface} (Root: {os.geteuid() == 0})")
+        console.print(f"Interface: {interface} (Sniffer Attached)")
     console.print(f"Corruption Rate: {corruption_rate}")
 
     proxy = ProxyServer(
         listen_port, target_ip, target_port, corruption_rate, interface, protocol
     )
+
     try:
+        discovery = DiscoveryService()
+        try:
+            discovery.listen(listen_port)
+        except OSError:
+            logger.warning("Discovery service could not bind (port in use?). Skipping.")
+
         proxy.start()
     except KeyboardInterrupt:
         console.print("\n[yellow]Stopping proxy...[/yellow]")
+    except Exception as e:
+        console.print(f"\n[bold red]Fatal error starting proxy: {e}[/bold red]")
+        import traceback
+
+        traceback.print_exc()
+        sys.exit(1)
+    finally:
+        if discovery:
+            discovery.stop()
+        if sniffer_process:
+            from contextlib import suppress
+
+            with suppress(Exception):
+                sniffer_process.terminate()
 
 
 @cli.command()

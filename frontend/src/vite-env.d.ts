@@ -30,9 +30,12 @@ interface Window {
       targetIp: string;
       targetPort: number;
       corruptionRate: number;
+      interfaceName?: string;
+      protocol: string;
     }) => Promise<void>;
     onPacketCapture: (callback: (data: unknown) => void) => () => void;
     onSnifferError: (callback: (data: unknown) => void) => () => void;
+    onProcessExit: (callback: (data: { code: number; signal: string }) => void) => () => void;
     getLocalIp: () => Promise<string>;
     getDownloadsDir: () => Promise<string>;
     listFiles: (

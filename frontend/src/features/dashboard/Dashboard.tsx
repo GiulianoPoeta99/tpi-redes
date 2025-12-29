@@ -3,10 +3,9 @@ import SnifferLog from '../mitm/components/SnifferLog';
 import MitmView from '../mitm/MitmView';
 import { ReceivedFilesModal } from '../receiver/components/ReceivedFilesModal';
 import ReceiverView from '../receiver/ReceiverView';
-import type { ToastMessage } from '../shared/types';
 import type { AppStats } from '../shared/services/StorageService';
 import { StorageService } from '../shared/services/StorageService';
-import type { Packet } from '../shared/types';
+import type { Packet, ToastMessage } from '../shared/types';
 import TransmitterView from '../transmitter/TransmitterView';
 import DashboardHeader from './components/DashboardHeader';
 import HistoryModal from './components/HistoryModal';
@@ -183,7 +182,9 @@ const Dashboard: React.FC = () => {
               setHeaderContent={setHeaderContent}
             />
           )}
-          {mode === 'mitm' && <MitmView setBusy={setIsBusy} setHeaderContent={setHeaderContent} />}
+          {mode === 'mitm' && (
+            <MitmView setBusy={setIsBusy} setHeaderContent={setHeaderContent} addToast={addToast} />
+          )}
         </>
       }
       sideContent={

@@ -1,6 +1,6 @@
 import type React from 'react';
-import InterfaceSelector from '../../shared/components/InterfaceSelector';
 import InputGroup from '../../shared/components/InputGroup';
+import InterfaceSelector from '../../shared/components/InterfaceSelector';
 import PortInput from '../../shared/components/PortInput';
 import ProtocolToggle from '../../shared/components/ProtocolToggle';
 
