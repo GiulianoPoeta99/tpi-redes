@@ -21,6 +21,7 @@ const MitmView: React.FC<{
     targetIp: '127.0.0.1',
     targetPort: 8080,
     corruption: 0.0,
+    protocol: 'tcp',
   });
   const [isRunning, setIsRunning] = useState(false);
   const isAttacking = isRunning && config.corruption > 0;
@@ -80,8 +81,11 @@ const MitmView: React.FC<{
         await window.api.startProxy({
           listenPort: Number(config.listenPort),
           targetIp: config.targetIp,
+
           targetPort: Number(config.targetPort),
           corruptionRate: config.corruption,
+          interfaceName: config.interface,
+          protocol: config.protocol,
         });
         setIsRunning(true);
       } catch (e) {

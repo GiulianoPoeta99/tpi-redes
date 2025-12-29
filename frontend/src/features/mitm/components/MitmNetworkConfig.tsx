@@ -36,15 +36,19 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
   return (
     <ConfigGroup title="Network Configuration" icon={Network}>
       <div className="flex items-start gap-4">
-        <div className="w-64 shrink-0">
+        <div className="w-[380px] shrink-0">
           <MitmProxyConfig
             listenPort={config.listenPort}
             onChange={(val) => setConfig({ ...config, listenPort: val })}
+            interfaceName={config.interface}
+            onInterfaceChange={(val) => setConfig({ ...config, interface: val })}
+            protocol={config.protocol}
+            onProtocolChange={(val) => setConfig({ ...config, protocol: val })}
             disabled={isRunning}
           />
         </div>
 
-        <div className="flex-1 flex flex-col justify-center px-4 relative h-full pt-8 group">
+        <div className="flex-1 flex flex-col justify-center px-1 relative h-full pt-8 group min-w-[60px]">
           <style>
             {`
               @keyframes flow-animation {
@@ -63,7 +67,7 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
 
           <div className="relative w-full h-8 flex items-center">
             <div
-              className={`w-2 h-2 rounded-full ${
+              className={`w-1.5 h-1.5 rounded-full ${
                 isRunning
                   ? isAttacking
                     ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
@@ -72,7 +76,7 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
               } absolute left-0 z-10`}
             ></div>
             <div
-              className={`w-2 h-2 rounded-full ${
+              className={`w-1.5 h-1.5 rounded-full ${
                 isRunning
                   ? isAttacking
                     ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
@@ -107,7 +111,7 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
 
             {isRunning && (
               <div
-                className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] font-mono font-bold tracking-widest px-2 rounded border bg-gray-900/80 ${
+                className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-[9px] font-mono font-bold tracking-widest px-1.5 rounded border bg-gray-900/80 mb-1 ${
                   isAttacking
                     ? 'text-red-500 border-red-500/20'
                     : 'text-green-500 border-green-500/20'
@@ -119,7 +123,7 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
           </div>
         </div>
 
-        <div className="w-96 shrink-0">
+        <div className="w-[380px] shrink-0">
           <MitmTargetConfig
             targetIp={config.targetIp}
             targetPort={config.targetPort}

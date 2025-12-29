@@ -11,13 +11,19 @@ logger = logging.getLogger("tpi-redes")
 class ProxyServer:
     """Man-In-The-Middle (MITM) Proxy Server.
 
-    Intercepts TCP connections, forwards traffic between client and target server,
+    Intercepts TCP/UDP connections, forwards traffic between client and target server,
     and optionally corrupts data streams to simulate network interference.
     Logs intercepted packets for observability.
     """
 
     def __init__(
-        self, listen_port: int, target_ip: str, target_port: int, corruption_rate: float
+        self,
+        listen_port: int,
+        target_ip: str,
+        target_port: int,
+        corruption_rate: float,
+        interface: str | None = None,
+        protocol: str = "tcp",
     ):
         """Initialize the proxy configuration.
 
@@ -26,54 +32,87 @@ class ProxyServer:
             target_ip: Real server IP to forward traffic to.
             target_port: Real server port.
             corruption_rate: Probability (0.0 to 1.0) of corrupting a packet chunk.
+            interface: Network interface to bind/sniff on.
+            protocol: Protocol to proxy ('tcp' or 'udp').
         """
         self.listen_port = listen_port
         self.target_ip = target_ip
         self.target_port = target_port
         self.corruption_rate = corruption_rate
+        self.interface = interface
+        self.protocol = protocol.lower()
         self.running = False
+        
+        # UDP Forwarding State
+        self.udp_sessions = {}  # (client_ip, client_port) -> target_socket
+        self.udp_sessions_lock = threading.Lock()
 
     def start(self):
-        """Start the proxy server loops.
+        """Start the proxy server loops."""
+        if self.protocol == "tcp":
+            self.start_tcp()
+        elif self.protocol == "udp":
+            self.start_udp()
+        else:
+            logger.error(f"Unsupported protocol: {self.protocol}")
 
-        Accepts incoming connections and spawns a handler thread for each.
-        """
+    def start_tcp(self):
+        """Start TCP Proxy Listener."""
         self.running = True
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             server_socket.bind(("0.0.0.0", self.listen_port))
             server_socket.listen(5)
             logger.info(
-                f"MITM Proxy listening on port {self.listen_port}, "
+                f"MITM TCP Proxy listening on port {self.listen_port}, "
                 f"targeting {self.target_ip}:{self.target_port}"
             )
+            if self.interface:
+                logger.info(f"Interface: {self.interface}")
             logger.info(f"Corruption Rate: {self.corruption_rate * 100}%")
 
             while self.running:
                 try:
                     client_socket, addr = server_socket.accept()
-                    logger.info(f"Accepted connection from {addr}")
+                    logger.info(f"Accepted TCP connection from {addr}")
                     threading.Thread(
-                        target=self.handle_client, args=(client_socket,)
+                        target=self.handle_client_tcp, args=(client_socket,)
                     ).start()
                 except Exception as e:
                     if self.running:
                         logger.error(f"Error accepting connection: {e}")
 
-    def handle_client(self, client_socket: socket.socket):
-        """Establish connection to upstream target and bridge the sockets.
+    def start_udp(self):
+        """Start UDP Proxy Listener."""
+        self.running = True
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
+            server_socket.bind(("0.0.0.0", self.listen_port))
+            logger.info(
+                f"MITM UDP Proxy listening on port {self.listen_port}, "
+                f"targeting {self.target_ip}:{self.target_port}"
+            )
+            if self.interface:
+                logger.info(f"Interface: {self.interface}")
+            logger.info(f"Corruption Rate: {self.corruption_rate * 100}%")
 
-        Args:
-            client_socket: The victim's socket connection from accept().
-        """
+            while self.running:
+                try:
+                    data, addr = server_socket.recvfrom(65535)
+                    self.handle_client_udp(server_socket, data, addr)
+                except Exception as e:
+                    if self.running:
+                        logger.error(f"Error receiving UDP: {e}")
+
+    def handle_client_tcp(self, client_socket: socket.socket):
+        """Bridge two TCP sockets."""
         try:
             target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             target_socket.connect((self.target_ip, self.target_port))
 
             client_to_target = threading.Thread(
-                target=self.forward, args=(client_socket, target_socket, True)
+                target=self.forward_tcp, args=(client_socket, target_socket, True)
             )
             target_to_client = threading.Thread(
-                target=self.forward, args=(target_socket, client_socket, False)
+                target=self.forward_tcp, args=(target_socket, client_socket, False)
             )
 
             client_to_target.start()
@@ -87,17 +126,101 @@ class ProxyServer:
         finally:
             client_socket.close()
 
-    def forward(self, source: socket.socket, destination: socket.socket, corrupt: bool):
-        """Forward data from source to destination socket.
+    def handle_client_udp(self, server_socket: socket.socket, data: bytes, addr):
+        """Handle incoming UDP packet from client."""
+        client_key = addr
+        
+        with self.udp_sessions_lock:
+            target_socket = self.udp_sessions.get(client_key)
+            if not target_socket:
+                try:
+                    target_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    # Bind to ephemeral
+                    target_socket.connect((self.target_ip, self.target_port))
+                    self.udp_sessions[client_key] = target_socket
+                    
+                    # Start listener for replies
+                    threading.Thread(
+                        target=self.forward_udp_reply, 
+                        args=(server_socket, target_socket, addr),
+                        daemon=True
+                    ).start()
+                    logger.info(f"New UDP session for {addr}")
+                except Exception as e:
+                    logger.error(f"Failed to create target UDP socket: {e}")
+                    return
 
-        Applies data corruption logic if `corrupt` is True and `corruption_rate` > 0.
-        Logs every forwarded packet to `PacketLogger`.
+        # Forward Client -> Target
+        try:
+            # Corrupt?
+            if self.corruption_rate > 0:
+                original = data
+                data = self.corrupt_data(data)
+                info_tag = " [CORRUPTED]" if data != original else ""
+            else:
+                info_tag = ""
 
-        Args:
-            source: Input socket.
-            destination: Output socket.
-            corrupt: Whether to apply corruption logic to this stream.
-        """
+            target_socket.send(data)
+
+            # Log
+            try:
+                PacketLogger.emit_packet(
+                    addr[0], addr[1],
+                    self.target_ip, self.target_port,
+                    "UDP",
+                    f"MITM Forward{info_tag} Len={len(data)}",
+                    size=len(data),
+                    flags="",
+                    seq=0, ack=0
+                )
+            except Exception:
+                pass
+        except Exception as e:
+            logger.error(f"UDP Send Error: {e}")
+
+    def forward_udp_reply(self, server_socket: socket.socket, target_socket: socket.socket, client_addr):
+        """Listen for replies from target and forward back to client."""
+        try:
+            while self.running:
+                data = target_socket.recv(65535)
+                if not data:
+                    break
+                
+                # Forward Target -> Client (No corruption on reply usually, or symmetric?)
+                # Implementing symmetric corruption for consistency
+                if self.corruption_rate > 0:
+                    original = data
+                    data = self.corrupt_data(data)
+                    info_tag = " [CORRUPTED_REPLY]" if data != original else ""
+                else:
+                    info_tag = ""
+
+                server_socket.sendto(data, client_addr)
+
+                try:
+                    # Log Reply
+                    PacketLogger.emit_packet(
+                         self.target_ip, self.target_port,
+                         client_addr[0], client_addr[1],
+                         "UDP",
+                         f"MITM Reply{info_tag} Len={len(data)}",
+                         size=len(data),
+                         flags="",
+                         seq=0, ack=0
+                    )
+                except Exception:
+                    pass
+        except Exception:
+            # Socket closed or error
+            pass
+        finally:
+            with self.udp_sessions_lock:
+                if self.udp_sessions.get(client_addr) == target_socket:
+                    del self.udp_sessions[client_addr]
+            target_socket.close()
+
+    def forward_tcp(self, source: socket.socket, destination: socket.socket, corrupt: bool):
+        """Forward data from source to destination socket."""
         try:
             while self.running:
                 data = source.recv(4096)
@@ -137,14 +260,7 @@ class ProxyServer:
             destination.close()
 
     def corrupt_data(self, data: bytes) -> bytes:
-        """Randomly flip a single bit in a random byte of the data payload.
-
-        Args:
-            data: Original uncorrupted bytes.
-
-        Returns:
-            bytes: Potentially corrupted bytes effectively mimicking bit-rot.
-        """
+        """Randomly flip a single bit in a random byte of the data payload."""
         if random.random() < self.corruption_rate:
             mutable_data = bytearray(data)
             idx = random.randint(0, len(mutable_data) - 1)

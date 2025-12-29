@@ -98,6 +98,8 @@ ipcMain.handle('start-proxy', async (_event, args) => {
     '--corruption-rate',
     args.corruptionRate,
   ];
+  if (args.interfaceName) cmdArgs.push('--interface', args.interfaceName);
+  if (args.protocol) cmdArgs.push('--protocol', args.protocol);
   return spawnPythonProcess(cmdArgs);
 });
 

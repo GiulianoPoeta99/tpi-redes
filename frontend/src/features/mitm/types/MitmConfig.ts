@@ -11,4 +11,6 @@ export interface MitmConfig {
   targetIp: string;
   targetPort: number | string;
   corruption: number;
+  interface?: string;
+  protocol: 'tcp' | 'udp';
 }

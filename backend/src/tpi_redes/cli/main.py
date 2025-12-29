@@ -401,20 +401,76 @@ def send_file(
 @click.option(
     "--corruption-rate", default=0.0, help="Probability of bit flipping (0.0 - 1.0)"
 )
+@click.option(
+    "--interface",
+    default=None,
+    help="Network interface to bind/sniff on (e.g. eth0)",
+)
+@click.option(
+    "--protocol",
+    default="tcp",
+    type=click.Choice(["tcp", "udp"], case_sensitive=False),
+    help="Protocol to proxy (TCP or UDP)",
+)
 def start_proxy(
-    listen_port: int, target_ip: str, target_port: int, corruption_rate: float
+    listen_port: int,
+    target_ip: str,
+    target_port: int,
+    corruption_rate: float,
+    interface: str | None,
+    protocol: str,
 ):
     """Start a MITM Proxy Server.
 
     Requires client setup to connect to this proxy port instead of real server.
+    If --interface is specified, attempts to escalate privileges to support sniffing.
     """
+    import os
+    import sys
+    import subprocess
+
+    # If interface is provided and we are not root, try to escalate
+    if interface and os.geteuid() != 0:
+        console.print("[yellow]Interface specified. Requesting root privileges...[/yellow]")
+        
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        src_path = os.path.abspath(os.path.join(current_dir, "../.."))
+        
+        env_vars = ["env", f"PYTHONPATH={src_path}"]
+        
+        cmd = [
+            "pkexec",
+            *env_vars,
+            sys.executable,
+            "-m",
+            "tpi_redes.cli.main",
+            "start-proxy",
+            "--listen-port", str(listen_port),
+            "--target-ip", target_ip,
+            "--target-port", str(target_port),
+            "--corruption-rate", str(corruption_rate),
+            "--interface", interface,
+            "--protocol", protocol,
+        ]
+        
+        try:
+            # Replace current process with privileged one
+            os.execvp("pkexec", cmd)
+        except OSError as e:
+            console.print(f"[bold red]Failed to escalate privileges: {e}[/bold red]")
+            sys.exit(1)
+
     from tpi_redes.services.proxy import ProxyServer
 
-    console.print(f"[bold red]Starting MITM Proxy on port {listen_port}...[/bold red]")
+    console.print(f"[bold red]Starting MITM Proxy ({protocol.upper()}) on port {listen_port}...[/bold red]")
     console.print(f"Target: {target_ip}:{target_port}")
+    if interface:
+        console.print(f"Interface: {interface} (Root: {os.geteuid() == 0})")
     console.print(f"Corruption Rate: {corruption_rate}")
 
-    proxy = ProxyServer(listen_port, target_ip, target_port, corruption_rate)
+    proxy = ProxyServer(
+        listen_port, target_ip, target_port, corruption_rate, interface, protocol
+    )
     try:
         proxy.start()
     except KeyboardInterrupt:
