@@ -74,8 +74,23 @@ class PacketSniffer:
 
         Used when running as a separate child process purely for sniffing.
         Enforces root privileges; exits with code 1 if missing.
-        Keeps running until `KeyboardInterrupt` or termination signal.
+        
+        Robustness features:
+        - Uses `prctl(PR_SET_PDEATHSIG)` (Linux only) to auto-terminate if parent dies.
+        - Exits gracefully on `BrokenPipeError` (stdout closed).
+        - Keeps running until `KeyboardInterrupt` or termination signal.
         """
+        # Linux specific: Ensure this process dies if the parent (pkexec) dies.
+        try:
+            import ctypes
+            import signal
+            libc = ctypes.CDLL("libc.so.6")
+            PR_SET_PDEATHSIG = 1
+            # 9 is SIGKILL
+            libc.prctl(PR_SET_PDEATHSIG, signal.SIGKILL, 0, 0, 0)
+        except Exception:
+            pass
+
         if os.geteuid() != 0:
             print(
                 json.dumps(
@@ -168,8 +183,7 @@ class PacketSniffer:
                     protocol = "UDP"
                     info = f"{src} -> {dst} Len={pkt[UDP].len}"
 
-                if info:
-                    logger.info(f"SNIFFER: {info}")
+
                 packet_data = {
                     "type": "PACKET_CAPTURE",
                     "timestamp": time.time(),
@@ -184,7 +198,12 @@ class PacketSniffer:
                     "window": window,
                 }
 
-                print(json.dumps(packet_data), flush=True)
+                try:
+                    print(json.dumps(packet_data), flush=True)
+                except BrokenPipeError:
+                     sys.exit(0)
 
+        except BrokenPipeError:
+            sys.exit(0)
         except Exception as e:
             logger.error(f"Error processing packet: {e}")

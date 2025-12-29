@@ -146,12 +146,15 @@ def start_server(
                 sniffer_ready_event = threading.Event()
 
                 def forward_sniffer_output():
-                    if not sniffer_process or not sniffer_process.stdout:
-                        return
-                    for line in sniffer_process.stdout:
-                        if line.strip():
-                            sniffer_ready_event.set()
-                        print(line, end="", flush=True)
+                    try:
+                        if not sniffer_process or not sniffer_process.stdout:
+                            return
+                        for line in sniffer_process.stdout:
+                            if line.strip():
+                                sniffer_ready_event.set()
+                            print(line, end="", flush=True)
+                    except Exception as e:
+                        logger.error(f"Sniffer output forwarding failed: {e}")
 
                 t = threading.Thread(target=forward_sniffer_output, daemon=True)
                 t.start()
