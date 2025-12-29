@@ -98,25 +98,29 @@ const FileDropInput: React.FC<FileDropInputProps> = ({
           setIsDragging(false);
         }}
         onDrop={handleDrop}
-        className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-4 transition-all group min-h-[120px] relative ${
+        className={`flex-1 border-2 border-dashed rounded-xl flex items-center justify-center transition-all group min-h-[100px] relative ${
           disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
         } ${
           isDragging
             ? 'bg-blue-900/20 border-blue-500'
             : 'bg-gray-900/20 border-gray-700 hover:border-blue-500/50 hover:bg-gray-800/50'
-        } ${className}`}
+        } ${className} ${files.length > 0 ? 'px-4 py-2' : 'px-4 py-2 flex-col'}`}
       >
         {files.length > 0 ? (
-          <div className="text-center w-full">
-            <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mx-auto mb-2 text-blue-400 group-hover:scale-110 transition-transform">
-              <FileText size={24} />
+          <div className="flex items-center justify-between w-full gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400 shrink-0">
+                <FileText size={20} />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="font-medium text-white text-sm truncate">
+                  {files.length} {files.length === 1 ? 'file' : 'files'} selected
+                </p>
+                <p className="text-[10px] text-gray-500">Ready to transmit</p>
+              </div>
             </div>
-            <p className="font-medium text-white text-lg mb-1">
-              {files.length} {files.length === 1 ? 'file' : 'files'} selected
-            </p>
-            <p className="text-xs text-gray-500 mb-4">Ready to transmit</p>
 
-            <div className="flex justify-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={(e) => {
@@ -124,9 +128,10 @@ const FileDropInput: React.FC<FileDropInputProps> = ({
                   onShowQueue();
                 }}
                 disabled={disabled}
-                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium text-gray-200 flex items-center gap-2 transition-colors border border-gray-700 disabled:opacity-50"
+                className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-200 transition-colors border border-gray-700"
+                title="View List"
               >
-                <List size={14} /> View List
+                <List size={14} />
               </button>
               <button
                 type="button"
@@ -135,9 +140,10 @@ const FileDropInput: React.FC<FileDropInputProps> = ({
                   fileInputRef.current?.click();
                 }}
                 disabled={disabled}
-                className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-xs font-medium text-blue-300 flex items-center gap-2 transition-colors border border-blue-500/30 disabled:opacity-50"
+                className="p-1.5 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-blue-300 transition-colors border border-blue-500/30"
+                title="Add More"
               >
-                <Plus size={14} /> Add More
+                <Plus size={14} />
               </button>
               <button
                 type="button"
@@ -146,19 +152,20 @@ const FileDropInput: React.FC<FileDropInputProps> = ({
                   onFilesCleared();
                 }}
                 disabled={disabled}
-                className="px-3 py-1.5 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-xs font-medium text-red-300 flex items-center gap-2 transition-colors border border-red-500/30 disabled:opacity-50"
+                className="p-1.5 bg-red-900/20 hover:bg-red-900/30 rounded-lg text-red-300 transition-colors border border-red-500/30"
+                title="Clear All"
               >
-                <X size={14} /> Clear
+                <X size={14} />
               </button>
             </div>
           </div>
         ) : (
           <div className="text-center">
-            <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
-              <Plus size={24} />
+            <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-1 text-gray-600 group-hover:scale-110 transition-transform group-hover:bg-gray-700 group-hover:text-blue-400">
+              <Plus size={20} />
             </div>
-            <p className="text-gray-300 mb-1 text-base font-medium">Drag & Drop files</p>
-            <p className="text-xs text-gray-500">or click to browse</p>
+            <p className="text-gray-300 mb-0.5 text-sm font-medium">Drag & Drop files</p>
+            <p className="text-[10px] text-gray-500">or click to browse</p>
           </div>
         )}
       </button>

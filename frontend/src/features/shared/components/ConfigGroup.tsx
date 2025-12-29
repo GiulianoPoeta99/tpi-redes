@@ -39,10 +39,10 @@ const ConfigGroup: React.FC<ConfigGroupProps> = ({
         <div className="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
           {Icon && (
             <div className={`p-2 rounded-lg ${iconBgClass} ${iconColorClass}`}>
-              <Icon size={20} />
+              <Icon size={15} />
             </div>
           )}
-          {title && <h3 className="font-bold text-gray-200">{title}</h3>}
+          {title && <h3 className="font-bold text-gray-200 text-[15px]">{title}</h3>}
         </div>
       )}
       <div className="flex-1">{children}</div>
