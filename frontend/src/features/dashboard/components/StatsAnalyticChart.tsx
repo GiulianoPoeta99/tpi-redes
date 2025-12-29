@@ -45,7 +45,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
     : '';
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 flex-1 flex flex-col min-h-0 relative">
+    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 flex-1 w-full flex flex-col min-h-0 relative max-h-[500px]">
       <div className="flex justify-between items-end mb-2 shrink-0">
         <h3 className="text-sm font-semibold text-white flex items-center gap-2">
           <BarChart3 size={16} className="text-gray-400" />

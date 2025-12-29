@@ -76,7 +76,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats, history
             <StatsLatestTransfer stats={stats} />
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 h-full min-h-0">
             <StatsHistoryList history={history} />
           </div>
         </div>

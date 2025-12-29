@@ -23,10 +23,10 @@ const DualCircularProgress: React.FC<DualCircularProgressProps> = ({
   fileProgress,
 }) => {
   return (
-    <div className="relative w-64 h-64 flex items-center justify-center">
+    <div className="relative w-48 h-48 flex items-center justify-center">
       <div className="absolute inset-0">
         <CircularProgress
-          size={256}
+          size={192}
           progress={batchProgress}
           strokeWidth={6}
           className="text-mode-tx transition-all duration-300 ease-linear"
