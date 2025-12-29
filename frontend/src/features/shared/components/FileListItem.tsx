@@ -58,11 +58,13 @@ const FileListItem: React.FC<FileListItemProps> = ({
   };
 
   return (
-    <button
-      type="button"
-      className={`group bg-glass-surface backdrop-blur-sm border border-white/5 p-3 rounded-lg flex items-center justify-between hover:bg-glass-hover transition-colors w-full text-left ${className}`}
+    <div
+      className={`group bg-glass-surface backdrop-blur-sm border border-white/5 p-3 rounded-lg flex items-center justify-between transition-colors w-full text-left relative ${
+        onClick ? 'hover:bg-glass-hover cursor-pointer' : ''
+      } ${className}`}
       onClick={onClick}
-      disabled={!onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className={`p-2 rounded-lg shrink-0 ${iconClassName}`}>
@@ -121,7 +123,7 @@ const FileListItem: React.FC<FileListItemProps> = ({
           </Button>
         )}
       </div>
-    </button>
+    </div>
   );
 };
 
