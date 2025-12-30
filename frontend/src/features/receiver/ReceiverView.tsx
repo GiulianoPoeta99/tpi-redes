@@ -1,6 +1,7 @@
 import { Download } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { DEFAULT_SERVER_PORT } from '../../config/constants';
 import HeaderStatusCard from '../shared/components/HeaderStatusCard';
 import { StorageService } from '../shared/services/StorageService';
 import ListenerConfig from './components/ListenerConfig';
@@ -19,7 +20,7 @@ interface ReceiverViewProps {
  * Configures and controls the listening server.
  */
 const ReceiverView: React.FC<ReceiverViewProps> = ({ setBusy, setHeaderContent }) => {
-  const [port, setPort] = useState<number | string>(8080);
+  const [port, setPort] = useState<number | string>(DEFAULT_SERVER_PORT);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [netInterface, setNetInterface] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);

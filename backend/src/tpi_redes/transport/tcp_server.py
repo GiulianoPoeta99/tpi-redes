@@ -4,6 +4,7 @@ import socket
 from pathlib import Path
 from typing import Any
 
+from tpi_redes.config import CHUNK_SIZE, PROGRESS_REPORT_INTERVAL_BYTES
 from tpi_redes.core.base import BaseServer
 from tpi_redes.core.protocol import ProtocolHandler
 
@@ -92,7 +93,9 @@ class TCPServer(BaseServer):
                 received_bytes = 0
                 with open(save_path, "wb") as f:
                     while received_bytes < header.file_size:
-                        chunk_size = min(4096, header.file_size - received_bytes)
+                        chunk_size = min(
+                            CHUNK_SIZE, header.file_size - received_bytes
+                        )
                         chunk = self._recv_exact(conn, chunk_size)
                         if not chunk:
                             break
@@ -100,7 +103,7 @@ class TCPServer(BaseServer):
                         received_bytes += len(chunk)
 
                         if (
-                            received_bytes % (1024 * 100) < 4096
+                            received_bytes % PROGRESS_REPORT_INTERVAL_BYTES < CHUNK_SIZE
                             or received_bytes == header.file_size
                         ):
                             print(

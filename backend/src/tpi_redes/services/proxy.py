@@ -3,6 +3,7 @@ import random
 import socket
 import threading
 
+from tpi_redes.config import CHUNK_SIZE, MAX_UDP_PACKET_SIZE
 from tpi_redes.observability.packet_logger import PacketLogger
 
 logger = logging.getLogger("tpi-redes")
@@ -97,7 +98,7 @@ class ProxyServer:
 
             while self.running:
                 try:
-                    data, addr = server_socket.recvfrom(65535)
+                    data, addr = server_socket.recvfrom(MAX_UDP_PACKET_SIZE)
                     self.handle_client_udp(server_socket, data, addr)
                 except Exception as e:
                     if self.running:
@@ -192,7 +193,7 @@ class ProxyServer:
         """Listen for replies from target and forward back to client."""
         try:
             while self.running:
-                data = target_socket.recv(65535)
+                data = target_socket.recv(MAX_UDP_PACKET_SIZE)
                 if not data:
                     break
 
@@ -236,7 +237,7 @@ class ProxyServer:
         """Forward data from source to destination socket."""
         try:
             while self.running:
-                data = source.recv(4096)
+                data = source.recv(CHUNK_SIZE)
                 if not data:
                     break
 

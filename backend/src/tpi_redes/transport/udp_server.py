@@ -3,6 +3,7 @@ import socket
 from dataclasses import dataclass
 from pathlib import Path
 
+from tpi_redes.config import MAX_UDP_PACKET_SIZE
 from tpi_redes.core.base import BaseServer
 from tpi_redes.core.protocol import Header, ProtocolHandler
 from tpi_redes.observability.packet_logger import PacketLogger
@@ -57,7 +58,7 @@ class UDPServer(BaseServer):
 
             try:
                 while True:
-                    data, addr = self.sock.recvfrom(65535)
+                    data, addr = self.sock.recvfrom(MAX_UDP_PACKET_SIZE)
 
                     local_ip, local_port = self.sock.getsockname()
                     PacketLogger.emit_packet(

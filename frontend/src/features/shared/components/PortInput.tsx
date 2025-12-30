@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 import type React from 'react';
+import { DEFAULT_SERVER_PORT } from '../../../config/constants';
 import NumberInput from './NumberInput';
 
 /**
@@ -27,7 +28,7 @@ const PortInput: React.FC<PortInputProps> = ({
   value,
   onChange,
   disabled = false,
-  placeholder = '8080',
+  placeholder = String(DEFAULT_SERVER_PORT),
   className = '',
 }) => {
   const isSystemPort = typeof value === 'number' && value > 0 && value < 1024;

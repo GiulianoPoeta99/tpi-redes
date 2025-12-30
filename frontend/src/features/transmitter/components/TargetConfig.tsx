@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
 import type React from 'react';
+import { DEFAULT_HOST } from '../../../config/constants';
 import Button from '../../shared/components/Button';
 import InputGroup from '../../shared/components/InputGroup';
 import IpInput from '../../shared/components/IpInput';
@@ -35,7 +36,7 @@ const TargetConfig: React.FC<TargetConfigProps> = ({ ip, setIp, onScan, disabled
           <IpInput
             value={ip}
             onChange={setIp}
-            placeholder="e.g. 192.168.1.5"
+            placeholder={DEFAULT_HOST}
             className="flex-1"
             disabled={disabled}
           />

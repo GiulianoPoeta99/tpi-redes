@@ -1,6 +1,7 @@
 import { ShieldAlert } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { DEFAULT_PROXY_PORT, DEFAULT_TARGET_PORT } from '../../config/constants';
 import HeaderStatusCard from '../shared/components/HeaderStatusCard';
 import ScanModal from '../shared/components/ScanModal';
 import { useDiscovery } from '../shared/hooks/useDiscovery';
@@ -14,9 +15,9 @@ const MitmView: React.FC<{
   addToast: (type: 'success' | 'error' | 'info', title: string, description?: string) => void;
 }> = ({ setBusy, setHeaderContent, addToast }) => {
   const [config, setConfig] = useState<MitmConfig>({
-    listenPort: 8081,
-    targetIp: '127.0.0.1',
-    targetPort: 8080,
+    listenPort: DEFAULT_PROXY_PORT,
+    targetIp: '',
+    targetPort: DEFAULT_TARGET_PORT,
     corruption: 0.0,
     protocol: 'tcp',
   });

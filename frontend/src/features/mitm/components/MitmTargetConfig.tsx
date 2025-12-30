@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
 import type React from 'react';
+import { DEFAULT_HOST, DEFAULT_TARGET_PORT } from '../../../config/constants';
 import Button from '../../shared/components/Button';
 import InputGroup from '../../shared/components/InputGroup';
 import IpInput from '../../shared/components/IpInput';
@@ -41,7 +42,13 @@ const MitmTargetConfig: React.FC<MitmTargetConfigProps> = ({
       <div className="flex items-end gap-2 w-full">
         <div className="flex-1 min-w-[140px]">
           <span className="text-xs text-gray-400 block mb-1">Target Host / IP</span>
-          <IpInput value={targetIp} onChange={onIpChange} disabled={disabled} className="w-full" />
+          <IpInput
+            value={targetIp}
+            onChange={onIpChange}
+            disabled={disabled}
+            className="w-full"
+            placeholder={DEFAULT_HOST}
+          />
         </div>
         <div className="w-24 shrink-0">
           <span className="text-xs text-gray-400 block mb-1">Port</span>
@@ -49,7 +56,7 @@ const MitmTargetConfig: React.FC<MitmTargetConfigProps> = ({
             value={targetPort}
             onChange={onPortChange}
             disabled={disabled}
-            placeholder="8080"
+            placeholder={String(DEFAULT_TARGET_PORT)}
           />
         </div>
         <Button

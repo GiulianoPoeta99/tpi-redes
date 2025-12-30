@@ -9,6 +9,13 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.traceback import install
 
+from tpi_redes.config import (
+    CHUNK_SIZE,
+    DEFAULT_HOST,
+    DEFAULT_PROXY_PORT,
+    DEFAULT_SERVER_PORT,
+)
+
 console = Console(stderr=True)
 logger = logging.getLogger("tpi-redes")
 
@@ -66,7 +73,7 @@ def cli(debug: bool):
 
 
 @cli.command(hidden=True)
-@click.option("--port", default=8080)
+@click.option("--port", default=DEFAULT_SERVER_PORT)
 @click.option("--interface", default=None)
 def sniffer_service(port: int, interface: str | None):
     """(Internal) Privileged sniffer process.
@@ -81,7 +88,7 @@ def sniffer_service(port: int, interface: str | None):
 
 
 @cli.command()
-@click.option("--port", default=8080, help="Port to listen on")
+@click.option("--port", default=DEFAULT_SERVER_PORT, help="Port to listen on")
 @click.option(
     "--protocol",
     type=click.Choice(["tcp", "udp"]),
@@ -244,7 +251,7 @@ def start_server(
 @cli.command()
 @click.argument("files", nargs=-1, type=click.Path(exists=True, dir_okay=False))
 @click.option("--ip", prompt="Receiver IP", help="IP address of the receiver")
-@click.option("--port", default=8080, help="Port to connect to")
+@click.option("--port", default=DEFAULT_SERVER_PORT, help="Port to connect to")
 @click.option(
     "--protocol",
     type=click.Choice(["tcp", "udp"]),
@@ -258,7 +265,7 @@ def start_server(
 )
 @click.option("--interface", default=None, help="Network interface to sniff")
 @click.option("--delay", default=0.0, help="Delay between chunks in seconds")
-@click.option("--chunk-size", default=4096, help="Buffer size in bytes")
+@click.option("--chunk-size", default=CHUNK_SIZE, help="Buffer size in bytes")
 def send_file(
     files: tuple[str],
     ip: str,
@@ -390,9 +397,9 @@ def send_file(
 
 
 @cli.command()
-@click.option("--listen-port", default=8081, help="Port to listen on (Proxy)")
-@click.option("--target-ip", default="127.0.0.1", help="Target Server IP")
-@click.option("--target-port", default=8080, help="Target Server Port")
+@click.option("--listen-port", default=DEFAULT_PROXY_PORT, help="Port to listen on (Proxy)")
+@click.option("--target-ip", default=DEFAULT_HOST, help="Target Server IP")
+@click.option("--target-port", default=DEFAULT_SERVER_PORT, help="Target Server Port")
 @click.option(
     "--corruption-rate", default=0.0, help="Probability of bit flipping (0.0 - 1.0)"
 )

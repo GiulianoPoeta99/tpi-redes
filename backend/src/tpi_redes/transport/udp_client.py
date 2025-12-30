@@ -4,6 +4,7 @@ import socket
 import time
 from pathlib import Path
 
+from tpi_redes.config import UDP_PAYLOAD_SIZE
 from tpi_redes.core.protocol import ProtocolHandler
 from tpi_redes.transfer.integrity import IntegrityVerifier
 
@@ -24,7 +25,7 @@ class UDPClient:
         ip: str,
         port: int,
         delay: float = 0.0,
-        chunk_size: int = 4096,
+        chunk_size: int = UDP_PAYLOAD_SIZE,
     ):
         """Send multiple files to a remote UDP server.
 
@@ -36,7 +37,7 @@ class UDPClient:
             ip: Destination IP address.
             port: Destination port number.
             delay: Optional delay (seconds) between packets for flow control.
-            chunk_size: Size of data payload per packet (default: 4096 bytes).
+            chunk_size: Size of data payload per packet (default: UDP_PAYLOAD_SIZE).
 
         Raises:
             FileNotFoundError: If no valid existing files are provided.

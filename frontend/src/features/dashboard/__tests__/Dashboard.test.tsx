@@ -21,6 +21,7 @@ window.api = {
   verifyFile: vi.fn().mockResolvedValue({ valid: true }),
   getInterfaces: vi.fn().mockResolvedValue(['eth0']),
   onSnifferError: vi.fn(),
+  onProcessExit: vi.fn(() => vi.fn()),
 };
 
 vi.mock('../../shared/components/InterfaceSelector', () => ({

@@ -1,4 +1,5 @@
 import type React from 'react';
+import { DEFAULT_PROXY_PORT } from '../../../config/constants';
 import InputGroup from '../../shared/components/InputGroup';
 import InterfaceSelector from '../../shared/components/InterfaceSelector';
 import PortInput from '../../shared/components/PortInput';
@@ -64,7 +65,7 @@ const MitmProxyConfig: React.FC<MitmProxyConfigProps> = ({
             value={listenPort}
             onChange={onChange}
             disabled={disabled}
-            placeholder="8081"
+            placeholder={String(DEFAULT_PROXY_PORT)}
             className="w-full"
           />
         </div>

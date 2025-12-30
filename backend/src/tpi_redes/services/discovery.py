@@ -6,6 +6,8 @@ import threading
 import time
 from typing import Any
 
+from tpi_redes.config import DEFAULT_SERVER_PORT, DISCOVERY_BUFFER_SIZE
+
 logger = logging.getLogger("tpi-redes")
 
 DISCOVERY_PORT = 37020
@@ -56,14 +58,14 @@ class DiscoveryService:
                 start_time = time.time()
                 while time.time() - start_time < timeout:
                     try:
-                        data, addr = s.recvfrom(1024)
+                        data, addr = s.recvfrom(DISCOVERY_BUFFER_SIZE)
                         response: dict[str, Any] = json.loads(data.decode("utf-8"))
 
                         if response.get("type") == "PONG":
                             peer: dict[str, Any] = {
                                 "hostname": response.get("hostname"),
                                 "ip": addr[0],
-                                "port": response.get("port", 8080),
+                                "port": response.get("port", DEFAULT_SERVER_PORT),
                             }
                             if not any(
                                 (p["ip"] == peer["ip"] and p["port"] == peer["port"])
@@ -106,7 +108,7 @@ class DiscoveryService:
 
                 while self.running:
                     try:
-                        data, addr = s.recvfrom(1024)
+                        data, addr = s.recvfrom(DISCOVERY_BUFFER_SIZE)
                         message = json.loads(data.decode("utf-8"))
 
                         if message.get("type") == "PING":

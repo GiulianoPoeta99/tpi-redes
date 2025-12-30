@@ -23,7 +23,13 @@ interface IpInputProps {
  * A segmented input component for IP v4 addresses.
  * Handles validation, auto-advancement, and pasting.
  */
-const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, className = '' }) => {
+const IpInput: React.FC<IpInputProps> = ({
+  value,
+  onChange,
+  disabled = false,
+  className = '',
+  placeholder,
+}) => {
   const [octets, setOctets] = useState<string[]>(['', '', '', '']);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -113,6 +119,7 @@ const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, cl
   };
 
   const isReserved = value === '0.0.0.0' || value === '255.255.255.255';
+  const placeholderParts = placeholder ? placeholder.split('.') : ['0', '0', '0', '0'];
 
   return (
     <div className={`relative ${className}`}>
@@ -137,7 +144,7 @@ const IpInput: React.FC<IpInputProps> = ({ value, onChange, disabled = false, cl
               onKeyDown={(e) => handleKeyDown(i, e)}
               onPaste={handlePaste}
               disabled={disabled}
-              placeholder="0"
+              placeholder={placeholderParts[i] || '0'}
               className="w-full min-w-[2ch] bg-transparent text-center text-white font-mono placeholder-gray-600 outline-none p-0 appearance-none text-sm"
               maxLength={3}
             />

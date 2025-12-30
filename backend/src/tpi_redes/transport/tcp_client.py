@@ -3,6 +3,7 @@ import socket
 import time
 from pathlib import Path
 
+from tpi_redes.config import CHUNK_SIZE
 from tpi_redes.core.protocol import ProtocolHandler
 from tpi_redes.transfer.integrity import IntegrityVerifier
 
@@ -22,7 +23,7 @@ class TCPClient:
         ip: str,
         port: int,
         delay: float = 0.0,
-        chunk_size: int = 4096,
+        chunk_size: int = CHUNK_SIZE,
     ):
         """Send multiple files to a remote TCP server.
 
@@ -34,7 +35,7 @@ class TCPClient:
             ip: Destination IP address.
             port: Destination port number.
             delay: Optional delay in seconds between sending chunks (for testing).
-            chunk_size: Size of data chunks to read/send (default: 4096 bytes).
+            chunk_size: Size of data chunks to read/send (default: CHUNK_SIZE).
 
         Raises:
             FileNotFoundError: If no valid existing files are provided.

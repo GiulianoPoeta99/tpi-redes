@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { CHUNK_SIZE, DEFAULT_SERVER_PORT } from '../../../config/constants';
 import { StorageService } from '../../shared/services/StorageService';
 import type { SessionItem, TransferStats, TransferStatus } from '../types';
 
@@ -18,10 +19,10 @@ interface UseTransmitterProps {
  */
 export const useTransmitter = ({ setBusy, addToast }: UseTransmitterProps) => {
   const [ip, setIp] = useState('');
-  const [port, setPort] = useState<number | string>(8080);
+  const [port, setPort] = useState<number | string>(DEFAULT_SERVER_PORT);
   const [protocol, setProtocol] = useState<'tcp' | 'udp'>('tcp');
   const [delay, setDelay] = useState(0);
-  const [chunkSize, setChunkSize] = useState(4096);
+  const [chunkSize, setChunkSize] = useState(CHUNK_SIZE);
   const [netInterface, setNetInterface] = useState<string | null>(null);
 
   const [files, setFiles] = useState<string[]>([]);
