@@ -133,19 +133,40 @@ class PacketSniffer:
         """
         import socket as sock_module
         
+        # Debug logging to stderr (will be visible in parent)
+        import sys
+        sys.stderr.write(f"[SNIFFER-ELEVATED] Starting socket mode, PID={os.getpid()}\n")
+        sys.stderr.write(f"[SNIFFER-ELEVATED] Connecting to {host}:{socket_port}\n")
+        sys.stderr.flush()
+        
         setup_process_death_signal()
         
         if not is_admin():
+            sys.stderr.write("[SNIFFER-ELEVATED] ERROR: Not running as admin\n")
+            sys.stderr.flush()
             logger.error("Sniffer requires admin privileges")
             sys.exit(1)
         
+        sys.stderr.write("[SNIFFER-ELEVATED] Running with admin privileges\n")
+        sys.stderr.flush()
+        
         # Connect to parent process
         logger.info(f"Sniffer connecting to parent at {host}:{socket_port}")
+        sys.stderr.write(f"[SNIFFER-ELEVATED] Creating socket...\n")
+        sys.stderr.flush()
+        
         sock = sock_module.socket(sock_module.AF_INET, sock_module.SOCK_STREAM)
+        
         try:
+            sys.stderr.write(f"[SNIFFER-ELEVATED] Attempting connection...\n")
+            sys.stderr.flush()
             sock.connect((host, socket_port))
+            sys.stderr.write(f"[SNIFFER-ELEVATED] Connected successfully!\n")
+            sys.stderr.flush()
             logger.info("Sniffer connected to parent process")
         except Exception as e:
+            sys.stderr.write(f"[SNIFFER-ELEVATED] Connection failed: {e}\n")
+            sys.stderr.flush()
             logger.error(f"Failed to connect to parent: {e}")
             sys.exit(1)
         

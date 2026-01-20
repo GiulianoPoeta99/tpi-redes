@@ -86,13 +86,35 @@ def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_
     It runs the `PacketSniffer` in stdout mode (Linux) or socket mode (Windows),
     emitting JSON packet captures.
     """
-    from tpi_redes.observability.sniffer import PacketSniffer
+    import sys
+    import os
+    
+    # Debug logging to stderr
+    sys.stderr.write(f"[SNIFFER-SERVICE] Started with PID={os.getpid()}\n")
+    sys.stderr.write(f"[SNIFFER-SERVICE] port={port}, interface={interface}, socket_mode={socket_mode}, socket_port={socket_port}\n")
+    sys.stderr.write(f"[SNIFFER-SERVICE] PYTHONPATH={os.environ.get('PYTHONPATH', 'NOT SET')}\n")
+    sys.stderr.flush()
+    
+    try:
+        from tpi_redes.observability.sniffer import PacketSniffer
+        sys.stderr.write("[SNIFFER-SERVICE] PacketSniffer imported successfully\n")
+        sys.stderr.flush()
+    except Exception as e:
+        sys.stderr.write(f"[SNIFFER-SERVICE] FATAL: Failed to import PacketSniffer: {e}\n")
+        sys.stderr.flush()
+        sys.exit(1)
 
     sniffer = PacketSniffer(interface=interface, port=port)
+    sys.stderr.write("[SNIFFER-SERVICE] PacketSniffer instance created\n")
+    sys.stderr.flush()
     
     if socket_mode:
+        sys.stderr.write(f"[SNIFFER-SERVICE] Starting socket mode on port {socket_port}\n")
+        sys.stderr.flush()
         sniffer.start_socket_mode(socket_port=socket_port)
     else:
+        sys.stderr.write("[SNIFFER-SERVICE] Starting stdout mode\n")
+        sys.stderr.flush()
         sniffer.start_stdout_mode()
 
 
@@ -222,15 +244,26 @@ def start_server(
                             
                             # Elevate with UAC
                             from tpi_redes.platform_compat import elevate_process_windows
+                            
+                            # Set PYTHONPATH for elevated process via environment variable
+                            # Note: ShellExecuteEx doesn't directly support env vars, 
+                            # so we set it globally (will be inherited)
+                            original_pythonpath = os.environ.get("PYTHONPATH")
+                            os.environ["PYTHONPATH"] = src_path
+                            
                             try:
+                                logger.info(f"Elevating command: {' '.join(cmd)}")
+                                logger.info(f"PYTHONPATH set to: {src_path}")
                                 process_handle = elevate_process_windows(cmd, {"PYTHONPATH": src_path})
                                 logger.info("UAC dialog shown, waiting for user response...")
                                 
-                                # Wait for sniffer to connect (with timeout)
-                                server_socket.settimeout(30)
+                                # Wait for sniffer to connect (with longer timeout)
+                                server_socket.settimeout(60)  # Increased to 60 seconds
+                                logger.info("Waiting for elevated sniffer to connect...")
+                                
                                 try:
                                     client_socket, addr = server_socket.accept()
-                                    logger.info(f"Sniffer connected from {addr}")
+                                    logger.info(f"✓ Sniffer connected successfully from {addr}")
                                     
                                     # Create mock process object for compatibility
                                     class SocketSnifferProcess:
@@ -257,6 +290,7 @@ def start_server(
                                             while True:
                                                 data = client_socket.recv(4096).decode('utf-8')
                                                 if not data:
+                                                    logger.info("Sniffer disconnected")
                                                     break
                                                 buffer += data
                                                 while '\n' in buffer:
@@ -270,7 +304,8 @@ def start_server(
                                     logger.info("Sniffer socket forwarding started")
                                     
                                 except sock_module.timeout:
-                                    logger.error("Sniffer connection timed out (user may have denied UAC)")
+                                    logger.error("✗ Sniffer connection timed out after 60s (user may have denied UAC or process failed)")
+                                    logger.error("Check if elevated process started correctly - try running as Administrator")
                                     print(json.dumps({
                                         "type": "SNIFFER_ERROR",
                                         "code": "PERMISSION_DENIED",
@@ -278,14 +313,20 @@ def start_server(
                                     }), flush=True)
                                     sniffer_process = None
                             except Exception as e:
-                                logger.error(f"Failed to elevate sniffer: {e}")
+                                logger.error(f"Failed to elevate sniffer: {e}", exc_info=True)
                                 # User clicked "No" on UAC or error occurred
                                 print(json.dumps({
                                     "type": "SNIFFER_ERROR",
                                     "code": "PERMISSION_DENIED",
-                                    "message": "Administrator privileges denied."
+                                    "message": f"Administrator privileges denied: {e}"
                                 }), flush=True)
                                 sniffer_process = None
+                            finally:
+                                # Restore original PYTHONPATH
+                                if original_pythonpath is not None:
+                                    os.environ["PYTHONPATH"] = original_pythonpath
+                                elif "PYTHONPATH" in os.environ:
+                                    del os.environ["PYTHONPATH"]
                     else:
                         # Linux: pkexec handles privilege elevation with modal dialog
                         # This blocks until user accepts/rejects
