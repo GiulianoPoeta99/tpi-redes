@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:electron": "npm run compile:electron && npm run build && electron-builder",
+    "build:win": "npm run compile:electron && npm run build && electron-builder --win portable",
     "lint": "biome check .",
     "format": "biome check --write .",
     "test": "vitest",
@@ -45,5 +47,40 @@
     "vite": "^7.2.4",
     "vitest": "^4.0.15",
     "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.tpi-redes.file-transfer",
+    "productName": "TPI Redes File Transfer",
+    "directories": {
+      "output": "dist-release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/icon.ico",
+      "requestedExecutionLevel": "requireAdministrator",
+      "artifactName": "${productName}-${version}-${arch}-portable.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "public/icon.png",
+      "category": "Network"
+    },
+    "extraResources": [
+      {
+        "from": "../backend/.venv",
+        "to": "python",
+        "filter": ["**/*"]
+      }
+    ]
   }
 }

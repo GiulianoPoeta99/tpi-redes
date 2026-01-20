@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { isNpcapInstalled, promptNpcapInstallation } from './npcap-installer.js';
 
 const require = createRequire(import.meta.url);
 
@@ -21,7 +22,7 @@ let mainWindow: BrowserWindow | null = null;
 // biome-ignore lint/suspicious/noExplicitAny: Python process
 let pythonProcess: any = null;
 
-const createWindow = () => {
+const createWindow = async () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -45,6 +46,18 @@ const createWindow = () => {
   }
 
   mainWindow.maximize();
+
+  // Check for Npcap on Windows
+  if (process.platform === 'win32') {
+    const npcapInstalled = await isNpcapInstalled();
+    if (!npcapInstalled) {
+      console.log('Npcap not detected, prompting user...');
+      // Note: We don't block app startup, just prompt
+      setTimeout(() => {
+        promptNpcapInstallation();
+      }, 2000); // Wait 2 seconds after startup
+    }
+  }
 };
 
 // IPC Handlers for Python CLI
@@ -108,7 +121,12 @@ ipcMain.handle('scan-network', async () => {
   return new Promise((resolve, reject) => {
     const backendDir = path.resolve(__dirname, '../../backend');
     const srcDir = path.join(backendDir, 'src');
-    const pythonPath = path.join(backendDir, '.venv/bin/python');
+    
+    // Platform-specific Python path
+    const pythonPath = process.platform === 'win32'
+      ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
+      : path.join(backendDir, '.venv', 'bin', 'python');
+    
     const moduleName = 'tpi_redes.cli.main';
 
     // Use execFile or spawn for one-off
@@ -167,7 +185,12 @@ ipcMain.handle('get-interfaces', async () => {
   return new Promise((resolve) => {
     const backendDir = path.resolve(__dirname, '../../backend');
     const srcDir = path.join(backendDir, 'src');
-    const pythonPath = path.join(backendDir, '.venv/bin/python');
+    
+    // Platform-specific Python path
+    const pythonPath = process.platform === 'win32'
+      ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
+      : path.join(backendDir, '.venv', 'bin', 'python');
+    
     const moduleName = 'tpi_redes.cli.main';
 
     const child = spawn(pythonPath, ['-m', moduleName, 'list-interfaces'], {
@@ -282,7 +305,11 @@ function spawnPythonProcess(args: string[]) {
   // Path to python venv. Adjust for uv (.venv)
   const backendDir = path.resolve(__dirname, '../../backend');
   const srcDir = path.join(backendDir, 'src');
-  const pythonPath = path.join(backendDir, '.venv/bin/python');
+  
+  // Platform-specific Python path
+  const pythonPath = process.platform === 'win32'
+    ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
+    : path.join(backendDir, '.venv', 'bin', 'python');
 
   // Run as module
   const moduleName = 'tpi_redes.cli.main';
@@ -367,21 +394,30 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Helper to kill process tree on Linux
+// Helper to kill process tree (cross-platform)
 async function killProcessTree(pid: number) {
   return new Promise<void>((resolve) => {
     if (!pid) return resolve();
-    // Command to kill children then parent
-    // pkill -P <pid> kills children
-    exec(`pkill -P ${pid}`, (_err) => {
-      // Then kill parent
-      try {
-        process.kill(pid, 'SIGKILL'); // Force kill parent
-      } catch (_e) {
-        // Ignore if already dead
-      }
-      resolve();
-    });
+    
+    // Platform-specific commands
+    if (process.platform === 'win32') {
+      // Windows: use taskkill
+      exec(`taskkill /F /T /PID ${pid}`, (_err) => {
+        resolve();
+      });
+    } else {
+      // Unix-like: use pkill
+      // pkill -P <pid> kills children
+      exec(`pkill -P ${pid}`, (_err) => {
+        // Then kill parent
+        try {
+          process.kill(pid, 'SIGKILL'); // Force kill parent
+        } catch (_e) {
+          // Ignore if already dead
+        }
+        resolve();
+      });
+    }
   });
 }
 

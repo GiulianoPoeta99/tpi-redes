@@ -27,12 +27,25 @@ A robust, educational File Transfer Application built to demonstrate Networking 
 - **Tooling:** Just (Task Runner), Biome (Lint/Format), Vitest (Testing), UV (Python Pkg Manager).
 
 ## 📦 Prerequisites
+
+### Linux
 - **Python 3.14** (and `uv` installed via `pip install uv`)
 - **Node.js 18+**
 - **Just** (`curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash`)
 - **Libpcap** (for Scapy/Sniffer): `sudo apt install libpcap-dev`
 
+### Windows
+- **Python 3.14+** (from [python.org](https://www.python.org/downloads/))
+- **Node.js 18+** (LTS from [nodejs.org](https://nodejs.org/))
+- **Just** (`scoop install just` or download from [GitHub](https://github.com/casey/just/releases))
+- **uv** (`pip install uv`)
+- **Npcap** (for packet capture, from [npcap.com](https://npcap.com/))
+
+> ⚠️ **Windows Note:** Some features require administrator privileges. See [Windows Build Guide](docs/WINDOWS_BUILD.md) for detailed setup.
+
 ## ⚡ Quick Start
+
+### Linux / macOS
 
 1. **Install Dependencies:**
    ```bash
@@ -51,6 +64,35 @@ A robust, educational File Transfer Application built to demonstrate Networking 
    just run-backend --help
    ```
 
+### Windows
+
+1. **Install Dependencies:**
+   ```powershell
+   # Backend
+   cd backend
+   uv sync
+   # Or use: .\scripts\install.bat
+
+   # Frontend
+   cd ..\frontend
+   npm install
+   ```
+
+2. **Run the Application:**
+   ```powershell
+   cd frontend
+   npm run dev:electron
+   ```
+
+3. **Build Portable Executable:**
+   See detailed instructions in [Windows Build Guide](docs/WINDOWS_BUILD.md)
+
+   ```powershell
+   # Quick build
+   cd frontend
+   npm run build:win
+   ```
+
 ## 🧪 Testing
 
 ### Automated Tests
@@ -67,3 +109,29 @@ For a step-by-step guide to verifying all features (including MITM, Sniffer, etc
 - **Electron IPC:** Communicates with Python backend via `stdin`/`stdout`.
 - **JSON Events:** Backend emits structured events (`STATS`, `WINDOW_UPDATE`, `PACKET_CAPTURE`) which the Frontend parses and visualizes.
 - **Scapy:** Used for Packet Sniffing and crafting custom packets/tests.
+- **Cross-Platform:** Compatible with Linux and Windows (with platform-specific adaptations).
+
+## 🪟 Windows Support
+
+This project fully supports Windows with the following adaptations:
+
+- **Platform Detection:** Automatic OS detection for privilege management and Python paths
+- **Npcap Integration:** Automatic detection and installation prompts for packet capture
+- **Administrator Privileges:** UAC integration for elevated operations
+- **Portable Executable:** Build as standalone `.exe` with embedded Python
+
+For detailed Windows build instructions, see **[Windows Build Guide](docs/WINDOWS_BUILD.md)**.
+
+### Windows-Specific Features
+
+- ✅ Portable `.exe` distribution (no installation required)
+- ✅ Embedded Python runtime (users don't need Python installed)
+- ✅ Automatic Npcap detection and installation
+- ✅ UAC integration for administrator privileges
+- ✅ Windows Defender compatible
+
+### Known Limitations on Windows
+
+- Packet capture requires Npcap (free for educational use, license needed for commercial distribution)
+- Some features require administrator privileges
+- Antivirus software may flag the executable (false positive, can be signed with code signing certificate)

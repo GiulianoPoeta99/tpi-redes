@@ -1,5 +1,6 @@
 import json
 import logging
+import platform
 import sys
 import time
 from typing import Any
@@ -15,6 +16,7 @@ from tpi_redes.config import (
     DEFAULT_PROXY_PORT,
     DEFAULT_SERVER_PORT,
 )
+from tpi_redes.platform_compat import is_npcap_installed
 
 console = Console(stderr=True)
 logger = logging.getLogger("tpi-redes")
@@ -120,93 +122,144 @@ def start_server(
 
     try:
         if sniff:
-            import os
-
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            src_path = os.path.abspath(os.path.join(current_dir, "../.."))
-
-            env_vars = ["env", f"PYTHONPATH={src_path}"]
-
-            cmd = [
-                "pkexec",
-                *env_vars,
-                sys.executable,
-                "-m",
-                "tpi_redes.cli.main",
-                "sniffer-service",
-                "--port",
-                str(port),
-            ]
-            if interface:
-                cmd.extend(["--interface", interface])
-
-            logger.info("Requesting root privileges for Sniffer...")
-
-            try:
-                sniffer_process = subprocess.Popen(
-                    cmd, stdout=subprocess.PIPE, text=True, bufsize=1
+            # Check if packet capture library is available
+            if not is_npcap_installed():
+                error_msg = (
+                    "Npcap is not installed. Please install it from https://npcap.com/"
+                    if platform.system() == "Windows"
+                    else "libpcap is not installed. Please install libpcap-dev package."
                 )
-
-                sniffer_ready_event = threading.Event()
-
-                def forward_sniffer_output():
-                    try:
-                        if not sniffer_process or not sniffer_process.stdout:
-                            return
-                        for line in sniffer_process.stdout:
-                            if line.strip():
-                                sniffer_ready_event.set()
-                            print(line, end="", flush=True)
-                    except Exception as e:
-                        logger.error(f"Sniffer output forwarding failed: {e}")
-
-                t = threading.Thread(target=forward_sniffer_output, daemon=True)
-                t.start()
-                wait_start = time.time()
-                while not sniffer_ready_event.is_set():
-                    if time.time() - wait_start > 30:
-                        logger.error("Sniffer startup timed out.")
-                        print(
-                            json.dumps(
-                                {
-                                    "type": "SNIFFER_ERROR",
-                                    "code": "TIMEOUT",
-                                    "message": "Sniffer startup timed out.",
-                                }
-                            ),
-                            flush=True,
-                        )
-                        break
-
-                    if sniffer_process.poll() is not None:
-                        exit_code = sniffer_process.poll()
-                        logger.warning(f"Sniffer process exited. Code: {exit_code}")
-                        print(
-                            json.dumps(
-                                {
-                                    "type": "SNIFFER_ERROR",
-                                    "code": "PERMISSION_DENIED",
-                                    "message": f"Sniffer died (Code {exit_code}).",
-                                }
-                            ),
-                            flush=True,
-                        )
-                        break
-
-                    time.sleep(0.1)
-
-            except Exception as e:
-                logger.error(f"Failed to spawn sniffer: {e}")
+                logger.error(error_msg)
                 print(
                     json.dumps(
                         {
                             "type": "SNIFFER_ERROR",
-                            "code": "SPAWN_FAILED",
-                            "message": str(e),
+                            "code": "MISSING_DEPENDENCY",
+                            "message": error_msg,
                         }
                     ),
                     flush=True,
                 )
+                # Continue without sniffer
+            else:
+                import os
+
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                src_path = os.path.abspath(os.path.join(current_dir, "../.."))
+
+                # Prepare command based on OS
+                if platform.system() == "Windows":
+                    # Windows: No need for env wrapper, use direct command
+                    cmd = [
+                        sys.executable,
+                        "-m",
+                        "tpi_redes.cli.main",
+                        "sniffer-service",
+                        "--port",
+                        str(port),
+                    ]
+                else:
+                    # Linux: Use pkexec with env vars
+                    env_vars = ["env", f"PYTHONPATH={src_path}"]
+                    cmd = [
+                        "pkexec",
+                        *env_vars,
+                        sys.executable,
+                        "-m",
+                        "tpi_redes.cli.main",
+                        "sniffer-service",
+                        "--port",
+                        str(port),
+                    ]
+
+                if interface:
+                    cmd.extend(["--interface", interface])
+
+                logger.info("Requesting administrator privileges for Sniffer...")
+
+                try:
+                    # On Windows with pkexec-like behavior, we need different handling
+                    if platform.system() == "Windows":
+                        # Use runas equivalent through platform_compat
+                        from tpi_redes.platform_compat import elevate_privileges
+
+                        # Set PYTHONPATH in environment
+                        env = os.environ.copy()
+                        env["PYTHONPATH"] = src_path
+
+                        sniffer_process = subprocess.Popen(
+                            cmd,
+                            stdout=subprocess.PIPE,
+                            text=True,
+                            bufsize=1,
+                            env=env,
+                        )
+                    else:
+                        # Linux: standard pkexec
+                        sniffer_process = subprocess.Popen(
+                            cmd, stdout=subprocess.PIPE, text=True, bufsize=1
+                        )
+
+                    sniffer_ready_event = threading.Event()
+
+                    def forward_sniffer_output():
+                        try:
+                            if not sniffer_process or not sniffer_process.stdout:
+                                return
+                            for line in sniffer_process.stdout:
+                                if line.strip():
+                                    sniffer_ready_event.set()
+                                print(line, end="", flush=True)
+                        except Exception as e:
+                            logger.error(f"Sniffer output forwarding failed: {e}")
+
+                    t = threading.Thread(target=forward_sniffer_output, daemon=True)
+                    t.start()
+                    wait_start = time.time()
+                    while not sniffer_ready_event.is_set():
+                        if time.time() - wait_start > 30:
+                            logger.error("Sniffer startup timed out.")
+                            print(
+                                json.dumps(
+                                    {
+                                        "type": "SNIFFER_ERROR",
+                                        "code": "TIMEOUT",
+                                        "message": "Sniffer startup timed out.",
+                                    }
+                                ),
+                                flush=True,
+                            )
+                            break
+
+                        if sniffer_process.poll() is not None:
+                            exit_code = sniffer_process.poll()
+                            logger.warning(f"Sniffer process exited. Code: {exit_code}")
+                            print(
+                                json.dumps(
+                                    {
+                                        "type": "SNIFFER_ERROR",
+                                        "code": "PERMISSION_DENIED",
+                                        "message": f"Sniffer died (Code {exit_code}).",
+                                    }
+                                ),
+                                flush=True,
+                            )
+                            break
+
+                        time.sleep(0.1)
+
+                except Exception as e:
+                    logger.error(f"Failed to spawn sniffer: {e}")
+                    print(
+                        json.dumps(
+                            {
+                                "type": "SNIFFER_ERROR",
+                                "code": "SPAWN_FAILED",
+                                "message": str(e),
+                            }
+                        ),
+                        flush=True,
+                    )
         from tpi_redes.services.discovery import DiscoveryService
 
         discovery = DiscoveryService()
@@ -295,30 +348,51 @@ def send_file(
 
     try:
         if sniff:
-            logger.info("Requesting root privileges for Sniffer...")
+            logger.info("Requesting administrator privileges for Sniffer...")
             import os
 
             current_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
-            # Preserve GUI environment for pkexec prompt
-            cmd = [
-                "pkexec",
-                "env",
-                f"PYTHONPATH={src_path}",
-                sys.executable,
-                "-m",
-                "tpi_redes.cli.main",
-                "sniffer-service",
-                "--port",
-                str(port),
-            ]
+            # Prepare command based on OS
+            if platform.system() == "Windows":
+                cmd = [
+                    sys.executable,
+                    "-m",
+                    "tpi_redes.cli.main",
+                    "sniffer-service",
+                    "--port",
+                    str(port),
+                ]
+            else:
+                # Preserve GUI environment for pkexec prompt on Linux
+                cmd = [
+                    "pkexec",
+                    "env",
+                    f"PYTHONPATH={src_path}",
+                    sys.executable,
+                    "-m",
+                    "tpi_redes.cli.main",
+                    "sniffer-service",
+                    "--port",
+                    str(port),
+                ]
             if interface:
                 cmd.extend(["--interface", interface])
 
             try:
+                # Set environment for Windows
+                env = os.environ.copy()
+                if platform.system() == "Windows":
+                    env["PYTHONPATH"] = src_path
+
                 sniffer_process = subprocess.Popen(
-                    cmd, stdout=subprocess.PIPE, stderr=sys.stderr, text=True, bufsize=1
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=sys.stderr,
+                    text=True,
+                    bufsize=1,
+                    env=env,
                 )
 
                 sniffer_ready_event = threading.Event()
@@ -439,25 +513,43 @@ def start_proxy(
         current_dir = os.path.dirname(os.path.abspath(__file__))
         src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
-        cmd = [
-            "pkexec",
-            "env",
-            f"PYTHONPATH={src_path}",
-            sys.executable,
-            "-m",
-            "tpi_redes.cli.main",
-            "sniffer-service",
-            "--port",
-            str(listen_port),
-            "--interface",
-            interface,
-        ]
+        # Prepare command based on OS
+        if platform.system() == "Windows":
+            cmd = [
+                sys.executable,
+                "-m",
+                "tpi_redes.cli.main",
+                "sniffer-service",
+                "--port",
+                str(listen_port),
+                "--interface",
+                interface,
+            ]
+        else:
+            cmd = [
+                "pkexec",
+                "env",
+                f"PYTHONPATH={src_path}",
+                sys.executable,
+                "-m",
+                "tpi_redes.cli.main",
+                "sniffer-service",
+                "--port",
+                str(listen_port),
+                "--interface",
+                interface,
+            ]
 
-        logger.info("Requesting root privileges for Sniffer...")
+        logger.info("Requesting administrator privileges for Sniffer...")
 
         try:
+            # Set environment for Windows
+            env = os.environ.copy()
+            if platform.system() == "Windows":
+                env["PYTHONPATH"] = src_path
+
             sniffer_process = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, text=True, bufsize=1
+                cmd, stdout=subprocess.PIPE, text=True, bufsize=1, env=env
             )
 
             def forward_sniffer_output():

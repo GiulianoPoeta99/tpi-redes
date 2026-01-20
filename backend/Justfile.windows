@@ -1,0 +1,37 @@
+# Justfile for Windows (PowerShell)
+
+set shell := ["powershell.exe", "-Command"]
+
+default: test
+
+# Install dependencies
+install:
+    uv sync
+
+# Run CLI
+run +args:
+    $env:PYTHONPATH="src"; uv run python -m tpi_redes.cli.main {{args}}
+
+# Run all tests
+test:
+    uv run pytest
+
+# Run linter and type checker
+lint:
+    uv run ruff check .
+    uv run pyright
+
+# Format code
+format:
+    uv run ruff format .
+
+# Clean temporary files
+clean:
+    if (Test-Path .pytest_cache) { Remove-Item -Recurse -Force .pytest_cache }
+    if (Test-Path .ruff_cache) { Remove-Item -Recurse -Force .ruff_cache }
+    if (Test-Path .venv) { Remove-Item -Recurse -Force .venv }
+    if (Test-Path __pycache__) { Remove-Item -Recurse -Force __pycache__ }
+    if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+    if (Test-Path build) { Remove-Item -Recurse -Force build }
+    Get-ChildItem -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+    Get-ChildItem -Recurse -File -Filter "*.pyc" | Remove-Item -Force

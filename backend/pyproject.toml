@@ -10,6 +10,11 @@ dependencies = [
     "scapy>=2.6.1",
 ]
 
+[project.optional-dependencies]
+windows = [
+    "pywin32>=306; sys_platform == 'win32'",
+]
+
 [dependency-groups]
 dev = [
     "pyright>=1.1.407",

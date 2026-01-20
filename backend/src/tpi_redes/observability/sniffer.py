@@ -8,6 +8,8 @@ from typing import Any
 from scapy.layers.inet import IP, TCP, UDP
 from scapy.sendrecv import AsyncSniffer
 
+from tpi_redes.platform_compat import is_admin, setup_process_death_signal
+
 logger = logging.getLogger("tpi-redes")
 
 
@@ -39,14 +41,14 @@ class PacketSniffer:
         Checks for root privileges first. If missing, logs a warning and returns
         a JSON error event to stdout (for frontend).
         """
-        if os.geteuid() != 0:
-            logger.warning("Sniffer requires root privileges. Packet capture disabled.")
+        if not is_admin():
+            logger.warning("Sniffer requires admin privileges. Packet capture disabled.")
             print(
                 json.dumps(
                     {
                         "type": "SNIFFER_ERROR",
                         "code": "PERMISSION_DENIED",
-                        "message": "Root privileges required for packet capture.",
+                        "message": "Administrator privileges required for packet capture.",
                     }
                 ),
                 flush=True,
@@ -80,18 +82,10 @@ class PacketSniffer:
         - Exits gracefully on `BrokenPipeError` (stdout closed).
         - Keeps running until `KeyboardInterrupt` or termination signal.
         """
-        # Linux specific: Ensure this process dies if the parent (pkexec) dies.
-        try:
-            import ctypes
-            import signal
+        # Platform-specific: Ensure this process dies if the parent dies (Linux only).
+        setup_process_death_signal()
 
-            libc = ctypes.CDLL("libc.so.6")
-            PR_SET_PDEATHSIG = 1  # noqa: N806
-            libc.prctl(PR_SET_PDEATHSIG, signal.SIGKILL, 0, 0, 0)
-        except Exception:
-            pass
-
-        if os.geteuid() != 0:
+        if not is_admin():
             print(
                 json.dumps(
                     {
