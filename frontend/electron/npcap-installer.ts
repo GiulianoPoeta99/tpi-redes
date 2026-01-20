@@ -3,9 +3,14 @@ import { exec } from 'node:child_process';
 import fs from 'node:fs';
 import https from 'node:https';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
+
+// ESM equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Check if Npcap is installed on Windows by checking the registry
@@ -186,26 +191,33 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
  * Show a dialog prompting the user to install Npcap
  */
 export async function promptNpcapInstallation(): Promise<boolean> {
-  const result = await installNpcap();
-  
-  if (result.success) {
-    await dialog.showMessageBox({
-      type: 'info',
-      title: 'Success',
-      message: 'Npcap installed successfully',
-      detail: 'You can now use packet capture features. You may need to restart the application.',
-    });
-    return true;
+  try {
+    const result = await installNpcap();
+    
+    if (result.success) {
+      await dialog.showMessageBox({
+        type: 'info',
+        title: 'Success',
+        message: 'Npcap installed successfully',
+        detail: 'You can now use packet capture features. You may need to restart the application.',
+      });
+      return true;
+    }
+    
+    if (result.message !== 'User declined Npcap installation') {
+      await dialog.showMessageBox({
+        type: 'warning',
+        title: 'Npcap Not Installed',
+        message: 'Packet capture features will be disabled',
+        detail: result.message + '\n\nYou can install Npcap manually from https://npcap.com/',
+      });
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error in promptNpcapInstallation:', error);
+    // Don't show error dialog, just log it
+    // App should continue working without packet capture
+    return false;
   }
-  
-  if (result.message !== 'User declined Npcap installation') {
-    await dialog.showMessageBox({
-      type: 'error',
-      title: 'Installation Failed',
-      message: 'Failed to install Npcap',
-      detail: result.message,
-    });
-  }
-  
-  return false;
 }

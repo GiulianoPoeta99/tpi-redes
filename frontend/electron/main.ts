@@ -47,15 +47,22 @@ const createWindow = async () => {
 
   mainWindow.maximize();
 
-  // Check for Npcap on Windows
+  // Check for Npcap on Windows (non-blocking)
   if (process.platform === 'win32') {
-    const npcapInstalled = await isNpcapInstalled();
-    if (!npcapInstalled) {
-      console.log('Npcap not detected, prompting user...');
-      // Note: We don't block app startup, just prompt
-      setTimeout(() => {
-        promptNpcapInstallation();
-      }, 2000); // Wait 2 seconds after startup
+    try {
+      const npcapInstalled = await isNpcapInstalled();
+      if (!npcapInstalled) {
+        console.log('Npcap not detected, prompting user...');
+        // Note: We don't block app startup, just prompt
+        setTimeout(() => {
+          promptNpcapInstallation().catch((err) => {
+            console.error('Error prompting Npcap installation:', err);
+          });
+        }, 2000); // Wait 2 seconds after startup
+      }
+    } catch (error) {
+      console.error('Error checking Npcap installation:', error);
+      // Continue without Npcap check
     }
   }
 };
