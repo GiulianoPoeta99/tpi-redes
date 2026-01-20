@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Check if Npcap is installed on Windows by checking the registry
+ * Check if Npcap is installed on Windows by checking multiple locations
  */
 export async function isNpcapInstalled(): Promise<boolean> {
   if (process.platform !== 'win32') {
@@ -21,23 +21,57 @@ export async function isNpcapInstalled(): Promise<boolean> {
     return true;
   }
 
-  try {
-    // Check Windows registry for Npcap installation
-    const { stdout } = await execAsync(
-      'reg query "HKLM\\SOFTWARE\\Npcap" /ve',
-    );
-    return stdout.includes('Npcap');
-  } catch (_error) {
-    // Also check for WinPcap as fallback
+  // 1. Check registry keys (multiple locations)
+  const registryKeys = [
+    'HKLM\\SOFTWARE\\Npcap',
+    'HKLM\\SOFTWARE\\WOW6432Node\\Npcap',
+    'HKLM\\SOFTWARE\\WinPcap',
+    'HKLM\\SOFTWARE\\WOW6432Node\\WinPcap',
+  ];
+
+  for (const key of registryKeys) {
     try {
-      const { stdout } = await execAsync(
-        'reg query "HKLM\\SOFTWARE\\WinPcap" /ve',
-      );
-      return stdout.includes('WinPcap');
-    } catch (_err) {
-      return false;
+      const { stdout } = await execAsync(`reg query "${key}" /ve`);
+      if (stdout.includes('Npcap') || stdout.includes('WinPcap')) {
+        console.log(`Found pcap installation via registry: ${key}`);
+        return true;
+      }
+    } catch (_error) {
+      // Continue to next key
     }
   }
+
+  // 2. Check physical files as fallback
+  const fileLocations = [
+    'C:\\Windows\\System32\\Npcap',
+    'C:\\Windows\\SysWOW64\\Npcap',
+    'C:\\Program Files\\Npcap',
+    'C:\\Program Files (x86)\\Npcap',
+  ];
+
+  for (const location of fileLocations) {
+    if (fs.existsSync(location)) {
+      const dllPath = path.join(location, 'wpcap.dll');
+      if (fs.existsSync(dllPath)) {
+        console.log(`Found Npcap installation via file: ${location}`);
+        return true;
+      }
+    }
+  }
+
+  // 3. Check for npcap service
+  try {
+    const { stdout } = await execAsync('sc query npcap');
+    if (stdout.includes('npcap')) {
+      console.log('Found Npcap via service query');
+      return true;
+    }
+  } catch (_error) {
+    // Service not found
+  }
+
+  console.log('Npcap not detected on system');
+  return false;
 }
 
 /**
@@ -165,20 +199,26 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
     
     await execAsync(`powershell -Command "Start-Process '${installerPath}' -Verb RunAs -Wait"`);
 
-    // Wait a bit for installation to complete
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Wait for installation to complete and registry to update
+    console.log('Waiting for Npcap installation to complete...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
-    // Verify installation
-    if (await isNpcapInstalled()) {
-      return {
-        success: true,
-        message: 'Npcap installed successfully',
-      };
+    // Verify installation (retry a few times)
+    for (let i = 0; i < 3; i++) {
+      if (await isNpcapInstalled()) {
+        console.log('Npcap installation verified successfully');
+        return {
+          success: true,
+          message: 'Npcap installed successfully',
+        };
+      }
+      console.log(`Verification attempt ${i + 1} failed, retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
     
     return {
       success: false,
-      message: 'Npcap installation was not completed. Please install it manually.',
+      message: 'Npcap installation was not completed. Please install it manually or restart the application.',
     };
   } catch (error) {
     console.error('Error installing Npcap:', error);
