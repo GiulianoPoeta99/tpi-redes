@@ -197,26 +197,39 @@ def is_npcap_installed() -> bool:
     system = platform.system()
 
     if system == "Windows":
-        # Check for Npcap installation
+        import os
         import winreg
 
-        try:
-            with winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Npcap"
-            ) as key:
-                return True
-        except FileNotFoundError:
-            pass
+        # Check multiple registry locations (64-bit and 32-bit)
+        registry_keys = [
+            r"SOFTWARE\Npcap",
+            r"SOFTWARE\WOW6432Node\Npcap",
+            r"SOFTWARE\WinPcap",
+            r"SOFTWARE\WOW6432Node\WinPcap",
+        ]
 
-        # Check for WinPcap as fallback
-        try:
-            with winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WinPcap"
-            ) as key:
-                return True
-        except FileNotFoundError:
-            pass
+        for key_path in registry_keys:
+            try:
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path) as key:
+                    logger.debug(f"Found pcap installation via registry: {key_path}")
+                    return True
+            except FileNotFoundError:
+                continue
 
+        # Check for physical files as fallback
+        file_locations = [
+            r"C:\Windows\System32\Npcap\wpcap.dll",
+            r"C:\Windows\SysWOW64\Npcap\wpcap.dll",
+            r"C:\Program Files\Npcap\wpcap.dll",
+            r"C:\Program Files (x86)\Npcap\wpcap.dll",
+        ]
+
+        for file_path in file_locations:
+            if os.path.exists(file_path):
+                logger.debug(f"Found Npcap installation via file: {file_path}")
+                return True
+
+        logger.debug("Npcap not detected on Windows")
         return False
     else:  # Linux
         # Check if libpcap is available by trying to import scapy

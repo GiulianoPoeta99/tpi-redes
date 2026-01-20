@@ -322,9 +322,10 @@ function spawnPythonProcess(args: string[]) {
   const moduleName = 'tpi_redes.cli.main';
 
   console.log(`Spawning: ${pythonPath} -m ${moduleName} ${args.join(' ')}`);
+  console.log(`Backend dir: ${backendDir}`);
+  console.log(`PYTHONPATH: ${srcDir}`);
 
   // Spawn with stdio pipe
-
   pythonProcess = spawn(pythonPath, ['-m', moduleName, ...args], {
     cwd: backendDir,
     env: {
@@ -378,8 +379,10 @@ function spawnPythonProcess(args: string[]) {
 
   // biome-ignore lint/suspicious/noExplicitAny: Stream data
   pythonProcess.stderr.on('data', (data: any) => {
+    const errorMsg = data.toString();
+    console.error('Python stderr:', errorMsg);
     if (mainWindow) {
-      mainWindow.webContents.send('python-log', data.toString());
+      mainWindow.webContents.send('python-log', errorMsg);
     }
   });
 
