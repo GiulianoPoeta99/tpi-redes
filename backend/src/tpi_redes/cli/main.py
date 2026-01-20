@@ -178,24 +178,44 @@ def start_server(
                 logger.info("Requesting administrator privileges for Sniffer...")
 
                 try:
-                    # On Windows with pkexec-like behavior, we need different handling
+                    # Platform-specific privilege elevation
+                    from tpi_redes.platform_compat import is_admin
+                    
                     if platform.system() == "Windows":
-                        # Use runas equivalent through platform_compat
-                        from tpi_redes.platform_compat import elevate_privileges
-
-                        # Set PYTHONPATH in environment
-                        env = os.environ.copy()
-                        env["PYTHONPATH"] = src_path
-
-                        sniffer_process = subprocess.Popen(
-                            cmd,
-                            stdout=subprocess.PIPE,
-                            text=True,
-                            bufsize=1,
-                            env=env,
-                        )
+                        # Windows: Check if we already have admin privileges
+                        if is_admin():
+                            # Already running as admin (production .exe or elevated dev)
+                            # Run sniffer directly without elevation
+                            env = os.environ.copy()
+                            env["PYTHONPATH"] = src_path
+                            
+                            sniffer_process = subprocess.Popen(
+                                cmd,
+                                stdout=subprocess.PIPE,
+                                text=True,
+                                bufsize=1,
+                                env=env,
+                            )
+                        else:
+                            # Not admin - show error, user needs to run app as administrator
+                            logger.error(
+                                "Administrator privileges required for packet capture. "
+                                "Please run the application as Administrator."
+                            )
+                            print(
+                                json.dumps(
+                                    {
+                                        "type": "SNIFFER_ERROR",
+                                        "code": "PERMISSION_DENIED",
+                                        "message": "Administrator privileges required. Please run as Administrator.",
+                                    }
+                                ),
+                                flush=True,
+                            )
+                            sniffer_process = None
                     else:
-                        # Linux: standard pkexec
+                        # Linux: pkexec handles privilege elevation with modal dialog
+                        # This blocks until user accepts/rejects
                         sniffer_process = subprocess.Popen(
                             cmd, stdout=subprocess.PIPE, text=True, bufsize=1
                         )
@@ -381,19 +401,50 @@ def send_file(
                 cmd.extend(["--interface", interface])
 
             try:
-                # Set environment for Windows
-                env = os.environ.copy()
+                # Platform-specific privilege elevation
+                from tpi_redes.platform_compat import is_admin
+                
                 if platform.system() == "Windows":
-                    env["PYTHONPATH"] = src_path
-
-                sniffer_process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=sys.stderr,
-                    text=True,
-                    bufsize=1,
-                    env=env,
-                )
+                    # Windows: Check if we already have admin privileges
+                    if is_admin():
+                        # Already running as admin
+                        env = os.environ.copy()
+                        env["PYTHONPATH"] = src_path
+                        
+                        sniffer_process = subprocess.Popen(
+                            cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=sys.stderr,
+                            text=True,
+                            bufsize=1,
+                            env=env,
+                        )
+                    else:
+                        # Not admin - show error
+                        logger.error(
+                            "Administrator privileges required for packet capture. "
+                            "Please run the application as Administrator."
+                        )
+                        print(
+                            json.dumps(
+                                {
+                                    "type": "SNIFFER_ERROR",
+                                    "code": "PERMISSION_DENIED",
+                                    "message": "Administrator privileges required. Please run as Administrator.",
+                                }
+                            ),
+                            flush=True,
+                        )
+                        sniffer_process = None
+                else:
+                    # Linux: Use pkexec
+                    sniffer_process = subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=sys.stderr,
+                        text=True,
+                        bufsize=1,
+                    )
 
                 sniffer_ready_event = threading.Event()
 
@@ -543,25 +594,53 @@ def start_proxy(
         logger.info("Requesting administrator privileges for Sniffer...")
 
         try:
-            # Set environment for Windows
-            env = os.environ.copy()
+            # Platform-specific privilege elevation
+            from tpi_redes.platform_compat import is_admin
+            
             if platform.system() == "Windows":
-                env["PYTHONPATH"] = src_path
+                # Windows: Check if we already have admin privileges
+                if is_admin():
+                    # Already running as admin
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = src_path
+                    
+                    sniffer_process = subprocess.Popen(
+                        cmd, stdout=subprocess.PIPE, text=True, bufsize=1, env=env
+                    )
+                    
+                    def forward_sniffer_output():
+                        try:
+                            if not sniffer_process or not sniffer_process.stdout:
+                                return
+                            for line in sniffer_process.stdout:
+                                print(line, end="", flush=True)
+                        except Exception as e:
+                            logger.error(f"Sniffer output forwarding failed: {e}")
 
-            sniffer_process = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, text=True, bufsize=1, env=env
-            )
+                    threading.Thread(target=forward_sniffer_output, daemon=True).start()
+                else:
+                    # Not admin - show error
+                    logger.error(
+                        "Administrator privileges required for packet capture. "
+                        "Please run the application as Administrator."
+                    )
+                    sniffer_process = None
+            else:
+                # Linux: Use pkexec
+                sniffer_process = subprocess.Popen(
+                    cmd, stdout=subprocess.PIPE, text=True, bufsize=1
+                )
+                
+                def forward_sniffer_output():
+                    try:
+                        if not sniffer_process or not sniffer_process.stdout:
+                            return
+                        for line in sniffer_process.stdout:
+                            print(line, end="", flush=True)
+                    except Exception as e:
+                        logger.error(f"Sniffer output forwarding failed: {e}")
 
-            def forward_sniffer_output():
-                try:
-                    if not sniffer_process or not sniffer_process.stdout:
-                        return
-                    for line in sniffer_process.stdout:
-                        print(line, end="", flush=True)
-                except Exception as e:
-                    logger.error(f"Sniffer output forwarding failed: {e}")
-
-            threading.Thread(target=forward_sniffer_output, daemon=True).start()
+                threading.Thread(target=forward_sniffer_output, daemon=True).start()
 
         except Exception as e:
             logger.error(f"Failed to start sniffer: {e}")
