@@ -121,6 +121,117 @@ class PacketSniffer:
         except KeyboardInterrupt:
             self.sniffer.stop()
 
+    def start_socket_mode(self, host: str = '127.0.0.1', socket_port: int = 37021):
+        """Start sniffer and send JSON to socket instead of stdout.
+        
+        Used on Windows when running as elevated process.
+        Connects to parent process socket server.
+        
+        Args:
+            host: Host to connect to (default: localhost)
+            socket_port: Port to connect to for IPC
+        """
+        import socket as sock_module
+        
+        setup_process_death_signal()
+        
+        if not is_admin():
+            logger.error("Sniffer requires admin privileges")
+            sys.exit(1)
+        
+        # Connect to parent process
+        logger.info(f"Sniffer connecting to parent at {host}:{socket_port}")
+        sock = sock_module.socket(sock_module.AF_INET, sock_module.SOCK_STREAM)
+        try:
+            sock.connect((host, socket_port))
+            logger.info("Sniffer connected to parent process")
+        except Exception as e:
+            logger.error(f"Failed to connect to parent: {e}")
+            sys.exit(1)
+        
+        filter_str = f"tcp port {self.port} or udp port {self.port}"
+        
+        try:
+            from scapy.all import AsyncSniffer as ScapyAsyncSniffer
+            assert ScapyAsyncSniffer
+        except ImportError:
+            logger.error("Failed to import Scapy")
+            sys.exit(1)
+        
+        # Create packet callback that sends to socket
+        def socket_packet_callback(pkt: Any):
+            try:
+                if pkt.haslayer(IP):
+                    src = pkt[IP].src
+                    dst = pkt[IP].dst
+                    length = pkt[IP].len
+
+                    protocol = "IP"
+                    info = ""
+                    flags = ""
+                    seq = 0
+                    ack = 0
+                    window = 0
+
+                    if pkt.haslayer(TCP):
+                        protocol = "TCP"
+                        flags = str(pkt[TCP].flags)
+                        seq = pkt[TCP].seq
+                        ack = pkt[TCP].ack
+                        window = pkt[TCP].window
+                        info = f"{src} -> {dst} [{flags}] Seq={seq} Ack={ack} Win={window}"
+                    elif pkt.haslayer(UDP):
+                        protocol = "UDP"
+                        info = f"{src} -> {dst} Len={pkt[UDP].len}"
+
+                    packet_data = {
+                        "type": "PACKET_CAPTURE",
+                        "timestamp": time.time(),
+                        "src": src,
+                        "dst": dst,
+                        "protocol": protocol,
+                        "length": length,
+                        "info": info,
+                        "flags": flags,
+                        "seq": seq,
+                        "ack": ack,
+                        "window": window,
+                    }
+                    
+                    message = json.dumps(packet_data) + '\n'
+                    sock.sendall(message.encode('utf-8'))
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                # Parent closed connection
+                sys.exit(0)
+            except Exception as e:
+                logger.error(f"Error processing packet: {e}")
+        
+        self.sniffer = AsyncSniffer(
+            iface=self.interface,
+            filter=filter_str,
+            prn=socket_packet_callback,
+            store=False,
+        )
+        
+        try:
+            self.sniffer.start()
+            # Send ready signal through socket
+            ready_msg = json.dumps({"type": "SNIFFER_READY"}) + '\n'
+            sock.sendall(ready_msg.encode('utf-8'))
+            logger.info("Sniffer started in socket mode")
+            
+            # Keep running
+            self.sniffer.join()
+        except KeyboardInterrupt:
+            self.sniffer.stop()
+        except Exception as e:
+            logger.error(f"Sniffer error: {e}")
+        finally:
+            try:
+                sock.close()
+            except Exception:
+                pass
+
     def stop(self):
         """Stop packet capturing."""
         if self.sniffer:

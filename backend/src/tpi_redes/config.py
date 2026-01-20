@@ -5,6 +5,7 @@ import os
 DEFAULT_HOST = os.getenv("TPI_REDES_HOST", "127.0.0.1")
 DEFAULT_SERVER_PORT = int(os.getenv("TPI_REDES_PORT", "8080"))
 DEFAULT_PROXY_PORT = int(os.getenv("TPI_REDES_PROXY_PORT", "8081"))
+SNIFFER_IPC_PORT = 37021  # Port for sniffer IPC on Windows (next to discovery 37020)
 
 CHUNK_SIZE = 4096
 DISCOVERY_BUFFER_SIZE = 1024

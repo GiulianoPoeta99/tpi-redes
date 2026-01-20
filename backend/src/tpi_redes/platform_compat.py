@@ -132,6 +132,63 @@ def elevate_privileges(cmd: list[str]) -> subprocess.Popen | None:
             return None
 
 
+def elevate_process_windows(cmd: list[str], env: dict[str, str] | None = None) -> int:
+    """Launch process with UAC elevation on Windows.
+    
+    Shows UAC dialog and launches elevated process.
+    
+    Args:
+        cmd: Command and arguments as list (e.g., ['python.exe', '-m', 'module', 'arg'])
+        env: Environment variables (currently not directly supported, must be set by child)
+    
+    Returns:
+        int: Process handle of the elevated process
+        
+    Raises:
+        Exception: If UAC is denied or elevation fails
+    """
+    if platform.system() != "Windows":
+        raise RuntimeError("elevate_process_windows only works on Windows")
+    
+    try:
+        # For Windows UAC elevation, we need to use ShellExecuteEx with 'runas' verb
+        # pywin32 is cleaner than ctypes for this
+        import win32con
+        from win32com.shell import shell, shellcon
+        
+        # Prepare command: first element is executable, rest are params
+        executable = cmd[0]
+        params = ' '.join(f'"{arg}"' for arg in cmd[1:])
+        
+        # Set environment variables in the command if provided
+        # Note: ShellExecuteEx doesn't directly support env vars,
+        # so we need to set PYTHONPATH via the command itself
+        if env and "PYTHONPATH" in env:
+            # Prepend env variable setting to params
+            pythonpath = env["PYTHONPATH"]
+            # We'll pass it as an argument that the child process will set
+            # Actually, for Python modules, PYTHONPATH must be in environment
+            # We'll rely on the child to inherit or set it
+            pass
+        
+        logger.info(f"Requesting UAC elevation for: {executable} {params}")
+        
+        # ShellExecuteEx with runas verb shows UAC dialog
+        process_info = shell.ShellExecuteEx(
+            nShow=win32con.SW_HIDE,  # Hidden window
+            fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,  # Return process handle
+            lpVerb='runas',  # Triggers UAC elevation
+            lpFile=executable,
+            lpParameters=params,
+        )
+        
+        return process_info['hProcess']  # Return process handle
+        
+    except Exception as e:
+        logger.error(f"Failed to elevate process: {e}")
+        raise
+
+
 def kill_process_tree(pid: int) -> None:
     """Kill a process and all its children.
 

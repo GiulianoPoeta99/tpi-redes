@@ -77,16 +77,23 @@ def cli(debug: bool):
 @cli.command(hidden=True)
 @click.option("--port", default=DEFAULT_SERVER_PORT)
 @click.option("--interface", default=None)
-def sniffer_service(port: int, interface: str | None):
+@click.option("--socket-mode", is_flag=True, help="Use socket IPC instead of stdout")
+@click.option("--socket-port", default=37021, help="Socket port for IPC")
+def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_port: int):
     """(Internal) Privileged sniffer process.
 
     This command is intended to be called via `pkexec` (root) by the main process.
-    It runs the `PacketSniffer` in stdout mode, emitting JSON packet captures.
+    It runs the `PacketSniffer` in stdout mode (Linux) or socket mode (Windows),
+    emitting JSON packet captures.
     """
     from tpi_redes.observability.sniffer import PacketSniffer
 
     sniffer = PacketSniffer(interface=interface, port=port)
-    sniffer.start_stdout_mode()
+    
+    if socket_mode:
+        sniffer.start_socket_mode(socket_port=socket_port)
+    else:
+        sniffer.start_stdout_mode()
 
 
 @cli.command()
@@ -182,10 +189,13 @@ def start_server(
                     from tpi_redes.platform_compat import is_admin
                     
                     if platform.system() == "Windows":
-                        # Windows: Check if we already have admin privileges
+                        # Windows: Use socket IPC for communication
+                        import socket as sock_module
+                        from tpi_redes.config import SNIFFER_IPC_PORT
+                        
                         if is_admin():
-                            # Already running as admin (production .exe or elevated dev)
-                            # Run sniffer directly without elevation
+                            # Already running as admin - use stdout mode like Linux
+                            logger.info("Already running as admin, using stdout mode")
                             env = os.environ.copy()
                             env["PYTHONPATH"] = src_path
                             
@@ -197,22 +207,85 @@ def start_server(
                                 env=env,
                             )
                         else:
-                            # Not admin - show error, user needs to run app as administrator
-                            logger.error(
-                                "Administrator privileges required for packet capture. "
-                                "Please run the application as Administrator."
-                            )
-                            print(
-                                json.dumps(
-                                    {
+                            # Not admin - need UAC elevation with socket IPC
+                            logger.info("Requesting UAC elevation for sniffer...")
+                            
+                            # Create socket server to receive sniffer data
+                            server_socket = sock_module.socket(sock_module.AF_INET, sock_module.SOCK_STREAM)
+                            server_socket.setsockopt(sock_module.SOL_SOCKET, sock_module.SO_REUSEADDR, 1)
+                            server_socket.bind(('127.0.0.1', SNIFFER_IPC_PORT))
+                            server_socket.listen(1)
+                            logger.info(f"Socket server listening on 127.0.0.1:{SNIFFER_IPC_PORT}")
+                            
+                            # Add socket mode flags to command
+                            cmd.extend(["--socket-mode", "--socket-port", str(SNIFFER_IPC_PORT)])
+                            
+                            # Elevate with UAC
+                            from tpi_redes.platform_compat import elevate_process_windows
+                            try:
+                                process_handle = elevate_process_windows(cmd, {"PYTHONPATH": src_path})
+                                logger.info("UAC dialog shown, waiting for user response...")
+                                
+                                # Wait for sniffer to connect (with timeout)
+                                server_socket.settimeout(30)
+                                try:
+                                    client_socket, addr = server_socket.accept()
+                                    logger.info(f"Sniffer connected from {addr}")
+                                    
+                                    # Create mock process object for compatibility
+                                    class SocketSnifferProcess:
+                                        def __init__(self, socket, handle):
+                                            self.socket = socket
+                                            self.handle = handle
+                                            self.pid = None
+                                        
+                                        def poll(self):
+                                            return None
+                                        
+                                        def terminate(self):
+                                            try:
+                                                self.socket.close()
+                                            except Exception:
+                                                pass
+                                    
+                                    sniffer_process = SocketSnifferProcess(client_socket, process_handle)
+                                    
+                                    # Forward socket data to stdout in thread
+                                    def forward_sniffer_socket():
+                                        try:
+                                            buffer = ""
+                                            while True:
+                                                data = client_socket.recv(4096).decode('utf-8')
+                                                if not data:
+                                                    break
+                                                buffer += data
+                                                while '\n' in buffer:
+                                                    line, buffer = buffer.split('\n', 1)
+                                                    if line.strip():
+                                                        print(line, flush=True)
+                                        except Exception as e:
+                                            logger.error(f"Sniffer socket error: {e}")
+                                    
+                                    threading.Thread(target=forward_sniffer_socket, daemon=True).start()
+                                    logger.info("Sniffer socket forwarding started")
+                                    
+                                except sock_module.timeout:
+                                    logger.error("Sniffer connection timed out (user may have denied UAC)")
+                                    print(json.dumps({
                                         "type": "SNIFFER_ERROR",
                                         "code": "PERMISSION_DENIED",
-                                        "message": "Administrator privileges required. Please run as Administrator.",
-                                    }
-                                ),
-                                flush=True,
-                            )
-                            sniffer_process = None
+                                        "message": "Administrator privileges required. UAC was denied or timed out."
+                                    }), flush=True)
+                                    sniffer_process = None
+                            except Exception as e:
+                                logger.error(f"Failed to elevate sniffer: {e}")
+                                # User clicked "No" on UAC or error occurred
+                                print(json.dumps({
+                                    "type": "SNIFFER_ERROR",
+                                    "code": "PERMISSION_DENIED",
+                                    "message": "Administrator privileges denied."
+                                }), flush=True)
+                                sniffer_process = None
                     else:
                         # Linux: pkexec handles privilege elevation with modal dialog
                         # This blocks until user accepts/rejects
@@ -410,9 +483,13 @@ def send_file(
                 from tpi_redes.platform_compat import is_admin
                 
                 if platform.system() == "Windows":
-                    # Windows: Check if we already have admin privileges
+                    # Windows: Use socket IPC for communication
+                    import socket as sock_module
+                    from tpi_redes.config import SNIFFER_IPC_PORT
+                    
                     if is_admin():
-                        # Already running as admin
+                        # Already running as admin - use stdout mode
+                        logger.info("Already running as admin, using stdout mode")
                         env = os.environ.copy()
                         env["PYTHONPATH"] = src_path
                         
@@ -425,22 +502,83 @@ def send_file(
                             env=env,
                         )
                     else:
-                        # Not admin - show error
-                        logger.error(
-                            "Administrator privileges required for packet capture. "
-                            "Please run the application as Administrator."
-                        )
-                        print(
-                            json.dumps(
-                                {
+                        # Not admin - need UAC elevation with socket IPC
+                        logger.info("Requesting UAC elevation for sniffer...")
+                        
+                        # Create socket server to receive sniffer data
+                        server_socket = sock_module.socket(sock_module.AF_INET, sock_module.SOCK_STREAM)
+                        server_socket.setsockopt(sock_module.SOL_SOCKET, sock_module.SO_REUSEADDR, 1)
+                        server_socket.bind(('127.0.0.1', SNIFFER_IPC_PORT))
+                        server_socket.listen(1)
+                        
+                        # Add socket mode flags to command
+                        cmd.extend(["--socket-mode", "--socket-port", str(SNIFFER_IPC_PORT)])
+                        
+                        # Elevate with UAC
+                        from tpi_redes.platform_compat import elevate_process_windows
+                        try:
+                            process_handle = elevate_process_windows(cmd, {"PYTHONPATH": src_path})
+                            logger.info("UAC dialog shown, waiting for user response...")
+                            
+                            # Wait for sniffer to connect (with timeout)
+                            server_socket.settimeout(30)
+                            try:
+                                client_socket, addr = server_socket.accept()
+                                logger.info(f"Sniffer connected from {addr}")
+                                
+                                # Create mock process object for compatibility
+                                class SocketSnifferProcess:
+                                    def __init__(self, socket, handle):
+                                        self.socket = socket
+                                        self.handle = handle
+                                        self.pid = None
+                                        self.stdout = None  # For compatibility
+                                    
+                                    def poll(self):
+                                        return None
+                                    
+                                    def terminate(self):
+                                        try:
+                                            self.socket.close()
+                                        except Exception:
+                                            pass
+                                
+                                sniffer_process = SocketSnifferProcess(client_socket, process_handle)
+                                
+                                # Forward socket data to stdout in thread
+                                def forward_sniffer_socket():
+                                    try:
+                                        buffer = ""
+                                        while True:
+                                            data = client_socket.recv(4096).decode('utf-8')
+                                            if not data:
+                                                break
+                                            buffer += data
+                                            while '\n' in buffer:
+                                                line, buffer = buffer.split('\n', 1)
+                                                if line.strip():
+                                                    print(line, flush=True)
+                                    except Exception as e:
+                                        logger.error(f"Sniffer socket error: {e}")
+                                
+                                threading.Thread(target=forward_sniffer_socket, daemon=True).start()
+                                
+                            except sock_module.timeout:
+                                logger.error("Sniffer connection timed out (user may have denied UAC)")
+                                print(json.dumps({
                                     "type": "SNIFFER_ERROR",
                                     "code": "PERMISSION_DENIED",
-                                    "message": "Administrator privileges required. Please run as Administrator.",
-                                }
-                            ),
-                            flush=True,
-                        )
-                        sniffer_process = None
+                                    "message": "Administrator privileges required. UAC was denied or timed out."
+                                }), flush=True)
+                                sniffer_process = None
+                        except Exception as e:
+                            logger.error(f"Failed to elevate sniffer: {e}")
+                            print(json.dumps({
+                                "type": "SNIFFER_ERROR",
+                                "code": "PERMISSION_DENIED",
+                                "message": "Administrator privileges denied."
+                            }), flush=True)
+                            sniffer_process = None
                 else:
                     # Linux: Use pkexec
                     sniffer_process = subprocess.Popen(
@@ -451,47 +589,52 @@ def send_file(
                         bufsize=1,
                     )
 
-                sniffer_ready_event = threading.Event()
+                # Only wait for sniffer ready if we have stdout (not socket mode)
+                if sniffer_process and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
+                    sniffer_ready_event = threading.Event()
 
-                def forward_sniffer_output():
-                    if not sniffer_process or not sniffer_process.stdout:
-                        return
-                    for line in sniffer_process.stdout:
-                        if line.strip():
-                            sys.stderr.write(f"[SNIFFER_SUB] {line}")
-                            sys.stderr.flush()
+                    def forward_sniffer_output():
+                        if not sniffer_process or not sniffer_process.stdout:
+                            return
+                        for line in sniffer_process.stdout:
+                            if line.strip():
+                                sys.stderr.write(f"[SNIFFER_SUB] {line}")
+                                sys.stderr.flush()
 
-                        if "SNIFFER_READY" in line:
-                            sniffer_ready_event.set()
-                        print(line, end="", flush=True)
+                            if "SNIFFER_READY" in line:
+                                sniffer_ready_event.set()
+                            print(line, end="", flush=True)
 
-                t = threading.Thread(target=forward_sniffer_output, daemon=True)
-                t.start()
-                import time
+                    t = threading.Thread(target=forward_sniffer_output, daemon=True)
+                    t.start()
+                    import time
 
-                wait_start = time.time()
-                while not sniffer_ready_event.is_set():
-                    if time.time() - wait_start > 30:
-                        logger.error("Sniffer startup timed out.")
-                        break
+                    wait_start = time.time()
+                    while not sniffer_ready_event.is_set():
+                        if time.time() - wait_start > 30:
+                            logger.error("Sniffer startup timed out.")
+                            break
 
-                    if sniffer_process.poll() is not None:
-                        logger.warning(
-                            "Sniffer authentication cancelled or process died."
-                        )
-                        print(
-                            json.dumps(
-                                {
-                                    "type": "SNIFFER_ERROR",
-                                    "code": "PERMISSION_DENIED",
-                                    "message": "Sniffer authentication cancelled.",
-                                }
-                            ),
-                            flush=True,
-                        )
-                        break
+                        if sniffer_process.poll() is not None:
+                            logger.warning(
+                                "Sniffer authentication cancelled or process died."
+                            )
+                            print(
+                                json.dumps(
+                                    {
+                                        "type": "SNIFFER_ERROR",
+                                        "code": "PERMISSION_DENIED",
+                                        "message": "Sniffer authentication cancelled.",
+                                    }
+                                ),
+                                flush=True,
+                            )
+                            break
 
-                    time.sleep(0.1)
+                        time.sleep(0.1)
+                else:
+                    # Socket mode - sniffer already connected
+                    logger.info("Sniffer ready (socket mode)")
 
             except Exception as e:
                 logger.error(f"Failed to spawn sniffer: {e}")
@@ -603,9 +746,13 @@ def start_proxy(
             from tpi_redes.platform_compat import is_admin
             
             if platform.system() == "Windows":
-                # Windows: Check if we already have admin privileges
+                # Windows: Use socket IPC for communication
+                import socket as sock_module
+                from tpi_redes.config import SNIFFER_IPC_PORT
+                
                 if is_admin():
-                    # Already running as admin
+                    # Already running as admin - use stdout mode
+                    logger.info("Already running as admin, using stdout mode")
                     env = os.environ.copy()
                     env["PYTHONPATH"] = src_path
                     
@@ -624,12 +771,72 @@ def start_proxy(
 
                     threading.Thread(target=forward_sniffer_output, daemon=True).start()
                 else:
-                    # Not admin - show error
-                    logger.error(
-                        "Administrator privileges required for packet capture. "
-                        "Please run the application as Administrator."
-                    )
-                    sniffer_process = None
+                    # Not admin - need UAC elevation with socket IPC
+                    logger.info("Requesting UAC elevation for sniffer...")
+                    
+                    # Create socket server to receive sniffer data
+                    server_socket = sock_module.socket(sock_module.AF_INET, sock_module.SOCK_STREAM)
+                    server_socket.setsockopt(sock_module.SOL_SOCKET, sock_module.SO_REUSEADDR, 1)
+                    server_socket.bind(('127.0.0.1', SNIFFER_IPC_PORT))
+                    server_socket.listen(1)
+                    
+                    # Add socket mode flags to command
+                    cmd.extend(["--socket-mode", "--socket-port", str(SNIFFER_IPC_PORT)])
+                    
+                    # Elevate with UAC
+                    from tpi_redes.platform_compat import elevate_process_windows
+                    try:
+                        process_handle = elevate_process_windows(cmd, {"PYTHONPATH": src_path})
+                        logger.info("UAC dialog shown, waiting for user response...")
+                        
+                        # Wait for sniffer to connect (with timeout)
+                        server_socket.settimeout(30)
+                        try:
+                            client_socket, addr = server_socket.accept()
+                            logger.info(f"Sniffer connected from {addr}")
+                            
+                            # Create mock process object
+                            class SocketSnifferProcess:
+                                def __init__(self, socket, handle):
+                                    self.socket = socket
+                                    self.handle = handle
+                                    self.pid = None
+                                
+                                def poll(self):
+                                    return None
+                                
+                                def terminate(self):
+                                    try:
+                                        self.socket.close()
+                                    except Exception:
+                                        pass
+                            
+                            sniffer_process = SocketSnifferProcess(client_socket, process_handle)
+                            
+                            # Forward socket data to stdout
+                            def forward_sniffer_socket():
+                                try:
+                                    buffer = ""
+                                    while True:
+                                        data = client_socket.recv(4096).decode('utf-8')
+                                        if not data:
+                                            break
+                                        buffer += data
+                                        while '\n' in buffer:
+                                            line, buffer = buffer.split('\n', 1)
+                                            if line.strip():
+                                                print(line, flush=True)
+                                except Exception as e:
+                                    logger.error(f"Sniffer socket error: {e}")
+                            
+                            threading.Thread(target=forward_sniffer_socket, daemon=True).start()
+                            
+                        except sock_module.timeout:
+                            logger.error("Sniffer connection timed out (user may have denied UAC)")
+                            sniffer_process = None
+                    except Exception as e:
+                        logger.error(f"Failed to elevate sniffer: {e}")
+                        sniffer_process = None
             else:
                 # Linux: Use pkexec
                 sniffer_process = subprocess.Popen(
