@@ -74,13 +74,16 @@ ls -lh frontend/installers/npcap-installer.exe
 
 Debe mostrar un archivo de ~5 MB.
 
-## Instalación silenciosa
+## Instalación Interactiva
 
-El instalador se ejecutará con estos parámetros:
-- `/winpcap_mode=yes` - Compatibilidad con WinPcap
-- `/loopback_support=yes` - Soporte para captura en loopback
-- `/admin_only=no` - Permitir uso sin admin (limitado)
-- `/S` - Instalación silenciosa
+La aplicación lanzará el instalador de Npcap con su interfaz gráfica normal.
+
+**Nota:** La instalación silenciosa (`/S`) solo está disponible en la versión OEM (comercial) de Npcap. Como usamos la versión gratuita, el usuario verá el asistente de instalación.
+
+**Opciones recomendadas durante la instalación:**
+- ✅ "Install Npcap in WinPcap API-compatible mode" - Para compatibilidad
+- ✅ "Support loopback traffic capture" - Para captura en localhost
+- ❌ "Restrict Npcap driver's access to Administrators only" - Dejar sin marcar para mejor compatibilidad
 
 ## Más información
 

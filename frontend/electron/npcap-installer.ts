@@ -111,7 +111,9 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
     message: 'Packet capture requires Npcap',
     detail:
       'Npcap is required for packet sniffing functionality. Would you like to install it now?\n\n' +
-      'Note: This requires administrator privileges and will open the Npcap installer.',
+      'The Npcap installer will open with its setup wizard. ' +
+      'Follow the on-screen instructions to complete the installation.\n\n' +
+      'Note: Administrator privileges are required.',
     buttons: ['Install Npcap', 'Skip', 'More Info'],
     defaultId: 0,
     cancelId: 1,
@@ -157,16 +159,16 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
 
   // Run installer with administrator privileges
   try {
-    // On Windows, use runas to execute with admin privileges
-    // Silent installation parameters for Npcap
-    const installCommand = `"${installerPath}" /winpcap_mode=yes /loopback_support=yes /admin_only=no /S`;
+    // On Windows, execute installer interactively (NOT silent)
+    // Silent installation (/S) is only available in Npcap OEM version
+    // We launch the installer GUI and let the user complete it
     
-    // Execute installer
-    await execAsync(`powershell -Command "Start-Process '${installerPath}' -Verb RunAs -ArgumentList '/winpcap_mode=yes','/loopback_support=yes','/admin_only=no','/S' -Wait"`);
+    await execAsync(`powershell -Command "Start-Process '${installerPath}' -Verb RunAs -Wait"`);
 
-    // Verify installation
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
+    // Wait a bit for installation to complete
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
+    // Verify installation
     if (await isNpcapInstalled()) {
       return {
         success: true,
@@ -176,13 +178,13 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
     
     return {
       success: false,
-      message: 'Npcap installation may have failed or was cancelled',
+      message: 'Npcap installation was not completed. Please install it manually.',
     };
   } catch (error) {
     console.error('Error installing Npcap:', error);
     return {
       success: false,
-      message: `Failed to install Npcap: ${error}`,
+      message: `Failed to launch Npcap installer: ${error}`,
     };
   }
 }
