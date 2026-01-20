@@ -1,20 +1,30 @@
 # Npcap Installer
 
-## Descarga Requerida
+## ✅ Instalador Incluido
 
-Para el bundle de Windows, necesitas descargar el instalador de Npcap y colocarlo en este directorio.
+El instalador de Npcap (`npcap-installer.exe`) ya está incluido en este directorio para tu conveniencia.
 
-### Pasos para obtener Npcap
+### Información del Instalador
+
+- **Archivo:** `npcap-installer.exe`
+- **Versión:** Npcap 1.79
+- **Tamaño:** ~1.2 MB
+- **Fuente:** https://npcap.com/
+
+### Si Necesitas Actualizar
+
+Para actualizar a una versión más reciente:
 
 1. **Visita el sitio oficial de Npcap:**
    https://npcap.com/#download
 
 2. **Descarga la versión más reciente:**
    - Haz clic en "Download" para obtener la última versión
-   - El archivo se llamará algo como `npcap-1.79.exe`
+   - El archivo se llamará algo como `npcap-1.XX.exe`
 
-3. **Guarda el instalador:**
-   - Coloca el archivo descargado en este directorio (`frontend/installers/`)
+3. **Reemplaza el instalador:**
+   - Elimina el `npcap-installer.exe` actual de este directorio
+   - Coloca el nuevo archivo descargado aquí
    - Renómbralo a `npcap-installer.exe`
 
 ### Versión recomendada
@@ -22,18 +32,34 @@ Para el bundle de Windows, necesitas descargar el instalador de Npcap y colocarl
 - **Npcap 1.79** o superior
 - Tamaño aproximado: ~5 MB
 
-### Licencia
+### Licencia y Uso Legal
 
 **IMPORTANTE:** Npcap tiene una licencia específica:
-- **Uso gratuito** para uso personal y educacional
-- **Licencia OEM** requerida para distribución comercial
 
-Para este proyecto educacional (TPI), puedes usar la versión gratuita.
+✅ **Uso PERMITIDO (sin costo):**
+- Uso personal y privado
+- Uso educacional (como este TPI)
+- Investigación académica
+- Evaluación y testing
 
-Si planeas distribuir comercialmente:
+❌ **Uso REQUIERE licencia OEM:**
+- Distribución comercial
+- Incluir en productos de software comercial
+- Redistribución masiva
+
+**Para este proyecto educacional (TPI):**
+- ✅ El uso está permitido bajo la licencia gratuita
+- ✅ Incluir el instalador en el repositorio para propósitos educacionales está permitido
+- ✅ Distribuir el .exe entre compañeros/profesores para evaluación está permitido
+
+**Si planeas distribuir comercialmente:**
 1. Visita: https://npcap.com/oem/
 2. Contacta a Npcap para obtener licencia OEM
 3. Obtén el instalador OEM para bundle
+
+**Referencias:**
+- Licencia Npcap: https://github.com/nmap/npcap/blob/master/LICENSE
+- OEM License: https://npcap.com/oem/
 
 ### Alternativa: Descarga automática
 
