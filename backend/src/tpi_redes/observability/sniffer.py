@@ -133,7 +133,7 @@ class PacketSniffer:
             log_func: Optional logging function for debug output
         """
         import socket as sock_module
-        
+
         # Use log function if provided, otherwise stderr
         def log(msg):
             if log_func:
@@ -141,25 +141,25 @@ class PacketSniffer:
             else:
                 sys.stderr.write(f"{msg}\n")
                 sys.stderr.flush()
-        
+
         log(f"[SNIFFER-ELEVATED] Starting socket mode, PID={os.getpid()}")
         log(f"[SNIFFER-ELEVATED] Connecting to {host}:{socket_port}")
-        
+
         setup_process_death_signal()
-        
+
         if not is_admin():
             log("[SNIFFER-ELEVATED] ERROR: Not running as admin")
             logger.error("Sniffer requires admin privileges")
             sys.exit(1)
-        
+
         log("[SNIFFER-ELEVATED] Running with admin privileges ✓")
-        
+
         # Connect to parent process
         logger.info(f"Sniffer connecting to parent at {host}:{socket_port}")
         log("[SNIFFER-ELEVATED] Creating socket...")
-        
+
         sock = sock_module.socket(sock_module.AF_INET, sock_module.SOCK_STREAM)
-        
+
         try:
             log("[SNIFFER-ELEVATED] Attempting connection...")
             sock.connect((host, socket_port))
@@ -171,10 +171,10 @@ class PacketSniffer:
             import traceback
             log(f"[SNIFFER-ELEVATED] Traceback:\n{traceback.format_exc()}")
             sys.exit(1)
-        
+
         filter_str = f"tcp port {self.port} or udp port {self.port}"
         log(f"[SNIFFER-ELEVATED] Filter: {filter_str}")
-        
+
         try:
             log("[SNIFFER-ELEVATED] Importing Scapy...")
             from scapy.all import AsyncSniffer as ScapyAsyncSniffer
@@ -184,7 +184,7 @@ class PacketSniffer:
             log(f"[SNIFFER-ELEVATED] FATAL: Failed to import Scapy: {e}")
             logger.error("Failed to import Scapy")
             sys.exit(1)
-        
+
         # Create packet callback that sends to socket
         log("[SNIFFER-ELEVATED] Creating packet callback...")
         def socket_packet_callback(pkt: Any):
@@ -225,7 +225,7 @@ class PacketSniffer:
                         "ack": ack,
                         "window": window,
                     }
-                    
+
                     message = json.dumps(packet_data) + '\n'
                     sock.sendall(message.encode('utf-8'))
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
@@ -233,7 +233,7 @@ class PacketSniffer:
                 sys.exit(0)
             except Exception as e:
                 logger.error(f"Error processing packet: {e}")
-        
+
         log("[SNIFFER-ELEVATED] Creating AsyncSniffer instance...")
         self.sniffer = AsyncSniffer(
             iface=self.interface,
@@ -242,18 +242,18 @@ class PacketSniffer:
             store=False,
         )
         log("[SNIFFER-ELEVATED] AsyncSniffer created ✓")
-        
+
         try:
             log("[SNIFFER-ELEVATED] Starting sniffer...")
             self.sniffer.start()
             log("[SNIFFER-ELEVATED] Sniffer started ✓")
-            
+
             # Send ready signal through socket
             ready_msg = json.dumps({"type": "SNIFFER_READY"}) + '\n'
             sock.sendall(ready_msg.encode('utf-8'))
             log("[SNIFFER-ELEVATED] READY signal sent to parent ✓")
             logger.info("Sniffer started in socket mode")
-            
+
             # Keep running
             log("[SNIFFER-ELEVATED] Entering packet capture loop...")
             self.sniffer.join()

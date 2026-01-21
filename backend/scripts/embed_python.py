@@ -60,16 +60,16 @@ def setup_embedded_python(backend_dir: Path):
     if embed_dir.exists():
         shutil.rmtree(embed_dir)
     embed_dir.mkdir()
-    
+
     extract_zip(python_zip, embed_dir)
 
     # Modify python._pth to enable site packages
     pth_file = embed_dir / f"python{PYTHON_VERSION.replace('.', '')[:2]}._pth"
     if pth_file.exists():
         print("Modifying ._pth file to enable site-packages...")
-        with open(pth_file, 'r') as f:
+        with open(pth_file) as f:
             lines = f.readlines()
-        
+
         # Uncomment the import site line
         with open(pth_file, 'w') as f:
             for line in lines:
@@ -116,7 +116,7 @@ def setup_embedded_python(backend_dir: Path):
     # Create Scripts directory structure (for compatibility)
     scripts_dir = venv_dir / "Scripts"
     scripts_dir.mkdir(exist_ok=True)
-    
+
     # Copy python.exe to Scripts
     shutil.copy(venv_dir / "python.exe", scripts_dir / "python.exe")
 
@@ -124,7 +124,7 @@ def setup_embedded_python(backend_dir: Path):
     print("Embedded Python setup complete!")
     print(f"Location: {venv_dir}")
     print("="*60)
-    
+
     return True
 
 

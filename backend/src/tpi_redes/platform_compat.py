@@ -7,7 +7,6 @@ import ctypes
 import logging
 import platform
 import subprocess
-import sys
 from pathlib import Path
 
 logger = logging.getLogger("tpi-redes")
@@ -151,55 +150,55 @@ def elevate_process_windows(cmd: list[str], env: dict[str, str] | None = None) -
     """
     if platform.system() != "Windows":
         raise RuntimeError("elevate_process_windows only works on Windows")
-    
-    import tempfile
+
     import os
+    import tempfile
     from pathlib import Path
-    
+
     try:
         # For Windows UAC elevation, we need to use ShellExecuteEx with 'runas' verb
         # However, ShellExecuteEx doesn't inherit environment variables
         # So we create a temporary batch script that sets them and runs the command
         import win32con
         from win32com.shell import shell, shellcon
-        
+
         # Create temporary batch script
         temp_dir = Path(tempfile.gettempdir())
         batch_file = temp_dir / f"tpi_redes_elevate_{os.getpid()}.bat"
-        
+
         # Build batch script content
         batch_lines = ["@echo off\n"]
-        
+
         # Set environment variables
         if env:
             for key, value in env.items():
                 # Escape special characters in value
                 escaped_value = value.replace('"', '""')
                 batch_lines.append(f'set "{key}={escaped_value}"\n')
-        
+
         # Build the command with proper quoting
         executable = cmd[0]
         args = cmd[1:]
-        
+
         # Quote executable if it has spaces
         if ' ' in executable:
             executable = f'"{executable}"'
-        
+
         # Quote each argument
         quoted_args = ' '.join(f'"{arg}"' if arg else '""' for arg in args)
         command_line = f"{executable} {quoted_args}"
-        
+
         batch_lines.append(f"{command_line}\n")
-        
+
         # Write batch script
         with open(batch_file, 'w', encoding='utf-8') as f:
             f.writelines(batch_lines)
-        
+
         logger.info(f"Created wrapper script: {batch_file}")
         logger.info(f"Command: {command_line}")
         if env:
             logger.info(f"Environment: {env}")
-        
+
         # ShellExecuteEx with runas verb shows UAC dialog
         # Execute the batch file instead of Python directly
         process_info = shell.ShellExecuteEx(
@@ -209,13 +208,13 @@ def elevate_process_windows(cmd: list[str], env: dict[str, str] | None = None) -
             lpFile=str(batch_file),
             lpParameters="",  # No additional params needed
         )
-        
+
         # Schedule batch file deletion after process starts
         # Note: We can't delete it immediately, so we'll leave it for now
         # It will be cleaned up on next run or manually
-        
+
         return process_info['hProcess']  # Return process handle
-        
+
     except Exception as e:
         logger.error(f"Failed to elevate process: {e}")
         # Clean up batch file on error

@@ -128,12 +128,13 @@ ipcMain.handle('scan-network', async () => {
   return new Promise((resolve, reject) => {
     const backendDir = path.resolve(__dirname, '../../backend');
     const srcDir = path.join(backendDir, 'src');
-    
+
     // Platform-specific Python path
-    const pythonPath = process.platform === 'win32'
-      ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
-      : path.join(backendDir, '.venv', 'bin', 'python');
-    
+    const pythonPath =
+      process.platform === 'win32'
+        ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
+        : path.join(backendDir, '.venv', 'bin', 'python');
+
     const moduleName = 'tpi_redes.cli.main';
 
     // Use execFile or spawn for one-off
@@ -192,12 +193,13 @@ ipcMain.handle('get-interfaces', async () => {
   return new Promise((resolve) => {
     const backendDir = path.resolve(__dirname, '../../backend');
     const srcDir = path.join(backendDir, 'src');
-    
+
     // Platform-specific Python path
-    const pythonPath = process.platform === 'win32'
-      ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
-      : path.join(backendDir, '.venv', 'bin', 'python');
-    
+    const pythonPath =
+      process.platform === 'win32'
+        ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
+        : path.join(backendDir, '.venv', 'bin', 'python');
+
     const moduleName = 'tpi_redes.cli.main';
 
     const child = spawn(pythonPath, ['-m', moduleName, 'list-interfaces'], {
@@ -312,11 +314,12 @@ function spawnPythonProcess(args: string[]) {
   // Path to python venv. Adjust for uv (.venv)
   const backendDir = path.resolve(__dirname, '../../backend');
   const srcDir = path.join(backendDir, 'src');
-  
+
   // Platform-specific Python path
-  const pythonPath = process.platform === 'win32'
-    ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
-    : path.join(backendDir, '.venv', 'bin', 'python');
+  const pythonPath =
+    process.platform === 'win32'
+      ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
+      : path.join(backendDir, '.venv', 'bin', 'python');
 
   // Run as module
   const moduleName = 'tpi_redes.cli.main';
@@ -408,7 +411,7 @@ app.on('window-all-closed', () => {
 async function killProcessTree(pid: number) {
   return new Promise<void>((resolve) => {
     if (!pid) return resolve();
-    
+
     // Platform-specific commands
     if (process.platform === 'win32') {
       // Windows: use taskkill
@@ -417,16 +420,16 @@ async function killProcessTree(pid: number) {
       });
     } else {
       // Unix-like: use pkill
-    // pkill -P <pid> kills children
-    exec(`pkill -P ${pid}`, (_err) => {
-      // Then kill parent
-      try {
-        process.kill(pid, 'SIGKILL'); // Force kill parent
-      } catch (_e) {
-        // Ignore if already dead
-      }
-      resolve();
-    });
+      // pkill -P <pid> kills children
+      exec(`pkill -P ${pid}`, (_err) => {
+        // Then kill parent
+        try {
+          process.kill(pid, 'SIGKILL'); // Force kill parent
+        } catch (_e) {
+          // Ignore if already dead
+        }
+        resolve();
+      });
     }
   });
 }

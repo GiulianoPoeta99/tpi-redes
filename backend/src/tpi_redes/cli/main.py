@@ -138,7 +138,7 @@ def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_
     
     try:
         try:
-    from tpi_redes.observability.sniffer import PacketSniffer
+            from tpi_redes.observability.sniffer import PacketSniffer
             log("[SNIFFER-SERVICE] PacketSniffer imported successfully")
         except Exception as e:
             log(f"[SNIFFER-SERVICE] FATAL: Failed to import PacketSniffer: {e}")
@@ -146,7 +146,7 @@ def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_
             log(f"[SNIFFER-SERVICE] Traceback:\n{traceback.format_exc()}")
             raise
 
-    sniffer = PacketSniffer(interface=interface, port=port)
+        sniffer = PacketSniffer(interface=interface, port=port)
         log("[SNIFFER-SERVICE] PacketSniffer instance created")
         
         if socket_mode:
@@ -160,7 +160,7 @@ def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_
         else:
             log("[SNIFFER-SERVICE] Starting stdout mode")
             try:
-    sniffer.start_stdout_mode()
+                sniffer.start_stdout_mode()
             finally:
                 if log_file:
                     log_file.write("=== Sniffer Service Ended ===\n")
@@ -233,10 +233,10 @@ def start_server(
                 )
                 # Continue without sniffer
             else:
-            import os
+                import os
 
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            src_path = os.path.abspath(os.path.join(current_dir, "../.."))
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                src_path = os.path.abspath(os.path.join(current_dir, "../.."))
 
                 # Prepare command based on OS
                 if platform.system() == "Windows":
@@ -251,20 +251,20 @@ def start_server(
                     ]
                 else:
                     # Linux: Use pkexec with env vars
-            env_vars = ["env", f"PYTHONPATH={src_path}"]
-            cmd = [
-                "pkexec",
-                *env_vars,
-                sys.executable,
-                "-m",
-                "tpi_redes.cli.main",
-                "sniffer-service",
-                "--port",
-                str(port),
-            ]
+                    env_vars = ["env", f"PYTHONPATH={src_path}"]
+                    cmd = [
+                        "pkexec",
+                        *env_vars,
+                        sys.executable,
+                        "-m",
+                        "tpi_redes.cli.main",
+                        "sniffer-service",
+                        "--port",
+                        str(port),
+                    ]
 
-            if interface:
-                cmd.extend(["--interface", interface])
+                if interface:
+                    cmd.extend(["--interface", interface])
 
                 logger.info("Requesting administrator privileges for Sniffer...")
 
@@ -392,66 +392,66 @@ def start_server(
                     else:
                         # Linux: pkexec handles privilege elevation with modal dialog
                         # This blocks until user accepts/rejects
-                sniffer_process = subprocess.Popen(
-                    cmd, stdout=subprocess.PIPE, text=True, bufsize=1
-                )
-
-                    # Only wait for sniffer if we successfully started it
-                    # Check if we have stdout (not socket mode)
-                    if sniffer_process is not None and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
-                sniffer_ready_event = threading.Event()
-
-                def forward_sniffer_output():
-                    try:
-                        if not sniffer_process or not sniffer_process.stdout:
-                            return
-                        for line in sniffer_process.stdout:
-                            if line.strip():
-                                sniffer_ready_event.set()
-                            print(line, end="", flush=True)
-                    except Exception as e:
-                        logger.error(f"Sniffer output forwarding failed: {e}")
-
-                t = threading.Thread(target=forward_sniffer_output, daemon=True)
-                t.start()
-                wait_start = time.time()
-                while not sniffer_ready_event.is_set():
-                    if time.time() - wait_start > 30:
-                        logger.error("Sniffer startup timed out.")
-                        print(
-                            json.dumps(
-                                {
-                                    "type": "SNIFFER_ERROR",
-                                    "code": "TIMEOUT",
-                                    "message": "Sniffer startup timed out.",
-                                }
-                            ),
-                            flush=True,
+                        sniffer_process = subprocess.Popen(
+                            cmd, stdout=subprocess.PIPE, text=True, bufsize=1
                         )
-                        break
 
-                    if sniffer_process.poll() is not None:
-                        exit_code = sniffer_process.poll()
-                        logger.warning(f"Sniffer process exited. Code: {exit_code}")
-                        print(
-                            json.dumps(
-                                {
-                                    "type": "SNIFFER_ERROR",
-                                    "code": "PERMISSION_DENIED",
-                                    "message": f"Sniffer died (Code {exit_code}).",
-                                }
-                            ),
-                            flush=True,
-                        )
-                        break
+                # Only wait for sniffer if we successfully started it
+                # Check if we have stdout (not socket mode)
+                if sniffer_process is not None and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
+                    sniffer_ready_event = threading.Event()
 
-                    time.sleep(0.1)
-                    elif sniffer_process is not None:
-                        # Socket mode - sniffer already connected and forwarding
-                        logger.info("Sniffer ready (socket mode)")
-                    else:
-                        # Sniffer not started (no admin permissions on Windows)
-                        logger.info("Continuing without packet capture.")
+                    def forward_sniffer_output():
+                        try:
+                            if not sniffer_process or not sniffer_process.stdout:
+                                return
+                            for line in sniffer_process.stdout:
+                                if line.strip():
+                                    sniffer_ready_event.set()
+                                print(line, end="", flush=True)
+                        except Exception as e:
+                            logger.error(f"Sniffer output forwarding failed: {e}")
+
+                    t = threading.Thread(target=forward_sniffer_output, daemon=True)
+                    t.start()
+                    wait_start = time.time()
+                    while not sniffer_ready_event.is_set():
+                        if time.time() - wait_start > 30:
+                            logger.error("Sniffer startup timed out.")
+                            print(
+                                json.dumps(
+                                    {
+                                        "type": "SNIFFER_ERROR",
+                                        "code": "TIMEOUT",
+                                        "message": "Sniffer startup timed out.",
+                                    }
+                                ),
+                                flush=True,
+                            )
+                            break
+
+                        if sniffer_process.poll() is not None:
+                            exit_code = sniffer_process.poll()
+                            logger.warning(f"Sniffer process exited. Code: {exit_code}")
+                            print(
+                                json.dumps(
+                                    {
+                                        "type": "SNIFFER_ERROR",
+                                        "code": "PERMISSION_DENIED",
+                                        "message": f"Sniffer died (Code {exit_code}).",
+                                    }
+                                ),
+                                flush=True,
+                            )
+                            break
+
+                        time.sleep(0.1)
+                elif sniffer_process is not None:
+                    # Socket mode - sniffer already connected and forwarding
+                    logger.info("Sniffer ready (socket mode)")
+                else:
+                    # Sniffer not started (no admin permissions on Windows)
+                    logger.info("Continuing without packet capture.")
 
             except Exception as e:
                 logger.error(f"Failed to spawn sniffer: {e}")
@@ -832,19 +832,19 @@ def start_proxy(
                 interface,
             ]
         else:
-        cmd = [
-            "pkexec",
-            "env",
-            f"PYTHONPATH={src_path}",
-            sys.executable,
-            "-m",
-            "tpi_redes.cli.main",
-            "sniffer-service",
-            "--port",
-            str(listen_port),
-            "--interface",
-            interface,
-        ]
+            cmd = [
+                "pkexec",
+                "env",
+                f"PYTHONPATH={src_path}",
+                sys.executable,
+                "-m",
+                "tpi_redes.cli.main",
+                "sniffer-service",
+                "--port",
+                str(listen_port),
+                "--interface",
+                interface,
+            ]
 
         logger.info("Requesting administrator privileges for Sniffer...")
 
@@ -946,9 +946,9 @@ def start_proxy(
                         sniffer_process = None
             else:
                 # Linux: Use pkexec
-            sniffer_process = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, text=True, bufsize=1
-            )
+                sniffer_process = subprocess.Popen(
+                    cmd, stdout=subprocess.PIPE, text=True, bufsize=1
+                )
 
             def forward_sniffer_output():
                 try:

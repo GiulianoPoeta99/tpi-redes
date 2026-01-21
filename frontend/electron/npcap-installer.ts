@@ -1,10 +1,10 @@
-import { dialog } from 'electron';
 import { exec } from 'node:child_process';
 import fs from 'node:fs';
 import https from 'node:https';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { dialog } from 'electron';
 
 const execAsync = promisify(exec);
 
@@ -82,7 +82,7 @@ function getNpcapInstallerPath(): string {
   if (process.env.NODE_ENV === 'development') {
     return path.join(__dirname, '..', 'installers', 'npcap-installer.exe');
   }
-  
+
   // In production (bundled with electron-builder)
   return path.join(process.resourcesPath, 'npcap-installer.exe');
 }
@@ -97,25 +97,27 @@ async function downloadNpcapInstaller(savePath: string): Promise<boolean> {
 
   return new Promise((resolve) => {
     const file = fs.createWriteStream(savePath);
-    
-    https.get(NPCAP_DOWNLOAD_URL, (response) => {
-      if (response.statusCode !== 200) {
-        console.error(`Failed to download Npcap: ${response.statusCode}`);
-        resolve(false);
-        return;
-      }
 
-      response.pipe(file);
-      
-      file.on('finish', () => {
-        file.close();
-        resolve(true);
+    https
+      .get(NPCAP_DOWNLOAD_URL, (response) => {
+        if (response.statusCode !== 200) {
+          console.error(`Failed to download Npcap: ${response.statusCode}`);
+          resolve(false);
+          return;
+        }
+
+        response.pipe(file);
+
+        file.on('finish', () => {
+          file.close();
+          resolve(true);
+        });
+      })
+      .on('error', (err) => {
+        fs.unlink(savePath, () => {});
+        console.error('Error downloading Npcap:', err);
+        resolve(false);
       });
-    }).on('error', (err) => {
-      fs.unlink(savePath, () => {});
-      console.error('Error downloading Npcap:', err);
-      resolve(false);
-    });
   });
 }
 
@@ -177,17 +179,17 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
   // Check if installer exists
   if (!fs.existsSync(installerPath)) {
     console.log('Npcap installer not found in bundle, attempting download...');
-    
+
     const tempPath = path.join(process.env.TEMP || '/tmp', 'npcap-installer.exe');
     const downloaded = await downloadNpcapInstaller(tempPath);
-    
+
     if (!downloaded) {
       return {
         success: false,
         message: 'Failed to download Npcap installer',
       };
     }
-    
+
     installerPath = tempPath;
   }
 
@@ -196,13 +198,13 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
     // On Windows, execute installer interactively (NOT silent)
     // Silent installation (/S) is only available in Npcap OEM version
     // We launch the installer GUI and let the user complete it
-    
+
     await execAsync(`powershell -Command "Start-Process '${installerPath}' -Verb RunAs -Wait"`);
 
     // Wait for installation to complete and registry to update
     console.log('Waiting for Npcap installation to complete...');
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
     // Verify installation (retry a few times)
     for (let i = 0; i < 3; i++) {
       if (await isNpcapInstalled()) {
@@ -213,12 +215,13 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
         };
       }
       console.log(`Verification attempt ${i + 1} failed, retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    
+
     return {
       success: false,
-      message: 'Npcap installation was not completed. Please install it manually or restart the application.',
+      message:
+        'Npcap installation was not completed. Please install it manually or restart the application.',
     };
   } catch (error) {
     console.error('Error installing Npcap:', error);
@@ -235,7 +238,7 @@ export async function installNpcap(): Promise<{ success: boolean; message: strin
 export async function promptNpcapInstallation(): Promise<boolean> {
   try {
     const result = await installNpcap();
-    
+
     if (result.success) {
       await dialog.showMessageBox({
         type: 'info',
@@ -245,7 +248,7 @@ export async function promptNpcapInstallation(): Promise<boolean> {
       });
       return true;
     }
-    
+
     if (result.message !== 'User declined Npcap installation') {
       await dialog.showMessageBox({
         type: 'warning',
@@ -254,7 +257,7 @@ export async function promptNpcapInstallation(): Promise<boolean> {
         detail: result.message + '\n\nYou can install Npcap manually from https://npcap.com/',
       });
     }
-    
+
     return false;
   } catch (error) {
     console.error('Error in promptNpcapInstallation:', error);

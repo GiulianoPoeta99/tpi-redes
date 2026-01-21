@@ -1,6 +1,7 @@
 """Tests for Windows compatibility layer."""
 
 import platform
+
 import pytest
 
 from tpi_redes.platform_compat import (
