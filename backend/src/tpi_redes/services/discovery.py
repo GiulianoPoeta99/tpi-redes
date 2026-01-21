@@ -47,6 +47,8 @@ class DiscoveryService:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             s.settimeout(timeout)
+            # Bind to a port to receive responses (required on Windows, works on Linux too)
+            s.bind(("", 0))
 
             message = json.dumps({"type": "PING", "hostname": self.hostname}).encode(
                 "utf-8"
