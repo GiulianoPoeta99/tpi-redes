@@ -397,7 +397,8 @@ def start_server(
                         )
 
                     # Only wait for sniffer if we successfully started it
-                    if sniffer_process is not None:
+                    # Check if we have stdout (not socket mode)
+                    if sniffer_process is not None and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
                         sniffer_ready_event = threading.Event()
 
                         def forward_sniffer_output():
@@ -445,6 +446,9 @@ def start_server(
                                 break
 
                             time.sleep(0.1)
+                    elif sniffer_process is not None:
+                        # Socket mode - sniffer already connected and forwarding
+                        logger.info("Sniffer ready (socket mode)")
                     else:
                         # Sniffer not started (no admin permissions on Windows)
                         logger.info("Continuing without packet capture.")
