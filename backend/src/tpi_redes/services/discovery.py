@@ -49,19 +49,33 @@ class DiscoveryService:
             s.settimeout(timeout)
             # Bind to a port to receive responses (required on Windows, works on Linux too)
             s.bind(("", 0))
+            bound_addr = s.getsockname()
+            logger.info(f"Scanner socket bound to {bound_addr}")
 
             message = json.dumps({"type": "PING", "hostname": self.hostname}).encode(
                 "utf-8"
             )
             try:
                 s.sendto(message, (BROADCAST_IP, DISCOVERY_PORT))
-                logger.info("Sent Discovery PING...")
+                logger.info(
+                    f"Sent Discovery PING to {BROADCAST_IP}:{DISCOVERY_PORT} from {bound_addr}"
+                )
 
                 start_time = time.time()
                 while time.time() - start_time < timeout:
                     try:
                         data, addr = s.recvfrom(DISCOVERY_BUFFER_SIZE)
-                        response: dict[str, Any] = json.loads(data.decode("utf-8"))
+                        logger.info(
+                            f"Received UDP packet from {addr}, size: {len(data)} bytes"
+                        )
+                        try:
+                            response: dict[str, Any] = json.loads(data.decode("utf-8"))
+                            logger.info(f"Parsed response: {response}")
+                        except json.JSONDecodeError as e:
+                            logger.warning(
+                                f"Failed to parse response as JSON: {e}, raw data: {data[:100]}"
+                            )
+                            continue
 
                         if response.get("type") == "PONG":
                             peer: dict[str, Any] = {
@@ -78,14 +92,26 @@ class DiscoveryService:
                                 logger.info(
                                     f"Discovered peer: {hostname} ({peer['ip']})"
                                 )
-                    except TimeoutError:
+                        else:
+                            logger.warning(
+                                f"Received non-PONG response type: {response.get('type')}"
+                            )
+                    except socket.timeout:
+                        logger.debug("Socket timeout in recvfrom")
                         break
-                    except Exception:
+                    except TimeoutError:
+                        logger.debug("TimeoutError in recvfrom")
+                        break
+                    except Exception as e:
+                        logger.warning(
+                            f"Error receiving discovery response: {type(e).__name__}: {e}"
+                        )
                         continue
 
             except Exception as e:
-                logger.error(f"Discovery scan error: {e}")
+                logger.error(f"Discovery scan error: {e}", exc_info=True)
 
+        logger.info(f"Scan completed, found {len(discovered_peers)} peers")
         return discovered_peers
 
     def listen(self, port: int):
@@ -106,12 +132,25 @@ class DiscoveryService:
                     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
                 s.bind(("", DISCOVERY_PORT))
-                logger.info(f"Discovery Service listening on UDP {DISCOVERY_PORT}")
+                bound_addr = s.getsockname()
+                logger.info(
+                    f"Discovery Service listening on UDP {DISCOVERY_PORT}, bound to {bound_addr}"
+                )
 
                 while self.running:
                     try:
                         data, addr = s.recvfrom(DISCOVERY_BUFFER_SIZE)
-                        message = json.loads(data.decode("utf-8"))
+                        logger.info(
+                            f"Received UDP packet from {addr}, size: {len(data)} bytes"
+                        )
+                        try:
+                            message = json.loads(data.decode("utf-8"))
+                            logger.info(f"Parsed message: {message}")
+                        except json.JSONDecodeError as e:
+                            logger.warning(
+                                f"Failed to parse message as JSON: {e}, raw data: {data[:100]}"
+                            )
+                            continue
 
                         if message.get("type") == "PING":
                             logger.info(
@@ -124,11 +163,19 @@ class DiscoveryService:
                                 "hostname": self.hostname,
                                 "port": port,
                             }
-                            s.sendto(json.dumps(response).encode("utf-8"), addr)
+                            response_json = json.dumps(response).encode("utf-8")
+                            s.sendto(response_json, addr)
+                            logger.info(
+                                f"Sent PONG to {addr[0]}:{addr[1]}, response: {response}"
+                            )
+                        else:
+                            logger.warning(
+                                f"Received non-PING message type: {message.get('type')}"
+                            )
 
                     except Exception as e:
                         if self.running:
-                            logger.error(f"Discovery listen error: {e}")
+                            logger.error(f"Discovery listen error: {e}", exc_info=True)
 
         threading.Thread(target=_listen_loop, daemon=True).start()
 
