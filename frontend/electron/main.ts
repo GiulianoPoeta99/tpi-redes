@@ -417,16 +417,16 @@ async function killProcessTree(pid: number) {
       });
     } else {
       // Unix-like: use pkill
-      // pkill -P <pid> kills children
-      exec(`pkill -P ${pid}`, (_err) => {
-        // Then kill parent
-        try {
-          process.kill(pid, 'SIGKILL'); // Force kill parent
-        } catch (_e) {
-          // Ignore if already dead
-        }
-        resolve();
-      });
+    // pkill -P <pid> kills children
+    exec(`pkill -P ${pid}`, (_err) => {
+      // Then kill parent
+      try {
+        process.kill(pid, 'SIGKILL'); // Force kill parent
+      } catch (_e) {
+        // Ignore if already dead
+      }
+      resolve();
+    });
     }
   });
 }
