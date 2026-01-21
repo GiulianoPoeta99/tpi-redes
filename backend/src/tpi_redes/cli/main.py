@@ -92,27 +92,43 @@ def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_
     
     # For Windows elevated process, write to log file (stderr is lost)
     log_file = None
-    if socket_mode:
+    log_path = None
+    
+    # Always try to create log file for debugging
+    try:
         # Find backend directory (go up from src/tpi_redes/cli to backend root)
         backend_dir = Path(__file__).parent.parent.parent.parent
         log_path = backend_dir / "sniffer-elevated.log"
-        try:
-            log_file = open(log_path, "w", encoding="utf-8")
-            
-            def log(msg):
-                timestamp = __import__('time').strftime("%H:%M:%S")
-                log_file.write(f"[{timestamp}] {msg}\n")
-                log_file.flush()
-                sys.stderr.write(f"{msg}\n")
-                sys.stderr.flush()
-        except Exception as e:
-            def log(msg):
-                sys.stderr.write(f"{msg}\n")
-                sys.stderr.flush()
-    else:
+        
+        # Use absolute path to ensure we can write even from different working directory
+        log_path = log_path.resolve()
+        
+        log_file = open(log_path, "w", encoding="utf-8")
+        log_file.write(f"=== Sniffer Service Started (PID={os.getpid()}) ===\n")
+        log_file.flush()
+        
         def log(msg):
-            sys.stderr.write(f"{msg}\n")
-            sys.stderr.flush()
+            import time
+            timestamp = time.strftime("%H:%M:%S")
+            log_msg = f"[{timestamp}] {msg}\n"
+            if log_file:
+                log_file.write(log_msg)
+                log_file.flush()
+            # Also write to stderr if available
+            try:
+                sys.stderr.write(log_msg)
+                sys.stderr.flush()
+            except Exception:
+                pass
+    except Exception as e:
+        # Fallback to stderr only
+        def log(msg):
+            try:
+                sys.stderr.write(f"{msg}\n")
+                sys.stderr.flush()
+            except Exception:
+                pass
+        log(f"WARNING: Could not create log file: {e}")
     
     log(f"[SNIFFER-SERVICE] Started with PID={os.getpid()}")
     log(f"[SNIFFER-SERVICE] Working directory: {os.getcwd()}")
@@ -121,27 +137,47 @@ def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_
     log(f"[SNIFFER-SERVICE] sys.path={sys.path[:3]}...")
     
     try:
-        from tpi_redes.observability.sniffer import PacketSniffer
-        log("[SNIFFER-SERVICE] PacketSniffer imported successfully")
+        try:
+            from tpi_redes.observability.sniffer import PacketSniffer
+            log("[SNIFFER-SERVICE] PacketSniffer imported successfully")
+        except Exception as e:
+            log(f"[SNIFFER-SERVICE] FATAL: Failed to import PacketSniffer: {e}")
+            import traceback
+            log(f"[SNIFFER-SERVICE] Traceback:\n{traceback.format_exc()}")
+            raise
+
+        sniffer = PacketSniffer(interface=interface, port=port)
+        log("[SNIFFER-SERVICE] PacketSniffer instance created")
+        
+        if socket_mode:
+            log(f"[SNIFFER-SERVICE] Starting socket mode on port {socket_port}")
+            try:
+                sniffer.start_socket_mode(socket_port=socket_port, log_func=log)
+            finally:
+                if log_file:
+                    log_file.write("=== Sniffer Service Ended ===\n")
+                    log_file.close()
+        else:
+            log("[SNIFFER-SERVICE] Starting stdout mode")
+            try:
+                sniffer.start_stdout_mode()
+            finally:
+                if log_file:
+                    log_file.write("=== Sniffer Service Ended ===\n")
+                    log_file.close()
+    except SystemExit:
+        if log_file:
+            log_file.write("=== Sniffer Service Exited ===\n")
+            log_file.close()
+        raise
     except Exception as e:
-        log(f"[SNIFFER-SERVICE] FATAL: Failed to import PacketSniffer: {e}")
+        log(f"[SNIFFER-SERVICE] UNEXPECTED ERROR: {e}")
         import traceback
         log(f"[SNIFFER-SERVICE] Traceback:\n{traceback.format_exc()}")
         if log_file:
+            log_file.write("=== Sniffer Service Crashed ===\n")
             log_file.close()
-        sys.exit(1)
-
-    sniffer = PacketSniffer(interface=interface, port=port)
-    log("[SNIFFER-SERVICE] PacketSniffer instance created")
-    
-    if socket_mode:
-        log(f"[SNIFFER-SERVICE] Starting socket mode on port {socket_port}")
-        sniffer.start_socket_mode(socket_port=socket_port, log_func=log)
-        if log_file:
-            log_file.close()
-    else:
-        log("[SNIFFER-SERVICE] Starting stdout mode")
-        sniffer.start_stdout_mode()
+        raise
 
 
 @cli.command()
