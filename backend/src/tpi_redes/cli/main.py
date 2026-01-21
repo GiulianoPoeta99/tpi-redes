@@ -88,33 +88,59 @@ def sniffer_service(port: int, interface: str | None, socket_mode: bool, socket_
     """
     import sys
     import os
+    from pathlib import Path
     
-    # Debug logging to stderr
-    sys.stderr.write(f"[SNIFFER-SERVICE] Started with PID={os.getpid()}\n")
-    sys.stderr.write(f"[SNIFFER-SERVICE] port={port}, interface={interface}, socket_mode={socket_mode}, socket_port={socket_port}\n")
-    sys.stderr.write(f"[SNIFFER-SERVICE] PYTHONPATH={os.environ.get('PYTHONPATH', 'NOT SET')}\n")
-    sys.stderr.flush()
+    # For Windows elevated process, write to log file (stderr is lost)
+    log_file = None
+    if socket_mode:
+        # Find backend directory (go up from src/tpi_redes/cli to backend root)
+        backend_dir = Path(__file__).parent.parent.parent.parent
+        log_path = backend_dir / "sniffer-elevated.log"
+        try:
+            log_file = open(log_path, "w", encoding="utf-8")
+            
+            def log(msg):
+                timestamp = __import__('time').strftime("%H:%M:%S")
+                log_file.write(f"[{timestamp}] {msg}\n")
+                log_file.flush()
+                sys.stderr.write(f"{msg}\n")
+                sys.stderr.flush()
+        except Exception as e:
+            def log(msg):
+                sys.stderr.write(f"{msg}\n")
+                sys.stderr.flush()
+    else:
+        def log(msg):
+            sys.stderr.write(f"{msg}\n")
+            sys.stderr.flush()
+    
+    log(f"[SNIFFER-SERVICE] Started with PID={os.getpid()}")
+    log(f"[SNIFFER-SERVICE] Working directory: {os.getcwd()}")
+    log(f"[SNIFFER-SERVICE] port={port}, interface={interface}, socket_mode={socket_mode}, socket_port={socket_port}")
+    log(f"[SNIFFER-SERVICE] PYTHONPATH={os.environ.get('PYTHONPATH', 'NOT SET')}")
+    log(f"[SNIFFER-SERVICE] sys.path={sys.path[:3]}...")
     
     try:
         from tpi_redes.observability.sniffer import PacketSniffer
-        sys.stderr.write("[SNIFFER-SERVICE] PacketSniffer imported successfully\n")
-        sys.stderr.flush()
+        log("[SNIFFER-SERVICE] PacketSniffer imported successfully")
     except Exception as e:
-        sys.stderr.write(f"[SNIFFER-SERVICE] FATAL: Failed to import PacketSniffer: {e}\n")
-        sys.stderr.flush()
+        log(f"[SNIFFER-SERVICE] FATAL: Failed to import PacketSniffer: {e}")
+        import traceback
+        log(f"[SNIFFER-SERVICE] Traceback:\n{traceback.format_exc()}")
+        if log_file:
+            log_file.close()
         sys.exit(1)
 
     sniffer = PacketSniffer(interface=interface, port=port)
-    sys.stderr.write("[SNIFFER-SERVICE] PacketSniffer instance created\n")
-    sys.stderr.flush()
+    log("[SNIFFER-SERVICE] PacketSniffer instance created")
     
     if socket_mode:
-        sys.stderr.write(f"[SNIFFER-SERVICE] Starting socket mode on port {socket_port}\n")
-        sys.stderr.flush()
-        sniffer.start_socket_mode(socket_port=socket_port)
+        log(f"[SNIFFER-SERVICE] Starting socket mode on port {socket_port}")
+        sniffer.start_socket_mode(socket_port=socket_port, log_func=log)
+        if log_file:
+            log_file.close()
     else:
-        sys.stderr.write("[SNIFFER-SERVICE] Starting stdout mode\n")
-        sys.stderr.flush()
+        log("[SNIFFER-SERVICE] Starting stdout mode")
         sniffer.start_stdout_mode()
 
 
