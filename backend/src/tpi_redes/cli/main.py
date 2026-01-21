@@ -396,75 +396,75 @@ def start_server(
                             cmd, stdout=subprocess.PIPE, text=True, bufsize=1
                         )
 
-                # Only wait for sniffer if we successfully started it
-                # Check if we have stdout (not socket mode)
-                if sniffer_process is not None and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
-                    sniffer_ready_event = threading.Event()
+                    # Only wait for sniffer if we successfully started it
+                    # Check if we have stdout (not socket mode)
+                    if sniffer_process is not None and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
+                        sniffer_ready_event = threading.Event()
 
-                    def forward_sniffer_output():
-                        try:
-                            if not sniffer_process or not sniffer_process.stdout:
-                                return
-                            for line in sniffer_process.stdout:
-                                if line.strip():
-                                    sniffer_ready_event.set()
-                                print(line, end="", flush=True)
-                        except Exception as e:
-                            logger.error(f"Sniffer output forwarding failed: {e}")
+                        def forward_sniffer_output():
+                            try:
+                                if not sniffer_process or not sniffer_process.stdout:
+                                    return
+                                for line in sniffer_process.stdout:
+                                    if line.strip():
+                                        sniffer_ready_event.set()
+                                    print(line, end="", flush=True)
+                            except Exception as e:
+                                logger.error(f"Sniffer output forwarding failed: {e}")
 
-                    t = threading.Thread(target=forward_sniffer_output, daemon=True)
-                    t.start()
-                    wait_start = time.time()
-                    while not sniffer_ready_event.is_set():
-                        if time.time() - wait_start > 30:
-                            logger.error("Sniffer startup timed out.")
-                            print(
-                                json.dumps(
-                                    {
-                                        "type": "SNIFFER_ERROR",
-                                        "code": "TIMEOUT",
-                                        "message": "Sniffer startup timed out.",
-                                    }
-                                ),
-                                flush=True,
-                            )
-                            break
+                        t = threading.Thread(target=forward_sniffer_output, daemon=True)
+                        t.start()
+                        wait_start = time.time()
+                        while not sniffer_ready_event.is_set():
+                            if time.time() - wait_start > 30:
+                                logger.error("Sniffer startup timed out.")
+                                print(
+                                    json.dumps(
+                                        {
+                                            "type": "SNIFFER_ERROR",
+                                            "code": "TIMEOUT",
+                                            "message": "Sniffer startup timed out.",
+                                        }
+                                    ),
+                                    flush=True,
+                                )
+                                break
 
-                        if sniffer_process.poll() is not None:
-                            exit_code = sniffer_process.poll()
-                            logger.warning(f"Sniffer process exited. Code: {exit_code}")
-                            print(
-                                json.dumps(
-                                    {
-                                        "type": "SNIFFER_ERROR",
-                                        "code": "PERMISSION_DENIED",
-                                        "message": f"Sniffer died (Code {exit_code}).",
-                                    }
-                                ),
-                                flush=True,
-                            )
-                            break
+                            if sniffer_process.poll() is not None:
+                                exit_code = sniffer_process.poll()
+                                logger.warning(f"Sniffer process exited. Code: {exit_code}")
+                                print(
+                                    json.dumps(
+                                        {
+                                            "type": "SNIFFER_ERROR",
+                                            "code": "PERMISSION_DENIED",
+                                            "message": f"Sniffer died (Code {exit_code}).",
+                                        }
+                                    ),
+                                    flush=True,
+                                )
+                                break
 
-                        time.sleep(0.1)
-                elif sniffer_process is not None:
-                    # Socket mode - sniffer already connected and forwarding
-                    logger.info("Sniffer ready (socket mode)")
-                else:
-                    # Sniffer not started (no admin permissions on Windows)
-                    logger.info("Continuing without packet capture.")
+                            time.sleep(0.1)
+                    elif sniffer_process is not None:
+                        # Socket mode - sniffer already connected and forwarding
+                        logger.info("Sniffer ready (socket mode)")
+                    else:
+                        # Sniffer not started (no admin permissions on Windows)
+                        logger.info("Continuing without packet capture.")
 
-            except Exception as e:
-                logger.error(f"Failed to spawn sniffer: {e}")
-                print(
-                    json.dumps(
-                        {
-                            "type": "SNIFFER_ERROR",
-                            "code": "SPAWN_FAILED",
-                            "message": str(e),
-                        }
-                    ),
-                    flush=True,
-                )
+                except Exception as e:
+                    logger.error(f"Failed to spawn sniffer: {e}")
+                    print(
+                        json.dumps(
+                            {
+                                "type": "SNIFFER_ERROR",
+                                "code": "SPAWN_FAILED",
+                                "message": str(e),
+                            }
+                        ),
+                        flush=True,
+                    )
         from tpi_redes.services.discovery import DiscoveryService
 
         discovery = DiscoveryService()
@@ -571,17 +571,17 @@ def send_file(
                 ]
             else:
                 # Preserve GUI environment for pkexec prompt on Linux
-            cmd = [
-                "pkexec",
-                "env",
-                f"PYTHONPATH={src_path}",
-                sys.executable,
-                "-m",
-                "tpi_redes.cli.main",
-                "sniffer-service",
-                "--port",
-                str(port),
-            ]
+                cmd = [
+                    "pkexec",
+                    "env",
+                    f"PYTHONPATH={src_path}",
+                    sys.executable,
+                    "-m",
+                    "tpi_redes.cli.main",
+                    "sniffer-service",
+                    "--port",
+                    str(port),
+                ]
             if interface:
                 cmd.extend(["--interface", interface])
 
@@ -688,60 +688,60 @@ def send_file(
                             sniffer_process = None
                 else:
                     # Linux: Use pkexec
-                sniffer_process = subprocess.Popen(
+                    sniffer_process = subprocess.Popen(
                         cmd,
                         stdout=subprocess.PIPE,
                         stderr=sys.stderr,
                         text=True,
                         bufsize=1,
-                )
+                    )
 
-                # Only wait for sniffer ready if we have stdout (not socket mode)
-                if sniffer_process and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
-                sniffer_ready_event = threading.Event()
+                    # Only wait for sniffer ready if we have stdout (not socket mode)
+                    if sniffer_process and hasattr(sniffer_process, 'stdout') and sniffer_process.stdout:
+                        sniffer_ready_event = threading.Event()
 
-                def forward_sniffer_output():
-                    if not sniffer_process or not sniffer_process.stdout:
-                        return
-                    for line in sniffer_process.stdout:
-                        if line.strip():
-                            sys.stderr.write(f"[SNIFFER_SUB] {line}")
-                            sys.stderr.flush()
+                        def forward_sniffer_output():
+                            if not sniffer_process or not sniffer_process.stdout:
+                                return
+                            for line in sniffer_process.stdout:
+                                if line.strip():
+                                    sys.stderr.write(f"[SNIFFER_SUB] {line}")
+                                    sys.stderr.flush()
 
-                        if "SNIFFER_READY" in line:
-                            sniffer_ready_event.set()
-                        print(line, end="", flush=True)
+                                if "SNIFFER_READY" in line:
+                                    sniffer_ready_event.set()
+                                print(line, end="", flush=True)
 
-                t = threading.Thread(target=forward_sniffer_output, daemon=True)
-                t.start()
-                import time
+                        t = threading.Thread(target=forward_sniffer_output, daemon=True)
+                        t.start()
+                        import time
 
-                wait_start = time.time()
-                while not sniffer_ready_event.is_set():
-                    if time.time() - wait_start > 30:
-                        logger.error("Sniffer startup timed out.")
-                        break
+                        wait_start = time.time()
+                        while not sniffer_ready_event.is_set():
+                            if time.time() - wait_start > 30:
+                                logger.error("Sniffer startup timed out.")
+                                break
 
-                    if sniffer_process.poll() is not None:
-                        logger.warning(
-                            "Sniffer authentication cancelled or process died."
-                        )
-                        print(
-                            json.dumps(
-                                {
-                                    "type": "SNIFFER_ERROR",
-                                    "code": "PERMISSION_DENIED",
-                                    "message": "Sniffer authentication cancelled.",
-                                }
-                            ),
-                            flush=True,
-                        )
-                        break
+                            if sniffer_process.poll() is not None:
+                                logger.warning(
+                                    "Sniffer authentication cancelled or process died."
+                                )
+                                print(
+                                    json.dumps(
+                                        {
+                                            "type": "SNIFFER_ERROR",
+                                            "code": "PERMISSION_DENIED",
+                                            "message": "Sniffer authentication cancelled.",
+                                        }
+                                    ),
+                                    flush=True,
+                                )
+                                break
 
-                    time.sleep(0.1)
-                else:
-                    # Socket mode - sniffer already connected
-                    logger.info("Sniffer ready (socket mode)")
+                            time.sleep(0.1)
+                    else:
+                        # Socket mode - sniffer already connected
+                        logger.info("Sniffer ready (socket mode)")
 
             except Exception as e:
                 logger.error(f"Failed to spawn sniffer: {e}")
