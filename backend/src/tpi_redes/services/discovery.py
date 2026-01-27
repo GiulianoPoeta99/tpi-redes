@@ -24,31 +24,45 @@ def _get_broadcast_addresses() -> list[str]:
     Returns:
         List of broadcast IP addresses (strings), including 255.255.255.255 as fallback.
     """
+    logger.info("Getting broadcast addresses from network interfaces...")
     broadcast_addrs = {BROADCAST_IP}  # Always include fallback
 
     try:
         import psutil
+        logger.info("Successfully imported psutil")
 
         # Get all network interfaces
         interfaces = psutil.net_if_addrs()
+        logger.info(f"Found {len(interfaces)} network interfaces")
 
         for interface_name, addrs in interfaces.items():
+            logger.info(f"Interface: {interface_name}")
             for addr in addrs:
                 # Only process IPv4 addresses
                 if addr.family == socket.AF_INET:
+                    broadcast_str = addr.broadcast if addr.broadcast else "None"
+                    logger.info(
+                        f"  IPv4: {addr.address}/{addr.netmask} -> broadcast: {broadcast_str}"
+                    )
                     # Extract broadcast address if available
                     if addr.broadcast:
-                        broadcast_addrs.add(addr.broadcast)
-                        logger.debug(
-                            f"Found broadcast {addr.broadcast} for interface {interface_name}"
-                        )
+                        if addr.broadcast in broadcast_addrs:
+                            logger.info(f"    (already in list, skipping)")
+                        else:
+                            broadcast_addrs.add(addr.broadcast)
+                            logger.info(
+                                f"    Added broadcast {addr.broadcast} for interface {interface_name}"
+                            )
+                    else:
+                        logger.info(f"    No broadcast address available (skipped)")
     except ImportError:
         logger.warning(
             "psutil not available, using fallback broadcast address only"
         )
     except Exception as e:
         logger.warning(
-            f"Error getting broadcast addresses from psutil: {e}, using fallback only"
+            f"Error getting broadcast addresses from psutil: {e}, using fallback only",
+            exc_info=True,
         )
 
     result = list(broadcast_addrs)
