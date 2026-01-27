@@ -14,6 +14,48 @@ DISCOVERY_PORT = 37020
 BROADCAST_IP = "255.255.255.255"
 
 
+def _get_broadcast_addresses() -> list[str]:
+    """Get broadcast addresses for all active network interfaces.
+
+    On Windows with multiple network adapters, sending to 255.255.255.255
+    may not work reliably. This function calculates the specific broadcast
+    address for each network interface using psutil.
+
+    Returns:
+        List of broadcast IP addresses (strings), including 255.255.255.255 as fallback.
+    """
+    broadcast_addrs = {BROADCAST_IP}  # Always include fallback
+
+    try:
+        import psutil
+
+        # Get all network interfaces
+        interfaces = psutil.net_if_addrs()
+
+        for interface_name, addrs in interfaces.items():
+            for addr in addrs:
+                # Only process IPv4 addresses
+                if addr.family == socket.AF_INET:
+                    # Extract broadcast address if available
+                    if addr.broadcast:
+                        broadcast_addrs.add(addr.broadcast)
+                        logger.debug(
+                            f"Found broadcast {addr.broadcast} for interface {interface_name}"
+                        )
+    except ImportError:
+        logger.warning(
+            "psutil not available, using fallback broadcast address only"
+        )
+    except Exception as e:
+        logger.warning(
+            f"Error getting broadcast addresses from psutil: {e}, using fallback only"
+        )
+
+    result = list(broadcast_addrs)
+    logger.info(f"Using broadcast addresses: {result}")
+    return result
+
+
 class DiscoveryService:
     """Service for discovering peer nodes on the local network via UDP Broadcast.
 
@@ -34,7 +76,9 @@ class DiscoveryService:
     def scan(self, timeout: int = 2) -> list[dict[str, Any]]:
         """Scan for peers on the local network.
 
-        Sends a UDP broadcast packet and waits for responses during the timeout period.
+        Sends UDP broadcast packets to all network interfaces and waits for responses.
+        On Windows, this sends to specific broadcast addresses for each interface,
+        not just 255.255.255.255, to work around issues with multiple network adapters.
 
         Args:
             timeout: Seconds to wait for responses.
@@ -47,19 +91,30 @@ class DiscoveryService:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             s.settimeout(timeout)
-            # Bind to a port to receive responses (required on Windows, works on Linux too)
-            s.bind(("", 0))
+            # Bind to 0.0.0.0 for better Windows compatibility
+            s.bind(("0.0.0.0", 0))
             bound_addr = s.getsockname()
             logger.info(f"Scanner socket bound to {bound_addr}")
 
             message = json.dumps({"type": "PING", "hostname": self.hostname}).encode(
                 "utf-8"
             )
+
+            # Get all broadcast addresses (important for Windows with multiple adapters)
+            broadcast_addresses = _get_broadcast_addresses()
+
             try:
-                s.sendto(message, (BROADCAST_IP, DISCOVERY_PORT))
-                logger.info(
-                    f"Sent Discovery PING to {BROADCAST_IP}:{DISCOVERY_PORT} from {bound_addr}"
-                )
+                # Send to all broadcast addresses
+                for broadcast_addr in broadcast_addresses:
+                    try:
+                        s.sendto(message, (broadcast_addr, DISCOVERY_PORT))
+                        logger.info(
+                            f"Sent Discovery PING to {broadcast_addr}:{DISCOVERY_PORT} from {bound_addr}"
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to send to {broadcast_addr}:{DISCOVERY_PORT}: {e}"
+                        )
 
                 start_time = time.time()
                 while time.time() - start_time < timeout:
@@ -131,7 +186,8 @@ class DiscoveryService:
                 with contextlib.suppress(AttributeError):
                     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
-                s.bind(("", DISCOVERY_PORT))
+                # Use 0.0.0.0 instead of "" for better Windows compatibility
+                s.bind(("0.0.0.0", DISCOVERY_PORT))
                 bound_addr = s.getsockname()
                 logger.info(
                     f"Discovery Service listening on UDP {DISCOVERY_PORT}, bound to {bound_addr}"
