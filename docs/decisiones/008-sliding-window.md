@@ -1,21 +1,27 @@
-# 008 - Visualizador de Ventana Deslizante
+# 008 - Visualización de Flujo y Ventana
+
+## Estado
+Aceptado (ajustado en alcance)
 
 ## Contexto
-Para explicar el control de flujo en TCP, es fundamental visualizar cómo funciona la "Ventana Deslizante" (Sliding Window). El usuario necesita ver qué paquetes están enviados, cuáles están "en vuelo" (sin ACK), y cuáles están ya confirmados.
+Se buscó una visualización didáctica del control de flujo TCP tipo "sliding window".
 
 ## Decisión
-Implementar un sistema de **Eventos JSON** desde el Backend hacia el Frontend.
+Se conserva una arquitectura de eventos para visualización en frontend, con foco operativo en inspección de paquetes.
 
-### Estrategia
-1.  **Backend (Python):**
-    *   Modificar `TCPClient` para emitir logs estructurados en formato JSON cuando cambia el estado de la ventana.
-    *   Formato: `{"type": "WINDOW_UPDATE", "base": 10, "next_seq": 15, "window_size": 20}`.
-    *   Estos logs se imprimirán en `stdout` mezclados con los logs de texto normales.
-
-2.  **Frontend (Electron/React):**
-    *   Interceptar los logs en `main.ts`.
-    *   Si el log es un JSON válido con `type: WINDOW_UPDATE`, enviarlo a un canal IPC específico (`window-update`).
-    *   Crear un componente `SlidingWindow` que escuche estos eventos y dibuje la ventana usando CSS Grid o Canvas.
+## Estado de implementación actual
+- El frontend mantiene soporte para eventos `WINDOW_UPDATE`.
+- La observabilidad activa se basa principalmente en `PACKET_CAPTURE` y logs de transferencia.
+- La visualización de ventana queda como extensión compatible, no como fuente principal de telemetría.
 
 ## Justificación
-Esta separación permite que el backend siga siendo una CLI estándar (los logs JSON son ignorados por humanos si no se usan) mientras que el frontend puede "reaccionar" a cambios de estado internos del protocolo sin acoplamiento fuerte.
+- La tabla/inspección de paquetes aporta mayor valor práctico para depuración real.
+- Mantener compatibilidad con `WINDOW_UPDATE` evita romper la UI existente.
+
+## Consecuencias
+### Positivas
+- Menos complejidad en backend durante transferencias.
+- Se prioriza información directamente observable en tráfico.
+
+### Negativas
+- La explicación formal de ventana TCP no está completamente automatizada en métricas dedicadas.

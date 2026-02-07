@@ -1,7 +1,10 @@
 import json
 import logging
+import os
+import shutil
 import sys
 import time
+from pathlib import Path
 from typing import Any
 
 import click
@@ -11,6 +14,7 @@ from rich.traceback import install
 
 from tpi_redes.config import (
     CHUNK_SIZE,
+    DEFAULT_SAVE_DIR,
     DEFAULT_HOST,
     DEFAULT_PROXY_PORT,
     DEFAULT_SERVER_PORT,
@@ -21,6 +25,56 @@ logger = logging.getLogger("tpi-redes")
 
 
 debug_mode = False
+
+
+def _is_frozen_binary() -> bool:
+    """Return whether the backend is running as a bundled executable."""
+    return bool(getattr(sys, "frozen", False))
+
+
+def _build_sniffer_command(port: int, interface: str | None) -> list[str]:
+    """Build the pkexec command used to start the privileged sniffer process."""
+    if _is_frozen_binary():
+        cmd = [
+            "pkexec",
+            sys.executable,
+            "sniffer-service",
+            "--port",
+            str(port),
+        ]
+    else:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        src_path = os.path.abspath(os.path.join(current_dir, "../.."))
+        cmd = [
+            "pkexec",
+            "env",
+            f"PYTHONPATH={src_path}",
+            sys.executable,
+            "-m",
+            "tpi_redes.cli.main",
+            "sniffer-service",
+            "--port",
+            str(port),
+        ]
+
+    if interface:
+        cmd.extend(["--interface", interface])
+
+    return cmd
+
+
+def _emit_sniffer_error(code: str, message: str) -> None:
+    """Emit structured sniffer error for Electron IPC consumers."""
+    print(
+        json.dumps(
+            {
+                "type": "SNIFFER_ERROR",
+                "code": code,
+                "message": message,
+            }
+        ),
+        flush=True,
+    )
 
 
 def handle_exception(exc_type: Any, exc_value: Any, exc_traceback: Any):
@@ -39,8 +93,6 @@ def handle_exception(exc_type: Any, exc_value: Any, exc_traceback: Any):
 
     sys.exit(1)
 
-
-install(show_locals=True)
 
 install(show_locals=True)
 
@@ -96,7 +148,7 @@ def sniffer_service(port: int, interface: str | None):
     help="Protocol to use",
 )
 @click.option(
-    "--save-dir", default="./received_files", help="Directory to save received files"
+    "--save-dir", default=DEFAULT_SAVE_DIR, help="Directory to save received files"
 )
 @click.option(
     "--sniff",
@@ -119,26 +171,19 @@ def start_server(
     import threading
 
     try:
+        save_dir = str(Path(save_dir).expanduser().resolve())
+
         if sniff:
-            import os
+            if shutil.which("pkexec") is None:
+                logger.error("pkexec command not found; sniffer disabled.")
+                _emit_sniffer_error(
+                    "MISSING_PKEXEC",
+                    "pkexec command not found on system.",
+                )
+                sniff = False
 
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            src_path = os.path.abspath(os.path.join(current_dir, "../.."))
-
-            env_vars = ["env", f"PYTHONPATH={src_path}"]
-
-            cmd = [
-                "pkexec",
-                *env_vars,
-                sys.executable,
-                "-m",
-                "tpi_redes.cli.main",
-                "sniffer-service",
-                "--port",
-                str(port),
-            ]
-            if interface:
-                cmd.extend(["--interface", interface])
+        if sniff:
+            cmd = _build_sniffer_command(port=port, interface=interface)
 
             logger.info("Requesting root privileges for Sniffer...")
 
@@ -295,26 +340,17 @@ def send_file(
 
     try:
         if sniff:
+            if shutil.which("pkexec") is None:
+                logger.error("pkexec command not found; sniffer disabled.")
+                _emit_sniffer_error(
+                    "MISSING_PKEXEC",
+                    "pkexec command not found on system.",
+                )
+                sniff = False
+
+        if sniff:
             logger.info("Requesting root privileges for Sniffer...")
-            import os
-
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            src_path = os.path.abspath(os.path.join(current_dir, "../.."))
-
-            # Preserve GUI environment for pkexec prompt
-            cmd = [
-                "pkexec",
-                "env",
-                f"PYTHONPATH={src_path}",
-                sys.executable,
-                "-m",
-                "tpi_redes.cli.main",
-                "sniffer-service",
-                "--port",
-                str(port),
-            ]
-            if interface:
-                cmd.extend(["--interface", interface])
+            cmd = _build_sniffer_command(port=port, interface=interface)
 
             try:
                 sniffer_process = subprocess.Popen(
@@ -427,7 +463,6 @@ def start_proxy(
     Requires client setup to connect to this proxy port instead of real server.
     If --interface is specified, attempts to escalate privileges to support sniffing.
     """
-    import os
     import subprocess
     import sys
     import threading
@@ -435,23 +470,16 @@ def start_proxy(
     sniffer_process = None
     discovery = None
 
-    if interface:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        src_path = os.path.abspath(os.path.join(current_dir, "../.."))
+    if interface and shutil.which("pkexec") is None:
+        logger.error("pkexec command not found; MITM sniffer disabled.")
+        _emit_sniffer_error(
+            "MISSING_PKEXEC",
+            "pkexec command not found on system.",
+        )
+        interface = None
 
-        cmd = [
-            "pkexec",
-            "env",
-            f"PYTHONPATH={src_path}",
-            sys.executable,
-            "-m",
-            "tpi_redes.cli.main",
-            "sniffer-service",
-            "--port",
-            str(listen_port),
-            "--interface",
-            interface,
-        ]
+    if interface:
+        cmd = _build_sniffer_command(port=listen_port, interface=interface)
 
         logger.info("Requesting root privileges for Sniffer...")
 

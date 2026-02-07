@@ -1,72 +1,96 @@
-# Informe Final: TPI Redes - Aplicación de Transferencia de Archivos
+# Informe Final - TPI Redes
 
-## 1. Introducción
-Este proyecto es una aplicación educativa diseñada para ilustrar conceptos fundamentales de redes de computadoras, específicamente en la Capa de Transporte (Capa 4). Permite la transferencia de archivos entre clientes y servidores utilizando diferentes protocolos, verificando la integridad de los datos y proporcionando herramientas avanzadas de análisis de tráfico.
+## 1. Objetivo
+Este proyecto implementa una aplicación de transferencia de archivos entre dos nodos IP, con soporte TCP/UDP, integridad por hash y una interfaz de escritorio para operación en modo transmisor (Tx) y receptor (Rx).
 
-## 2. Arquitectura del Sistema
-La aplicación sigue una arquitectura híbrida moderna que combina la robustez del procesamiento en bajo nivel con una interfaz de usuario interactiva.
+La solución fue diseñada con foco didáctico en Capa 4 (Transporte), observabilidad y pruebas en red real entre dos máquinas.
 
-*   **Backend (Lógica de Negocio):** Desarrollado en **Python**, se encarga de todo el manejo de sockets, protocolos de red (TCP/UDP), captura de paquetes y operaciones de sistema de archivos. Actúa como el motor de la aplicación.
-*   **Frontend (Interfaz de Usuario):** Construido con tecnologías web (**React, TypeScript, Electron**), proporciona una experiencia visual rica. Se comunica con el Backend mediante entrada/salida estándar (stdio), enviando comandos y recibiendo eventos en tiempo real (JSON).
+## 2. Arquitectura Implementada
 
-## 3. Estructura del Proyecto
-El proyecto se organiza conceptualmente en tres grandes áreas:
+### 2.1 Componentes
+- **Frontend Desktop:** Electron + React + TypeScript.
+- **Backend:** CLI en Python (Click) con sockets nativos.
+- **Observabilidad:** Scapy para sniffing y eventos JSON.
 
-*   **Backend:** Contiene toda la lógica de redes.
-    *   *Networking:* Módulos para TCP, UDP, Sniffer y Proxy.
-    *   *CLI:* Interfaz de línea de comandos que orquesta los servicios.
-*   **Frontend:** Contiene la interfaz gráfica.
-    *   *Componentes:* Vistas reutilizables (Dashboard, Paneles de Estadísticas).
-    *   *Electron:* Capa de integración con el sistema operativo.
-*   **Documentación:** Registro de decisiones de diseño y guías de uso.
+### 2.2 Comunicación entre Frontend y Backend
+- Electron ejecuta el backend como proceso hijo.
+- La integración se realiza por `stdout/stderr` + eventos JSON.
+- El renderer consume eventos por IPC interno de Electron.
 
-## 4. Funcionalidades Implementadas
+### 2.3 Estructura técnica
+- `backend/src/tpi_redes/transport`: TCP/UDP cliente-servidor.
+- `backend/src/tpi_redes/services`: discovery y proxy MITM.
+- `backend/src/tpi_redes/observability`: sniffer y packet logging.
+- `frontend/src/features`: vistas Tx/Rx/MITM, dashboard, modales y hooks.
 
-### 4.1. Transferencia Dual (TCP/UDP)
-*   **TCP:** Implementado para garantizar fiabilidad. Utiliza un mecanismo de control de flujo y retransmisión automática. Ideal para archivos donde la integridad es crítica.
-*   **UDP:** Implementado como un protocolo "Best Effort". Es más rápido pero no garantiza la entrega ni el orden.
+## 3. Cumplimiento de la Consigna
 
-### 4.2. Verificación de Integridad
-Para asegurar que el archivo recibido es idéntico al enviado, se implementó un sistema de Hashing (SHA-256). Antes de enviar, se calcula la "huella digital" del archivo. Al recibirlo, se recalcula y compara. Si difieren en un solo bit, se alerta al usuario.
+### 3.1 Requerimientos obligatorios
+| Requerimiento | Estado | Nota |
+| --- | --- | --- |
+| Ingresar IP remota | Cumplido | Entrada manual + escaneo de peers. |
+| Seleccionar archivo local | Cumplido | Selector y drag & drop. |
+| Elegir TCP/UDP | Cumplido | Disponible en Tx y Rx. |
+| Definir modo Tx/Rx | Cumplido | Vistas separadas por modo. |
+| Receptor escucha en puerto configurable | Cumplido | Puerto editable en UI/CLI. |
+| Enviar archivo + checksum | Cumplido | Hash SHA-256 se envía en metadata. |
+| Receptor valida integridad | Parcial | Se guarda `.sha256` y se verifica desde el explorador de recibidos. |
+| Logs de actividad | Cumplido | Logs y eventos en dashboard/sniffer. |
 
-### 4.3. Analizador de Paquetes (Sniffer)
-Se integró una herramienta de captura de tráfico en tiempo real "estilo Wireshark".
-*   Permite inspeccionar las cabeceras de los paquetes (Flags SYN/ACK, Números de Secuencia).
-*   Ofrece una vista de tabla con código de colores para identificar visualmente el inicio (Verde), fin (Rojo) y datos (Azul) de una conexión.
+### 3.2 Funciones opcionales
+| Función opcional | Estado |
+| --- | --- |
+| Múltiples archivos | Cumplido |
+| Barra/progreso de envío | Cumplido |
+| Logs y observabilidad | Cumplido |
+| Discovery por broadcast | Cumplido |
+| MITM con corrupción | Cumplido |
+| Historial persistente | Cumplido |
 
-### 4.4. Visualización de Ventana Deslizante
-Para explicar didácticamente cómo funciona el control de flujo en TCP, se creó un componente visual que muestra en tiempo real el tamaño de la ventana de recepción y los bytes "en vuelo", facilitando la comprensión de conceptos abstractos.
+## 4. Funcionalidades Relevantes
 
-### 4.5. Estadísticas de Capa 4
-Un panel en tiempo real muestra métricas críticas para cualquier administrador de red:
-*   **RTT (Round Trip Time):** Tiempo que tarda un paquete en ir y volver.
-*   **Throughput:** Velocidad real de transferencia en MB/s.
+### 4.1 Transferencia TCP/UDP
+- **TCP:** envío secuencial con protocolo binario (header + metadata + contenido).
+- **UDP:** modo best-effort con sesiones por emisor y sin retransmisión a nivel aplicación.
 
-### 4.6. Simulación "Man-in-the-Middle" (MITM)
-Una funcionalidad avanzada para probar la robustez del sistema. La aplicación puede actuar como un Proxy que intercepta el tráfico entre cliente y servidor.
-*   Permite configurar una "Tasa de Corrupción" para alterar bits aleatorios en los paquetes.
-*   Sirve para validar que el sistema de Verificación de Integridad detecte correctamente los errores inducidos.
+### 4.2 Integridad
+- El emisor calcula SHA-256 previo al envío.
+- El receptor almacena hash recibido en sidecar `.sha256`.
+- La comparación de integridad se ejecuta desde la UI de archivos recibidos.
 
-### 4.7. Auto-Descubrimiento (UDP Broadcast)
-Para mejorar la usabilidad, se implementó un sistema de descubrimiento automático. Los nodos envían un mensaje de difusión (Broadcast) a toda la red local preguntando "¿Quién está activo?". Los servidores responden, permitiendo al cliente encontrarlos sin necesidad de conocer sus direcciones IP previamente.
+### 4.3 Sniffer
+- Se lanza como proceso privilegiado separado cuando se activa `--sniff`.
+- Emite eventos `PACKET_CAPTURE` y errores estructurados (`SNIFFER_ERROR`).
 
-## 6. Estado Actual del Proyecto (Fase Final)
-El proyecto ha completado todas las fases de desarrollo planificadas, incorporando mejoras significativas en la experiencia de usuario y capacidades de análisis.
+### 4.4 MITM
+- Proxy configurable con corrupción probabilística para TCP/UDP.
+- Permite validar robustez frente a alteración de payload.
 
-### 6.1. Panel de Control "Premium"
-Se rediseñó la interfaz del transmisor para soportar la carga de múltiples archivos mediante **Drag & Drop** y una gestión visual de la cola de envío. La interfaz ahora incluye controles finos para el tamaño del buffer (Chunk Size) y latencia simulada.
+### 4.5 Discovery
+- Escaneo por `PING/PONG` en `37020/udp`.
+- Puede verse afectado por firewall y políticas de broadcast del router/AP.
 
-![Transmitter View Screenshot](./screenshots/transmitter_view_final.png)
-*Figura 1: Vista del Transmisor con Transferencia por Lotes y Selector de Chunk Size.*
+## 5. Estado de Documentación de Decisiones
+Las decisiones de arquitectura y evolución están registradas en `docs/decisiones` (001 a 019), incluyendo:
+- stack e integración,
+- arquitectura backend,
+- protocolo y estrategia UDP,
+- sniffer privilegiado,
+- MITM/discovery,
+- configuración centralizada,
+- distribución AppImage,
+- rutas runtime en HOME,
+- requisitos de puertos/firewall.
 
-### 6.2. Dashboard de Estadísticas
-Se implementó un Dashboard integral que reemplaza a los paneles simples. Este permite analizar el rendimiento histórico de la sesión, visualizando la velocidad de transferencia con gráficos interactivos y métricas clave.
+## 6. Operación en Dos PCs (Red Real)
+Para pruebas entre hosts, el firewall del receptor/proxy debe permitir:
+- puerto de recepción (default `8080`, TCP/UDP según protocolo),
+- `37020/udp` para discovery,
+- puerto MITM (default `8081`, TCP/UDP según modo).
 
-![Stats Dashboard Screenshot](./screenshots/stats_dashboard_final.png)
-*Figura 2: Dashboard de Estadísticas con Gráfico de Throughput.*
-
-### 6.3. Historial Persistente
-La aplicación ahora "recuerda" la actividad pasada. Un sistema de almacenamiento local guarda el registro de todas las operaciones (Enviado, Recibido, Cancelado), accesible desde un modal de historial dedicado.
+Sin esto, pueden aparecer timeouts aunque la aplicación esté funcionando correctamente.
 
 ## 7. Conclusión
-El proyecto cumple con el objetivo de demostrar no solo la transmisión de datos, sino toda la complejidad subyacente de las redes modernas: desde el establecimiento de conexión hasta la seguridad e integridad de la información.
+El proyecto cumple los objetivos principales de la consigna y agrega capacidades avanzadas de análisis y pruebas de red. El estado actual es apto para demostración académica end-to-end en Linux con AppImage.
+
+Como mejora pendiente, la validación de integridad puede automatizarse completamente en el receptor al finalizar cada transferencia.

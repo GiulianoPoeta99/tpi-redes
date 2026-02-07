@@ -33,6 +33,9 @@ run-frontend:
 build-frontend:
     cd frontend && npm run build
 
+build-appimage:
+    cd frontend && just build-appimage
+
 test-frontend:
     cd frontend && npm run test
 

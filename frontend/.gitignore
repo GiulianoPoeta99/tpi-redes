@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 dist-electron
+release
+squashfs-root
 *.local
 
 # Editor directories and files

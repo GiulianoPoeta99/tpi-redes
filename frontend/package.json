@@ -6,14 +6,18 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:renderer",
+    "build:renderer": "tsc -b && vite build",
+    "build:backend:linux": "bash scripts/build-backend-linux.sh",
+    "build:appimage": "bash scripts/build-appimage-local.sh",
     "lint": "biome check .",
     "format": "biome check --write .",
     "test": "vitest",
     "preview": "vite preview",
     "compile:electron": "tsc -p electron/tsconfig.json && npx esbuild electron/preload.ts --bundle --platform=node --outfile=dist-electron/preload.cjs --external:electron",
     "electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron . --no-sandbox",
-    "dev:electron": "npm run compile:electron && concurrently -k \"npm run dev\" \"npm run electron\""
+    "dev:electron": "npm run compile:electron && concurrently -k \"npm run dev\" \"npm run electron\"",
+    "pack:linux": "npm run build:backend:linux && npm run build:renderer && npm run compile:electron && electron-builder --linux AppImage"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
@@ -45,5 +49,34 @@
     "vite": "^7.2.4",
     "vitest": "^4.0.15",
     "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.tpi.redes",
+    "productName": "TPI Redes",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist/tpi-redes-backend",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "afterPack": "scripts/after-pack.cjs",
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "artifactName": "tpi-redes-${version}-${arch}.${ext}"
+    }
   }
 }

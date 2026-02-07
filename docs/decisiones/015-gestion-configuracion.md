@@ -1,50 +1,40 @@
-# 15. Gestión Centralizada de Configuración
-
-Fecha: 2025-12-31
+# 015 - Gestión Centralizada de Configuración
 
 ## Estado
-
 Aceptado
 
 ## Contexto
-
-El proyecto tenía valores de configuración hardcodeados (puertos, direcciones IP, tamaños de buffer, intervalos de reporte) dispersos en múltiples archivos tanto en el backend como en el frontend. Esto dificultaba:
-1.  La mantenibilidad del código (DRY violations).
-2.  La configuración de entornos (e.g., cambiar puertos para tests o despliegue).
-3.  La consistencia entre frontend y backend.
+El proyecto tenía valores hardcodeados dispersos (host, puertos, buffers, rutas), dificultando mantenimiento y despliegue.
 
 ## Decisión
-
-Se decidió centralizar toda la configuración "mágica" y constantes en módulos dedicados:
+Centralizar configuración en módulos dedicados con soporte de variables de entorno.
 
 ### Backend
-Crear un módulo `config.py` en `backend/src/tpi_redes/config.py` que exponga constantes.
-Estas constantes priorizan las variables de entorno, permitiendo la configuración externa.
+`backend/src/tpi_redes/config.py` define defaults para:
+- host y puertos,
+- tamaños de chunk/buffer,
+- rutas de datos y recepción.
 
-```python
-# Ejemplo
-DEFAULT_HOST = os.getenv("TPI_REDES_HOST", "127.0.0.1")
-DEFAULT_SERVER_PORT = int(os.getenv("TPI_REDES_PORT", "8080"))
-CHUNK_SIZE = 4096
-```
+Variables destacadas:
+- `TPI_REDES_HOST`
+- `TPI_REDES_PORT`
+- `TPI_REDES_PROXY_PORT`
+- `TPI_REDES_HOME`
+- `TPI_REDES_SAVE_DIR`
 
 ### Frontend
-Crear un archivo `constants.ts` en `frontend/src/config/constants.ts` para compartir valores por defecto y constantes de UI.
+`frontend/src/config/constants.ts` centraliza valores por defecto usados por UI.
 
-```typescript
-// Ejemplo
-export const DEFAULT_HOST = '127.0.0.1';
-export const DEFAULT_SERVER_PORT = 8080;
-export const CHUNK_SIZE = 4096;
-```
+## Justificación
+- Evita números/rutas mágicas repetidas.
+- Permite adaptar entornos sin tocar código.
+- Mejora consistencia entre backend y frontend.
 
 ## Consecuencias
-
 ### Positivas
-*   **Mantenibilidad**: Cambiar un valor por defecto (e.g., puerto del servidor) ahora requiere cambiar una sola línea.
-*   **Flexibilidad**: El backend ahora puede ser configurado vía variables de entorno sin tocar el código (`TPI_REDES_PORT=9090`).
-*   **Legibilidad**: El código cliente (CLI, servicios, componentes UI) es más limpio al usar constantes semánticas en lugar de literales numéricos.
+- Cambios globales de configuración en un solo lugar.
+- Mejor trazabilidad de defaults.
+- Facilita empaquetado y ejecución cross-host.
 
 ### Negativas
-*   Requiere importar constantes adicionales en los archivos.
-*   Se necesita disiplina para no reintroducir "números mágicos" en el futuro.
+- Hay que mantener sincronía semántica entre constantes de frontend y backend.

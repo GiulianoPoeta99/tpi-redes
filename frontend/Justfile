@@ -34,3 +34,11 @@ preview:
 # Compile Electron main process
 compile:
     npm run compile:electron
+
+# Build standalone backend binary for Linux
+build-backend-linux:
+    npm run build:backend:linux
+
+# Build Linux AppImage for local architecture
+build-appimage:
+    npm run build:appimage

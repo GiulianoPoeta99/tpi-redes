@@ -1,69 +1,103 @@
-# TPI Redes - File Transfer App
+# TPI Redes - App de Transferencia de Archivos
 
-A robust, educational File Transfer Application built to demonstrate Networking concepts (TCP/UDP, Layer 4 Reliability, Security).
+Aplicación de escritorio orientada a práctica de Redes y Transmisión de Datos.
 
-## 🚀 Features
+Permite transferir archivos entre dos nodos con TCP/UDP, observar tráfico en tiempo real y simular escenarios MITM.
 
-### Core
-- **Dual Protocol Support:** Send and receive files via **TCP** (Reliable) or **UDP** (Best Effort).
-- **Integrity Verification:** SHA-256 hash verification to detect data corruption.
-- **Real-time Logs:** Visual feedback of the transfer process.
+## Funcionalidades
+- Modo **Transmisor (Tx)** y **Receptor (Rx)**.
+- Transferencia por **TCP** y **UDP**.
+- Hash **SHA-256** incluido en el protocolo de transferencia.
+- Sniffer con inspección de paquetes en UI.
+- Discovery de peers por UDP broadcast.
+- Proxy MITM con corrupción configurable (TCP/UDP).
+- Envío batch de múltiples archivos.
+- Historial persistente y panel de métricas.
 
-### Advanced
-- **Packet Sniffer:** Built-in network analyzer with "Wireshark-style" packet inspection.
-- **Sliding Window Visualizer:** Real-time graph of TCP Flow Control (Window Size, ACKs).
-- **Layer 4 Statistics:** Live metrics for RTT (Round Trip Time) and Throughput.
-- **MITM Attack Simulation:** Proxy server to intercept traffic and simulate data corruption (Bit Flipping) to test integrity checks.
-### Premium Experience
-- **Batch Transfer:** Drag & Drop multiple files and send them sequentially.
-- **Configurable Chunk Size:** Optimize performance by selecting buffer size (1KB - 64KB).
-- **Latency Simulation:** Add artificial delay to test network conditions.
-- **Advanced Dashboard:** Visualize historical throughput with interactive charts and KPIs.
-- **Persistent History:** Keep track of all your transfers across sessions.
+## Estructura del repositorio
+- `backend/`: CLI Python con sockets, servicios de red y observabilidad.
+- `frontend/`: Electron + React (UI desktop).
+- `docs/`: consigna, informe final y ADRs (`docs/decisiones`).
 
-## 🛠️ Tech Stack
-- **Frontend:** React (Vite), TypeScript, Tailwind CSS, Electron.
-- **Backend:** Python, Scapy (Networking), Click (CLI).
-- **Tooling:** Just (Task Runner), Biome (Lint/Format), Vitest (Testing), UV (Python Pkg Manager).
+## Requisitos
+- Python `>=3.14` + `uv`
+- Node.js `18+`
+- Linux (para build AppImage)
+- `libpcap` para sniffing
 
-## 📦 Prerequisites
-- **Python 3.14** (and `uv` installed via `pip install uv`)
-- **Node.js 18+**
-- **Just** (`curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash`)
-- **Libpcap** (for Scapy/Sniffer): `sudo apt install libpcap-dev`
-
-## ⚡ Quick Start
-
-1. **Install Dependencies:**
-   ```bash
-   just install
-   ```
-   This will install all Backend (Python 3.14 via uv) and Frontend dependencies.
-
-2. **Run the Application:**
-   ```bash
-   just run
-   ```
-   This starts the Frontend (Electron) app.
-
-3. **Run Backend CLI (Optional):**
-   ```bash
-   just run-backend --help
-   ```
-
-## 🧪 Testing
-
-### Automated Tests
-Run all unit tests (Backend & Frontend):
+## Instalación
 ```bash
-just test-all
+just install
 ```
 
-### Manual Testing
-For a step-by-step guide to verifying all features (including MITM, Sniffer, etc.), please read:
-👉 **[Guía de Pruebas Manuales](docs/MANUAL_TESTING.md)**
+## Desarrollo
+```bash
+just run
+```
 
-## 🏗️ Architecture
-- **Electron IPC:** Communicates with Python backend via `stdin`/`stdout`.
-- **JSON Events:** Backend emits structured events (`STATS`, `WINDOW_UPDATE`, `PACKET_CAPTURE`) which the Frontend parses and visualizes.
-- **Scapy:** Used for Packet Sniffing and crafting custom packets/tests.
+## Comandos útiles
+- `just run-backend --help`
+- `just test-all`
+- `just lint-all`
+- `just format-all`
+
+## AppImage (Linux)
+Build para arquitectura local:
+
+```bash
+just build-appimage
+```
+
+Artefacto generado en:
+
+```bash
+frontend/release/
+```
+
+Ejecución:
+
+```bash
+chmod +x frontend/release/*.AppImage
+./frontend/release/*.AppImage
+```
+
+## Firewall Ports (Two Linux PCs)
+Si Tx y Rx corren en hosts distintos, abrir puertos en el receptor/proxy:
+
+- **Puerto de recepción (configurable, default `8080`)**
+  - **TCP** para transferencia TCP.
+  - **UDP** para transferencia UDP.
+- **Discovery (`37020/udp`)** para escaneo de peers.
+- **Puerto MITM (configurable, default `8081`)**
+  - abrir según protocolo usado por proxy.
+
+`ufw`:
+
+```bash
+sudo ufw allow 8080/tcp
+sudo ufw allow 8080/udp
+sudo ufw allow 37020/udp
+sudo ufw allow 8081/tcp
+sudo ufw allow 8081/udp
+```
+
+`firewalld`:
+
+```bash
+sudo firewall-cmd --add-port=8080/tcp --permanent
+sudo firewall-cmd --add-port=8080/udp --permanent
+sudo firewall-cmd --add-port=37020/udp --permanent
+sudo firewall-cmd --add-port=8081/tcp --permanent
+sudo firewall-cmd --add-port=8081/udp --permanent
+sudo firewall-cmd --reload
+```
+
+## Notas de operación
+- Archivos recibidos: `~/.tpi-redes/received_files`.
+- Runtime backend empaquetado: `~/.tpi-redes/backend-runtime`.
+- Sniffer requiere soporte del host (`pkexec`, `polkit`, libpcap).
+
+## Documentación
+- Consigna: `docs/consigna/consigna.txt`
+- Informe final: `docs/INFORME_FINAL.md`
+- Decisiones técnicas (ADR): `docs/decisiones/`

@@ -5,7 +5,7 @@ interface Window {
     startServer: (args: {
       port: number;
       protocol: 'tcp' | 'udp';
-      saveDir: string;
+      saveDir?: string;
       sniff: boolean;
       interface: string | null;
     }) => Promise<void>;

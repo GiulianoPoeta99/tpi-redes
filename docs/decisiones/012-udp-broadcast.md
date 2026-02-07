@@ -1,26 +1,27 @@
 # 012 - Auto-Descubrimiento (UDP Broadcast)
 
+## Estado
+Aceptado
+
 ## Contexto
-Actualmente, el usuario debe conocer e ingresar manualmente la dirección IP del receptor. Esto es tedioso y propenso a errores en redes locales dinámicas (DHCP).
+Configurar IP manualmente es propenso a errores en LAN con DHCP.
 
 ## Decisión
-Implementar un servicio de **Auto-Descubrimiento** basado en **UDP Broadcast**.
+Se implementa discovery por UDP broadcast (`PING`/`PONG`) sobre puerto dedicado `37020/udp`.
 
-### Estrategia
-1.  **Protocolo de Descubrimiento:**
-    *   **Puerto:** Usaremos un puerto dedicado (ej: 37020) para no interferir con la transferencia de archivos.
-    *   **Mensaje de Ping:** `{"type": "PING", "hostname": "MyPC"}` enviado a `255.255.255.255`.
-    *   **Mensaje de Pong:** `{"type": "PONG", "hostname": "ReceiverPC", "ip": "192.168.1.X"}` respondido por los nodos activos.
-
-2.  **Backend (Python):**
-    *   `DiscoveryService`: Clase que maneja el socket UDP en modo broadcast.
-    *   Método `scan()`: Envía el PING y espera respuestas por N segundos.
-    *   Método `listen()`: Escucha PINGs y responde con PONG si la app está en modo Receptor.
-
-3.  **Frontend (React):**
-    *   Botón "Scan Network" en la vista de Transferencia.
-    *   Lista desplegable o modal con los peers encontrados.
-    *   Al seleccionar un peer, autocompletar el campo IP.
+## Protocolo
+- `scan()`: envía `PING` a `255.255.255.255:37020` y espera respuestas.
+- `listen()`: en modo receptor/proxy escucha `PING` y responde `PONG` con `hostname` y `port`.
 
 ## Justificación
-Mejora significativamente la experiencia de usuario (UX) al eliminar la necesidad de configuración manual de IPs en entornos LAN.
+- Mejora UX en redes locales.
+- Reduce errores de tipeo de IP/puerto.
+
+## Consecuencias
+### Positivas
+- Descubrimiento rápido en LANs sin configuración manual.
+
+### Negativas
+- Depende de política de red/firewall.
+- Puede fallar en WiFi con client isolation o broadcast restringido.
+- Debe mantenerse abierto `37020/udp` en host receptor para máxima compatibilidad.

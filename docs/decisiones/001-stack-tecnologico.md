@@ -1,45 +1,41 @@
 # 001 - Stack Tecnológico
 
-## Resumen
-Para cumplir con el requisito de una aplicación de escritorio que soporte sockets crudos (UDP/TCP) y al mismo tiempo ofrecer una interfaz moderna, se ha seleccionado una arquitectura híbrida.
+## Estado
+Aceptado
 
-## Tecnologías Seleccionadas
+## Contexto
+La aplicación necesita:
+- Interfaz de escritorio para operar como Tx/Rx.
+- Acceso a sockets TCP/UDP y captura de paquetes.
+- Integración entre UI y lógica de red sin acoplarse a un framework web.
 
-### 1. Frontend (Interfaz de Usuario)
-*   **Framework:** **React** (utilizando **Vite** como bundler).
-*   **Estilos:** **TailwindCSS**.
-*   **Justificación:** Permite crear una interfaz rica, dinámica y "premium" como se solicita, con fácil manejo de estado para los modos Transmisor/Receptor.
+## Decisión
+Se adopta una arquitectura **Electron + React (frontend)** y **Python CLI (backend)**.
 
-### 2. Desktop Wrapper
-*   **Tecnología:** **Electron**.
-*   **Justificación:**
-    *   Convierte la aplicación web en una aplicación de escritorio nativa (Linux/Windows/Mac).
-    *   Permite la ejecución de procesos secundarios (el backend de Python).
-    *   Resuelve la limitación de los navegadores que no permiten acceso directo a sockets UDP/TCP crudos.
+### Frontend
+- React + TypeScript + Vite.
+- Tailwind CSS para UI.
+- Electron como runtime desktop y puente con el sistema operativo.
 
-### 3. Backend (CLI Tool)
-*   **Concepto:** El backend será una herramienta de línea de comandos (CLI) robusta e independiente.
-*   **Lenguaje:** **Python 3**.
-*   **Librerías Clave:**
-    *   `argparse` / `click`: Para el manejo de argumentos y banderas (ej: `--mode rx --port 8080`).
-    *   `socket`, `hashlib`: Core de red y seguridad.
-*   **Modos de Operación:**
-    1.  **Headless / Manual:** Se puede ejecutar directamente en una terminal sin interfaz gráfica.
-    2.  **Interactivo (JSON-RPC style):** Un modo especial para que Electron lo controle enviando comandos por `stdin`.
+### Backend
+- Python + Click para CLI.
+- Sockets nativos (`socket`) para TCP/UDP.
+- Scapy para sniffing e inspección de tráfico.
 
-## Arquitectura: CLI + GUI Wrapper
-1.  **Filosofía:** "La lógica de negocio vive en la terminal, la belleza vive en Electron".
-2.  **Independencia:** Esto permite probar, depurar y usar la herramienta de transferencia en servidores sin entorno gráfico (headless), cumpliendo con creces los requisitos de redes.
-3.  **Integración:**
-    *   Electron actúa como un **Wrapper Gráfico**.
-    *   Construye los comandos y los ejecuta (ej: `python main.py send --file data.txt --ip 192.168.1.5`).
-    *   Para procesos largos (escuchar, packet sniffing), mantiene el proceso vivo y parsea su salida estándar.
+### Integración
+- Electron ejecuta el backend como proceso hijo (`child_process`).
+- Comunicación principal por `stdout/stderr` con eventos JSON.
+- IPC interno de Electron para distribuir eventos al renderer.
 
-## Diagrama Conceptual
-```mermaid
-graph TD
-    User[Usuario] --> UI[Electron + React UI]
-    UI -- HTTP Requests --> Python[Python Backend (Flask)]
-    Python -- Sockets (TCP/UDP) --> Network[Red / Otro Nodo]
-    Python -- Stdout/Logs --> UI
-```
+## Consecuencias
+### Positivas
+- Separación clara entre UI y lógica de red.
+- Backend reutilizable en modo CLI sin UI.
+- Empaquetado desktop sin reescribir la lógica de transporte.
+
+### Negativas
+- Hay que mantener contratos de eventos JSON entre procesos.
+- El debugging cruza tres capas (renderer, main de Electron, backend Python).
+
+## Notas
+No se usa Flask ni comunicación HTTP entre frontend y backend; la integración es local por procesos e IPC.

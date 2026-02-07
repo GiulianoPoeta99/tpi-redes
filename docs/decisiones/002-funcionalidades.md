@@ -1,62 +1,44 @@
 # 002 - Funcionalidades del Proyecto
 
-## 1. Funcionalidades Obligatorias (Core - 100% TP)
-Estas funcionalidades son requeridas para aprobar el Trabajo Práctico según la consigna.
+## Estado
+Aceptado (con notas de alcance)
 
-### Modo Receptor (Rx)
-*   [ ] **Configuración de Puerto:** Permitir al usuario elegir el puerto de escucha.
-*   [ ] **Selección de Protocolo:** Escuchar en TCP o UDP.
-*   [ ] **Recepción de Archivo:** Recibir el flujo de bytes y reconstruir el archivo en disco.
-*   [ ] **Verificación de Integridad:**
-    *   Recibir el Hash (Checksum) enviado por el emisor.
-    *   Calcular el Hash del archivo recibido localmente.
-    *   Comparar ambos y mostrar "Éxito" o "Error de Integridad".
+## Contexto
+La consigna define un núcleo obligatorio (Tx/Rx + integridad) y funciones opcionales de valor agregado.
 
-### Modo Transmisor (Tx)
-*   [ ] **Selección de Archivo:** Explorador de archivos nativo para elegir qué enviar.
-*   [ ] **Configuración de Destino:** Ingreso de IP y Puerto del receptor.
-*   [ ] **Selección de Protocolo:** TCP o UDP.
-*   [ ] **Cálculo de Hash:**
-    *   Generar SHA-256 del archivo antes de enviar.
-    *   **Guardar Hash Local:** Crear un archivo `.sha256` en el disco junto al original (Requisito explícito).
-*   [ ] **Envío:** Transmitir el archivo y su hash al destino.
+## Decisión
+Se implementa el núcleo obligatorio y se incorporan extras orientadas a análisis de red, UX y observabilidad.
 
-### Interfaz de Usuario (General)
-*   [ ] **Switch de Modo:** Alternar claramente entre Tx y Rx.
-    *   **Nota:** En modo Rx, los inputs de Archivo e IP deben deshabilitarse (Requisito explícito).
-*   [ ] **Logs de Actividad:** Mostrar en pantalla qué está pasando ("Conectando...", "Enviando chunk 1/100...", "Finalizado").
+## Cumplimiento de Consigna
 
----
+### Requerimientos obligatorios
+| Requerimiento | Estado | Observación |
+| --- | --- | --- |
+| Elegir modo Tx/Rx | Implementado | UI separada por modo. |
+| Ingresar IP remota (Tx) | Implementado | Campo manual + escaneo de peers. |
+| Seleccionar archivo local (Tx) | Implementado | Soporta múltiple selección y cola. |
+| Elegir TCP/UDP | Implementado | En Tx y Rx. |
+| Receptor escucha en puerto configurable | Implementado | Puerto editable en UI/CLI. |
+| Enviar archivo + checksum | Implementado | Hash SHA-256 se envía junto al archivo. |
+| Verificación de integridad en receptor | Parcial | Se guarda `.sha256` y la verificación se hace desde el explorador de archivos recibido. |
+| Deshabilitar controles no aplicables en Rx | Implementado | Al cambiar de modo, la UI muestra controles específicos. |
+| Logs de actividad | Implementado | Logs y eventos JSON en dashboard/sniffer. |
 
-## 2. Funcionalidades Extra (Valor Agregado)
-Estas funcionalidades están orientadas a demostrar un dominio profundo de conceptos de Redes (Capa 4, Protocolos, Seguridad).
+### Funcionalidades extra
+| Funcionalidad | Estado |
+| --- | --- |
+| Transferencia múltiple (batch) | Implementado |
+| Progreso de transferencia | Implementado |
+| Historial persistente | Implementado |
+| Explorador de archivos recibidos + verificación manual | Implementado |
+| Sniffer en tiempo real | Implementado |
+| MITM proxy con corrupción | Implementado |
+| Descubrimiento de peers por UDP broadcast | Implementado |
 
-### Nivel Redes y Transmisión (Advanced)
-1.  **Analizador de Tráfico (Packet Sniffer):**
-    *   Captura en tiempo real con desglose detallado de cabeceras (Flags TCP, Números de Secuencia/Ack, Window Size).
-    *   Visualización hexadecimal del payload.
-2.  **Visualizador de Ventana Deslizante (Sliding Window):**
-    *   Gráfico en tiempo real que muestre los bytes en vuelo, la ventana de recepción y los ACKs.
-    *   Fundamental para explicar el Control de Flujo en TCP.
-3.  **Estadísticas de Capa 4 (Transporte):**
-    *   Panel de métricas en vivo: RTT (Round Trip Time), Jitter, Throughput real vs teórico, y conteo de retransmisiones.
-4.  **Simulación de "Man-in-the-Middle" (MITM):**
-    *   Modo especial donde la app actúa como proxy, permitiendo interceptar y modificar paquetes al vuelo (ej: Bit Flipping) para probar la robustez del receptor.
-5.  **Auto-Descubrimiento (UDP Broadcast):**
-    *   Botón "Escanear Red" que envía un broadcast UDP para encontrar otros nodos activos sin necesidad de ingresar IPs manualmente.
-6.  **Inspección de Flujo estilo Wireshark:**
-    *   Interfaz dedicada para ver la secuencia completa de la conversación (Handshake SYN/ACK, Transferencia, FIN) de forma legible y estructurada.
+## Consecuencias
+### Positivas
+- Se cubren los objetivos académicos principales (TCP/UDP, integridad, operación Tx/Rx).
+- El proyecto suma extras relevantes para análisis y demostración.
 
-### Experiencia de Usuario (Premium)
-7.  **Transferencia de Múltiples Archivos (Batch):**
-    *   Soporte para seleccionar y enviar múltiples archivos secuencialmente.
-    *   Cola de archivos visual con estado por item.
-8.  **Historial de Transferencias Persistente:**
-    *   Registro local de archivos enviados y recibidos.
-    *   Persistencia entre sesiones.
-9.  **Panel de Estadísticas Avanzado:**
-    *   Dashboard dedicado con gráficos de throughput históricos.
-    *   Tarjetas de KPI (Bytes, Tiempo, Velocidad Promedio).
-10. **Configuración Avanzada de Transmisión:**
-    *   Selector de tamaño de chunk (Buffer Size) de 1KB a 64KB.
-    *   Slider de delay artificial para simular latencia.
+### Negativas
+- La verificación de integridad en receptor no está acoplada automáticamente al cierre de recepción; hoy es una acción explícita desde UI.

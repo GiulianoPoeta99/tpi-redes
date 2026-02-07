@@ -1,20 +1,31 @@
 # 006 - Integración de Packet Sniffer
 
+## Estado
+Aceptado
+
 ## Contexto
-Una de las funcionalidades "Extra" más importantes es la capacidad de inspeccionar el tráfico en tiempo real, similar a Wireshark, para entender qué está pasando "por los cables".
+La captura en tiempo real es clave para visualizar flags TCP, secuencias y flujo durante transferencias.
 
 ## Decisión
-Utilizar `scapy.sendrecv.AsyncSniffer` para captura no bloqueante.
+El sniffer se ejecuta como **subproceso privilegiado separado** del proceso principal de transferencia.
 
-### Detalles Técnicos
-1.  **Librería:** `scapy` es el estándar de facto en Python para manipulación de paquetes.
-2.  **Ejecución:** El sniffer correrá en un hilo separado (background) para no congelar la CLI ni la transferencia de archivos.
-3.  **Filtros:** Se aplicarán filtros BPF (Berkeley Packet Filter) estrictos (ej: `tcp port 8080 or udp port 8080`) para evitar "ruido" de otras aplicaciones.
-4.  **Parsing:** Se extraerán campos clave de las capas IP, TCP y UDP:
-    *   IP Src/Dst
-    *   TCP Flags (SYN, ACK, FIN, PSH)
-    *   Seq/Ack Numbers
-    *   Payload Hexdump (primeros N bytes)
+## Diseño adoptado
+1.  El backend principal lanza un proceso de sniffer dedicado cuando se activa `--sniff`.
+2.  En Linux, la elevación se realiza con `pkexec`.
+3.  El sniffer emite eventos JSON por stdout (`PACKET_CAPTURE`, `SNIFFER_ERROR`).
+4.  Electron reenvía esos eventos al renderer para visualización en tiempo real.
+5.  Si no hay elevación o dependencias, la transferencia continúa y se notifica error de sniffer.
 
 ## Justificación
-Permite visualizar el "Handshake" TCP y el flujo de datos UDP en tiempo real, cumpliendo con el objetivo educativo de visualizar conceptos de redes.
+- Aísla privilegios de captura del resto de la aplicación.
+- Evita bloquear el flujo Tx/Rx por fallos de sniffing.
+- Mejora robustez frente a cancelaciones de autenticación.
+
+## Consecuencias
+### Positivas
+- Menor acoplamiento entre transferencia y observabilidad.
+- Mejor manejo de errores de permisos.
+
+### Negativas
+- Depende del stack del host (`pkexec`, `polkit`, `libpcap/npcap`).
+- Introduce complejidad extra de procesos y sincronización de salida.

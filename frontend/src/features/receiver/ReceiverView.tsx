@@ -109,7 +109,6 @@ const ReceiverView: React.FC<ReceiverViewProps> = ({ setBusy, setHeaderContent }
         await window.api.startServer({
           port: Number(port),
           protocol,
-          saveDir: './received_files',
           sniff: true,
           interface: netInterface,
         });

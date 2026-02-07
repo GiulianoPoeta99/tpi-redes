@@ -1,73 +1,68 @@
-# React + TypeScript + Vite
+# Frontend - TPI Redes (Electron + React)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación de escritorio para operar el backend de transferencia (Tx/Rx/MITM) desde una UI.
 
-Currently, two official plugins are available:
+## Stack
+- Electron
+- React + TypeScript + Vite
+- Tailwind CSS
+- Biome + Vitest
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Requisitos
+- Node.js `18+`
+- npm
+- Backend Python preparado en `../backend`
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Instalación
+```bash
+cd frontend
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Desarrollo
+```bash
+npm run dev:electron
 ```
+
+Esto levanta:
+- Vite dev server (renderer)
+- Electron main process
+
+## Scripts principales
+- `npm run build:renderer`: build de React/Vite.
+- `npm run compile:electron`: compila `electron/main.ts` y `preload.ts`.
+- `npm run lint`: Biome check.
+- `npm run test`: Vitest.
+- `npm run build:backend:linux`: genera backend standalone con PyInstaller.
+- `npm run build:appimage`: build completo AppImage para arquitectura local Linux.
+
+## Integración con backend
+La UI no habla HTTP con backend.
+
+Electron ejecuta comandos CLI del backend y consume eventos JSON por stdout/stderr:
+- `TRANSFER_UPDATE`
+- `SERVER_READY`
+- `PACKET_CAPTURE`
+- `SNIFFER_ERROR`
+
+## Build AppImage (Linux)
+```bash
+cd frontend
+npm run build:appimage
+```
+
+Artefacto:
+- `frontend/release/tpi-redes-<version>-<arch>.AppImage`
+
+## Runtime en producción
+Al ejecutar AppImage:
+- runtime backend: `~/.tpi-redes/backend-runtime`
+- archivos recibidos: `~/.tpi-redes/received_files`
+
+## Troubleshooting
+- Warning `vaInitialize failed`: suele ser no bloqueante (aceleración de video).
+- Sniffer requiere `pkexec` + `polkit` + libpcap.
+- Si no detecta peers o no conecta entre PCs, revisar firewall/puertos:
+  - recepción: `8080` (default, TCP/UDP según protocolo),
+  - discovery: `37020/udp`,
+  - MITM: `8081` (default, TCP/UDP).
