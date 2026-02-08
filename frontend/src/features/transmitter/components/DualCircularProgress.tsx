@@ -29,7 +29,7 @@ const DualCircularProgress: React.FC<DualCircularProgressProps> = ({
           size={192}
           progress={batchProgress}
           strokeWidth={6}
-          className="text-mode-tx transition-all duration-300 ease-linear"
+          className="text-blue-600 transition-all duration-300 ease-linear"
         />
       </div>
 
@@ -38,7 +38,7 @@ const DualCircularProgress: React.FC<DualCircularProgressProps> = ({
           size={128}
           progress={fileProgress}
           strokeWidth={8}
-          className="text-proto-tcp transition-all duration-300 ease-out"
+          className="text-cyan-500 transition-all duration-300 ease-out"
         >
           <span className="text-xl font-bold font-mono text-white">
             {Math.round(fileProgress)}%

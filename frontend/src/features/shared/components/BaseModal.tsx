@@ -46,11 +46,11 @@ const BaseModal: React.FC<BaseModalProps> = ({
     lg: 'max-w-2xl',
     xl: 'max-w-4xl',
     '2xl': 'max-w-6xl',
-    full: 'max-w-[95%] h-[90%]',
+    full: 'max-w-[95%] h-[90dvh]',
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       <button
         type="button"
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-default w-full h-full border-0 p-0"
@@ -59,7 +59,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
       />
 
       <div
-        className={`relative w-full ${sizeClasses[size]} bg-gray-900/95 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+        className={`relative w-full ${sizeClasses[size]} bg-gray-900/95 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0 bg-gray-900/50">
           <div className="flex items-center gap-3">
@@ -86,7 +86,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
+        <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
       </div>
     </div>
   );

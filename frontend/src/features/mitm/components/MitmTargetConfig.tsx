@@ -39,8 +39,8 @@ const MitmTargetConfig: React.FC<MitmTargetConfigProps> = ({
 }) => {
   return (
     <InputGroup label="Forward Target" indicatorColor="bg-blue-500" className="h-full">
-      <div className="flex items-end gap-2 w-full">
-        <div className="flex-1 min-w-[140px]">
+      <div className="grid w-full grid-cols-1 sm:grid-cols-[minmax(0,1fr)_6rem_auto] gap-2 items-end">
+        <div className="min-w-0">
           <span className="text-xs text-gray-400 block mb-1">Target Host / IP</span>
           <IpInput
             value={targetIp}
@@ -50,7 +50,7 @@ const MitmTargetConfig: React.FC<MitmTargetConfigProps> = ({
             placeholder={DEFAULT_HOST}
           />
         </div>
-        <div className="w-24 shrink-0">
+        <div className="min-w-0">
           <span className="text-xs text-gray-400 block mb-1">Port</span>
           <PortInput
             value={targetPort}
@@ -64,7 +64,7 @@ const MitmTargetConfig: React.FC<MitmTargetConfigProps> = ({
           size="icon"
           onClick={onScanClick}
           disabled={disabled}
-          className="text-blue-400 border-gray-600 shrink-0 h-[42px] w-[42px]"
+          className="text-blue-400 border-gray-600 shrink-0 h-10 w-10"
           title="Scan Network"
           icon={<Search size={18} />}
         />

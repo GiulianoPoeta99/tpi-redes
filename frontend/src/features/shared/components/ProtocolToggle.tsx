@@ -34,8 +34,8 @@ const ProtocolToggle: React.FC<ProtocolToggleProps> = ({
       className={className}
       activeColor={(p) =>
         p === 'tcp'
-          ? 'bg-proto-tcp text-white shadow-lg shadow-proto-tcp/20'
-          : 'bg-proto-udp text-white shadow-lg shadow-proto-udp/20'
+          ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'
+          : 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
       }
     />
   );

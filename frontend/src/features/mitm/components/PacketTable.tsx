@@ -18,8 +18,8 @@ interface PacketTableProps {
  */
 const PacketTable: React.FC<PacketTableProps> = ({ packets }) => {
   const getProtocolClass = (proto: string) => {
-    if (proto === 'TCP') return 'text-proto-tcp';
-    if (proto === 'UDP') return 'text-proto-udp';
+    if (proto === 'TCP') return 'text-cyan-500';
+    if (proto === 'UDP') return 'text-orange-500';
     return 'text-gray-300';
   };
 
@@ -65,13 +65,7 @@ const PacketTable: React.FC<PacketTableProps> = ({ packets }) => {
             </>
           )}
           components={{
-            Table: (props) => (
-              <table
-                {...props}
-                className="w-full border-collapse"
-                style={{ tableLayout: 'fixed' }}
-              />
-            ),
+            Table: (props) => <table {...props} className="w-full border-collapse table-fixed" />,
             TableRow: (props: React.ComponentPropsWithoutRef<'tr'> & { item: Packet }) => (
               <tr
                 {...props}

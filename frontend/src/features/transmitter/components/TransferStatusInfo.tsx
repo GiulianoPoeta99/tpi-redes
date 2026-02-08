@@ -33,12 +33,12 @@ const TransferStatusInfo: React.FC<TransferStatusInfoProps> = ({
 }) => {
   return (
     <div className="mt-8 text-center">
-      <p className="text-proto-tcp animate-pulse font-medium tracking-wide mb-1">
+      <p className="text-cyan-500 animate-pulse font-medium tracking-wide mb-1">
         SENDING FILE {currentFileIndex + 1} OF {totalFiles}
       </p>
       <p className="text-sm text-gray-400 font-mono truncate max-w-xs mx-auto">{currentFilename}</p>
 
-      <div className="mt-2 text-xs text-mode-tx font-mono">
+      <div className="mt-2 text-xs text-blue-600 font-mono">
         Batch Progress: {Math.round(batchProgress)}%
       </div>
     </div>

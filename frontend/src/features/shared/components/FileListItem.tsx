@@ -67,8 +67,8 @@ const FileListItem: React.FC<FileListItemProps> = ({
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: has role, tabIndex and keyboard handler
     <div
-      className={`group bg-glass-surface backdrop-blur-sm border border-white/5 p-3 rounded-lg flex items-center justify-between transition-colors w-full text-left relative ${
-        onClick ? 'hover:bg-glass-hover cursor-pointer' : ''
+      className={`group bg-white/5 backdrop-blur-sm border border-white/5 p-3 rounded-lg flex items-center justify-between transition-colors w-full text-left relative ${
+        onClick ? 'hover:bg-white/10 cursor-pointer' : ''
       } ${className}`}
       onClick={onClick}
       onKeyDown={handleKeyDown}

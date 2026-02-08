@@ -39,33 +39,35 @@ const PortProtocolConfig: React.FC<PortProtocolConfigProps> = ({
 }) => {
   return (
     <InputGroup label="Port & Protocol">
-      <div className="flex-1 min-w-[90px]">
-        <span className="text-xs text-gray-400 block mb-1">Port</span>
-        <PortInput
-          value={port}
-          onChange={setPort}
-          placeholder="8080"
-          disabled={disabled}
-          className="w-full"
-        />
-      </div>
-      <div className="flex-[1.5] min-w-[120px]">
-        <span className="text-xs text-gray-400 block mb-1">Protocol</span>
-        <ProtocolToggle
-          protocol={protocol}
-          onChange={setProtocol}
-          disabled={disabled}
-          className="w-full"
-        />
-      </div>
-      <div className="flex-[2] min-w-[150px]">
-        <span className="text-xs text-gray-400 block mb-1">Interface</span>
-        <InterfaceSelector
-          value={interfaceVal}
-          onChange={setInterfaceVal}
-          disabled={disabled}
-          className="w-full"
-        />
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="min-w-0">
+          <span className="text-xs text-gray-400 block mb-1">Port</span>
+          <PortInput
+            value={port}
+            onChange={setPort}
+            placeholder="8080"
+            disabled={disabled}
+            className="w-full"
+          />
+        </div>
+        <div className="min-w-0">
+          <span className="text-xs text-gray-400 block mb-1">Protocol</span>
+          <ProtocolToggle
+            protocol={protocol}
+            onChange={setProtocol}
+            disabled={disabled}
+            className="w-full"
+          />
+        </div>
+        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+          <span className="text-xs text-gray-400 block mb-1">Interface</span>
+          <InterfaceSelector
+            value={interfaceVal}
+            onChange={setInterfaceVal}
+            disabled={disabled}
+            className="w-full"
+          />
+        </div>
       </div>
     </InputGroup>
   );

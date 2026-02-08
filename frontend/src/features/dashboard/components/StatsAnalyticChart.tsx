@@ -45,7 +45,7 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
     : '';
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 flex-1 w-full flex flex-col min-h-0 relative max-h-[500px]">
+    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 sm:p-4 border border-white/10 flex-1 w-full flex flex-col min-h-0 relative max-h-[60dvh] xl:max-h-[500px]">
       <div className="flex justify-between items-end mb-2 shrink-0">
         <h3 className="text-sm font-semibold text-white flex items-center gap-2">
           <BarChart3 size={16} className="text-gray-400" />
@@ -165,10 +165,10 @@ const StatsAnalyticChart: React.FC<StatsAnalyticChartProps> = ({ history, maxThr
 
             {hoveredIndex !== null && history[hoveredIndex] && (
               <div
-                className="absolute pointer-events-none z-10 bg-gray-900/95 border border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-sm text-xs w-48 transition-all left-0"
+                className="absolute pointer-events-none z-10 bg-gray-900/95 border border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-sm text-xs w-44 sm:w-48 max-w-[calc(100%-1rem)] transition-all left-0"
                 style={{
                   top: '10%',
-                  left: `clamp(10px, ${(getX(hoveredIndex) / chartWidth) * 100}%, calc(100% - 200px))`,
+                  left: `clamp(10px, ${(getX(hoveredIndex) / chartWidth) * 100}%, calc(100% - 12rem))`,
                 }}
               >
                 <p className="font-bold text-white truncate mb-1">

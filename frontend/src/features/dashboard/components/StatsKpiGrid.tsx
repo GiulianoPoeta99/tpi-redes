@@ -28,7 +28,7 @@ const StatsKpiGrid: React.FC<StatsKpiGridProps> = ({
   avgThroughput,
 }) => {
   return (
-    <div className="grid grid-cols-4 gap-4 shrink-0">
+    <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 shrink-0">
       <KpiCard
         icon={<FileText size={16} />}
         label="Files Sent"

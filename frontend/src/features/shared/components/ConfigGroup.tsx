@@ -7,8 +7,8 @@ import type React from 'react';
  * @property icon - Optional icon to display in the header.
  * @property title - Optional title to display in the header.
  * @property children - The content of the group.
- * @property iconBgClass - Tailwind class for the icon background color. Defaults to 'bg-status-info-bg'.
- * @property iconColorClass - Tailwind class for the icon text color. Defaults to 'text-status-info-text'.
+ * @property iconBgClass - Tailwind class for the icon background color. Defaults to 'bg-blue-500/10'.
+ * @property iconColorClass - Tailwind class for the icon text color. Defaults to 'text-blue-400'.
  * @property className - Optional additional CSS classes.
  */
 interface ConfigGroupProps {
@@ -27,13 +27,13 @@ const ConfigGroup: React.FC<ConfigGroupProps> = ({
   icon: Icon,
   title,
   children,
-  iconBgClass = 'bg-status-info-bg',
-  iconColorClass = 'text-status-info-text',
+  iconBgClass = 'bg-blue-500/10',
+  iconColorClass = 'text-blue-400',
   className = '',
 }) => {
   return (
     <div
-      className={`bg-surface-panel border border-gray-700 rounded-2xl p-6 shadow-xl flex flex-col ${className}`}
+      className={`bg-gray-900/50 border border-gray-700 rounded-2xl p-6 shadow-xl flex flex-col ${className}`}
     >
       {(Icon || title) && (
         <div className="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">

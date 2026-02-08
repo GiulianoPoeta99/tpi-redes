@@ -54,7 +54,7 @@ const PayloadConfiguration: React.FC<PayloadConfigurationProps> = ({
     <ConfigGroup
       title="Payload Configuration"
       icon={FileText}
-      className="flex-1 min-h-[220px] flex flex-col"
+      className="flex-1 min-h-0 flex flex-col"
     >
       <FileSelectionConfig
         files={files}

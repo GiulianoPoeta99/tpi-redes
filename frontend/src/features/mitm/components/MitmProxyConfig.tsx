@@ -40,17 +40,17 @@ const MitmProxyConfig: React.FC<MitmProxyConfigProps> = ({
 }) => {
   return (
     <InputGroup label="Proxy Listener" indicatorColor="bg-green-500" className="h-full">
-      <div className="flex items-start gap-3 w-full">
-        <div className="w-[100px] shrink-0">
+      <div className="grid w-full grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(6rem,0.9fr)_minmax(0,1.8fr)_minmax(6rem,0.9fr)] gap-3 items-start">
+        <div className="min-w-0">
           <span className="text-xs text-gray-400 block mb-1">Proto</span>
           <ProtocolToggle
             protocol={protocol}
             onChange={onProtocolChange}
             disabled={disabled}
-            className="w-full h-[40px]"
+            className="w-full h-10"
           />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0">
           <span className="text-xs text-gray-400 block mb-1">Interface</span>
           <InterfaceSelector
             value={interfaceName || null}
@@ -59,7 +59,7 @@ const MitmProxyConfig: React.FC<MitmProxyConfigProps> = ({
             className="w-full"
           />
         </div>
-        <div className="w-24 shrink-0">
+        <div className="min-w-0 sm:col-span-2 xl:col-span-1">
           <span className="text-xs text-gray-400 block mb-1">Port</span>
           <PortInput
             value={listenPort}

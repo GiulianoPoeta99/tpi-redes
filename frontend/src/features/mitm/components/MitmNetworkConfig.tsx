@@ -35,8 +35,8 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
 }) => {
   return (
     <ConfigGroup title="Network Configuration" icon={Network}>
-      <div className="flex items-start gap-4">
-        <div className="w-[380px] shrink-0">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(4rem,0.35fr)_minmax(0,1fr)] xl:items-start">
+        <div className="min-w-0">
           <MitmProxyConfig
             listenPort={config.listenPort}
             onChange={(val) => setConfig({ ...config, listenPort: val })}
@@ -48,23 +48,7 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
           />
         </div>
 
-        <div className="flex-1 flex flex-col justify-center px-1 relative h-full pt-8 group min-w-[60px]">
-          <style>
-            {`
-              @keyframes flow-animation {
-                to {
-                  stroke-dashoffset: -20;
-                }
-              }
-              .flow-active {
-                animation: flow-animation 0.5s linear infinite;
-              }
-              .flow-attacking {
-                animation: flow-animation 0.2s linear infinite;
-              }
-            `}
-          </style>
-
+        <div className="min-w-0 flex flex-col justify-center px-1 relative h-full pt-2 xl:pt-8 group">
           <div className="relative w-full h-8 flex items-center">
             <div
               className={`w-1.5 h-1.5 rounded-full ${
@@ -102,11 +86,21 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
                 className={`transition-colors duration-300 ${
                   isRunning
                     ? isAttacking
-                      ? 'text-red-500 flow-attacking opacity-100'
-                      : 'text-green-500 flow-active opacity-80'
+                      ? 'text-red-500 opacity-100'
+                      : 'text-green-500 opacity-80'
                     : 'text-gray-700 opacity-30'
                 }`}
-              />
+              >
+                {isRunning && (
+                  <animate
+                    attributeName="stroke-dashoffset"
+                    from="0"
+                    to="-20"
+                    dur={isAttacking ? '0.2s' : '0.5s'}
+                    repeatCount="indefinite"
+                  />
+                )}
+              </line>
             </svg>
 
             {isRunning && (
@@ -123,7 +117,7 @@ const MitmNetworkConfig: React.FC<MitmNetworkConfigProps> = ({
           </div>
         </div>
 
-        <div className="w-[380px] shrink-0">
+        <div className="min-w-0">
           <MitmTargetConfig
             targetIp={config.targetIp}
             targetPort={config.targetPort}

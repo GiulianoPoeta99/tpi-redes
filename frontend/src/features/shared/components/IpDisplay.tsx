@@ -44,8 +44,8 @@ const IpDisplay: React.FC<IpDisplayProps> = ({
 
   const variants = {
     purple: {
-      container: 'bg-mode-rx-dim border-mode-rx/20',
-      label: 'text-mode-rx',
+      container: 'bg-purple-600/10 border-purple-600/20',
+      label: 'text-purple-600',
       dot: 'bg-green-500',
     },
     red: {
@@ -67,15 +67,15 @@ const IpDisplay: React.FC<IpDisplayProps> = ({
 
   const sizes = {
     sm: {
-      container: 'px-4 py-2 min-h-0',
+      container: 'px-3 sm:px-4 py-2 min-h-0',
       label: 'text-[10px] mb-0.5',
       value: 'text-sm font-bold',
       dot: 'w-1.5 h-1.5',
     },
     md: {
-      container: 'px-4 py-3 min-h-[74px]',
+      container: 'px-3 sm:px-4 py-2.5 sm:py-3 min-h-0',
       label: 'text-xs mb-1',
-      value: 'text-xl',
+      value: 'text-base sm:text-lg xl:text-xl',
       dot: 'w-2 h-2',
     },
   };
@@ -85,7 +85,7 @@ const IpDisplay: React.FC<IpDisplayProps> = ({
 
   return (
     <div
-      className={`border rounded-xl flex flex-col justify-center ${style.container} ${sizeStyle.container} ${className}`}
+      className={`border rounded-xl flex flex-col justify-center min-w-0 ${style.container} ${sizeStyle.container} ${className}`}
     >
       {showLabel && (
         <span className={`font-bold uppercase block ${style.label} ${sizeStyle.label}`}>
@@ -93,9 +93,9 @@ const IpDisplay: React.FC<IpDisplayProps> = ({
         </span>
       )}
       <span
-        className={`font-mono text-white tracking-wider flex items-center gap-2 ${sizeStyle.value}`}
+        className={`font-mono text-white tracking-wider flex items-center gap-2 min-w-0 ${sizeStyle.value}`}
       >
-        {ip}
+        <span className="truncate">{ip}</span>
         <div className={`rounded-full animate-pulse ${style.dot} ${sizeStyle.dot}`} />
       </span>
     </div>

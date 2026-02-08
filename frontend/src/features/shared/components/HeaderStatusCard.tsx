@@ -46,8 +46,8 @@ const HeaderStatusCard: React.FC<HeaderStatusCardProps> = ({
       subtitle: 'text-purple-200/60',
     },
     red: {
-      container: 'bg-gradient-to-r from-mode-mitm-dim to-orange-900/40 border-mode-mitm/30',
-      icon: 'text-mode-mitm',
+      container: 'bg-gradient-to-r from-red-600/10 to-orange-900/40 border-red-600/30',
+      icon: 'text-red-600',
       subtitle: 'text-red-200/60',
     },
   };
@@ -64,17 +64,17 @@ const HeaderStatusCard: React.FC<HeaderStatusCardProps> = ({
 
   return (
     <div
-      className={`h-full min-w-[400px] min-h-[74px] border px-4 py-3 rounded-xl flex items-center justify-between shadow-lg gap-6 ${config.container} ${className}`}
+      className={`h-full w-full min-w-0 xl:w-auto border px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl flex flex-wrap sm:flex-nowrap items-center justify-between shadow-lg gap-3 sm:gap-6 ${config.container} ${className}`}
     >
-      <div>
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+      <div className="min-w-0">
+        <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 truncate">
           <Icon className={config.icon} size={20} />
           {title}
         </h2>
-        <p className={`text-xs ${config.subtitle}`}>{subtitle}</p>
+        <p className={`text-[11px] sm:text-xs ${config.subtitle} truncate`}>{subtitle}</p>
       </div>
       <div
-        className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${statusStyles[status]}`}
+        className={`px-2.5 sm:px-3 py-1.5 rounded-lg border flex items-center gap-2 shrink-0 ${statusStyles[status]}`}
       >
         <Activity size={16} />
         <span className="font-mono font-bold text-xs">{statusLabel}</span>

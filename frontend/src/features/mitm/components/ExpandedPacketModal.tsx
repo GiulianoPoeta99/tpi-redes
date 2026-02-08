@@ -29,8 +29,8 @@ const ExpandedPacketModal: React.FC<ExpandedPacketModalProps> = ({ isOpen, onClo
   };
 
   const getProtocolClass = (proto: string) => {
-    if (proto === 'TCP') return 'text-proto-tcp font-bold';
-    if (proto === 'UDP') return 'text-proto-udp font-bold';
+    if (proto === 'TCP') return 'text-cyan-500 font-bold';
+    if (proto === 'UDP') return 'text-orange-500 font-bold';
     return 'text-gray-300';
   };
 
@@ -129,13 +129,7 @@ const ExpandedPacketModal: React.FC<ExpandedPacketModalProps> = ({ isOpen, onClo
             );
           }}
           components={{
-            Table: (props) => (
-              <table
-                {...props}
-                className="w-full border-collapse"
-                style={{ tableLayout: 'fixed' }}
-              />
-            ),
+            Table: (props) => <table {...props} className="w-full border-collapse table-fixed" />,
             TableRow: (props: React.ComponentPropsWithoutRef<'tr'> & { item: Packet }) => (
               <tr
                 {...props}

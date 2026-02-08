@@ -68,7 +68,7 @@ const StatCard: React.FC<{
  */
 const StatsPanel: React.FC<StatsPanelProps> = ({ stats }) => {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-2 gap-4 h-full">
       <StatCard label="Packets Sent" value={stats.totalSent} icon={ArrowUpCircle} color="blue" />
       <StatCard
         label="Data Sent"

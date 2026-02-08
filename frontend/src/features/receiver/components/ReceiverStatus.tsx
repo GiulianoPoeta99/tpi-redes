@@ -35,8 +35,8 @@ const ReceiverStatus: React.FC<ReceiverStatusProps> = ({
   lastFile,
 }) => {
   return (
-    <div className="flex-1 min-h-[250px] flex flex-col">
-      <div className="flex-1 bg-gray-900/50 rounded-2xl border border-gray-700/50 flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
+    <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-64 bg-gray-900/50 rounded-2xl border border-gray-700/50 flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
         {!isConnected ? (
           <div className="text-center group">
             <div className="relative inline-block">

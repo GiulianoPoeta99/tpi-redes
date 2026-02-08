@@ -22,6 +22,14 @@ export default {
           border: 'rgba(255, 255, 255, 0.10)',
           highlight: 'rgba(255, 255, 255, 0.20)',
         },
+        'mode-rx': '#9333ea',
+        'mode-rx-dim': 'rgba(147, 51, 234, 0.1)',
+        'mode-tx': '#2563eb',
+        'mode-tx-dim': 'rgba(37, 99, 235, 0.1)',
+        'mode-mitm': '#dc2626',
+        'mode-mitm-dim': 'rgba(220, 38, 38, 0.1)',
+        'proto-tcp': '#06b6d4',
+        'proto-udp': '#f97316',
         status: {
           success: {
             bg: 'rgba(34, 197, 94, 0.1)', // green-500/10
@@ -49,6 +57,17 @@ export default {
             border: 'rgba(107, 114, 128, 0.2)',
           },
         },
+      },
+      keyframes: {
+        flow: {
+          to: {
+            strokeDashoffset: '-20',
+          },
+        },
+      },
+      animation: {
+        'flow-normal': 'flow 0.5s linear infinite',
+        'flow-fast': 'flow 0.2s linear infinite',
       },
     },
   },

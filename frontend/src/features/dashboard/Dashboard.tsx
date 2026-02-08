@@ -189,14 +189,14 @@ const Dashboard: React.FC = () => {
       }
       sideContent={
         <>
-          <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-4 flex flex-col justify-center shrink-0">
+          <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl p-3 sm:p-4 flex flex-col justify-center shrink-0">
             <h3 className="text-gray-400 text-sm font-semibold mb-2 uppercase tracking-wider">
               Network Stats
             </h3>
             <StatsPanel stats={stats} />
           </div>
 
-          <div className="flex-1 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-0">
+          <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col min-h-[22rem] 2xl:min-h-0 2xl:flex-1">
             <SnifferLog logs={logs} mode={mode} />
           </div>
         </>

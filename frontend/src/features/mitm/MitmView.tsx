@@ -110,7 +110,7 @@ const MitmView: React.FC<{
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 overflow-y-auto">
+    <div className="h-full min-h-0 flex flex-col gap-4 overflow-y-auto">
       <ScanModal
         isOpen={discovery.isOpen}
         onClose={discovery.close}

@@ -27,18 +27,25 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
   className = '',
 }) => {
   const modes: Mode[] = ['receiver', 'transmitter', 'mitm'];
+  const labels: Record<Mode, { full: string; short: string }> = {
+    receiver: { full: 'Receiver', short: 'RX' },
+    transmitter: { full: 'Transmitter', short: 'TX' },
+    mitm: { full: 'MITM', short: 'MITM' },
+  };
 
   return (
-    <div className={`flex bg-black/20 border border-white/5 rounded-lg p-1 ${className}`}>
+    <div
+      className={`grid grid-cols-3 w-full xl:w-auto bg-black/20 border border-white/5 rounded-lg p-1 gap-1 ${className}`}
+    >
       {modes.map((m) => {
         const isActive = currentMode === m;
         let activeClass = '';
         if (isActive) {
-          if (m === 'receiver') activeClass = 'bg-mode-rx text-white shadow-lg shadow-mode-rx/20';
+          if (m === 'receiver')
+            activeClass = 'bg-purple-600 text-white shadow-lg shadow-purple-600/20';
           else if (m === 'transmitter')
-            activeClass = 'bg-mode-tx text-white shadow-lg shadow-mode-tx/20';
-          else if (m === 'mitm')
-            activeClass = 'bg-mode-mitm text-white shadow-lg shadow-mode-mitm/20';
+            activeClass = 'bg-blue-600 text-white shadow-lg shadow-blue-600/20';
+          else if (m === 'mitm') activeClass = 'bg-red-600 text-white shadow-lg shadow-red-600/20';
         }
 
         return (
@@ -47,7 +54,8 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
             key={m}
             disabled={isBusy}
             onClick={() => onModeChange(m)}
-            className={`px-6 py-2 rounded-md text-sm font-bold transition-all duration-300 ${
+            title={labels[m].full}
+            className={`min-w-0 px-2 sm:px-3 lg:px-4 xl:px-6 py-2 rounded-md text-[11px] sm:text-xs xl:text-sm font-bold transition-all duration-300 overflow-hidden flex items-center justify-center gap-1.5 ${
               isActive
                 ? activeClass
                 : isBusy
@@ -55,8 +63,11 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            {m.charAt(0).toUpperCase() + m.slice(1)}
-            {isBusy && currentMode === m && <span className="ml-2 text-xs">🔒</span>}
+            <span className="truncate hidden sm:inline">{labels[m].full}</span>
+            <span className="truncate sm:hidden">{labels[m].short}</span>
+            {isBusy && currentMode === m && (
+              <span className="hidden lg:inline text-[10px]">🔒</span>
+            )}
           </button>
         );
       })}

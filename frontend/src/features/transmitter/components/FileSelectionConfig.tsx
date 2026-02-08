@@ -30,7 +30,7 @@ interface FileSelectionConfigProps {
  */
 const FileSelectionConfig: React.FC<FileSelectionConfigProps> = (props) => {
   return (
-    <ControlContainer title="Input Files" className="flex-1 flex flex-col min-h-[140px]">
+    <ControlContainer title="Input Files" className="flex-1 min-h-0 flex flex-col">
       <div className="flex-1 flex flex-col justify-center">
         <FileDropInput {...props} />
       </div>

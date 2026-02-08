@@ -32,7 +32,7 @@ const StatsHistoryList: React.FC<StatsHistoryListProps> = ({ history }) => {
           >
             <div className="flex justify-between items-start mb-0.5">
               <span
-                className="font-medium text-gray-300 text-xs truncate max-w-[120px]"
+                className="font-medium text-gray-300 text-xs truncate min-w-0"
                 title={h.filename}
               >
                 {h.filename}
