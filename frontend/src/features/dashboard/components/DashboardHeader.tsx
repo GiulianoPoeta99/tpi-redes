@@ -73,9 +73,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </div>
         </div>
 
-        <div className="flex w-full 2xl:w-auto flex-col lg:flex-row items-stretch gap-3 sm:gap-4 min-w-0">
-          <IpDisplay variant="gray" size="sm" className="h-full w-full lg:w-auto" />
-          <div className="w-full min-w-0">{headerContent}</div>
+        <div className="flex w-full 2xl:w-auto flex-col lg:flex-row items-stretch gap-3 sm:gap-4 min-w-0 2xl:shrink-0">
+          <IpDisplay variant="gray" className="h-full w-full lg:w-auto 2xl:min-w-52 shrink-0" />
+          <div className="w-full min-w-0 2xl:w-auto">{headerContent}</div>
         </div>
       </div>
     </header>
